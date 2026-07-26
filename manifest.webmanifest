@@ -1,0 +1,17 @@
+{
+  "name": "v10.1 라이브 계좌",
+  "short_name": "v10.1",
+  "description": "바이낸스 실잔고 · 크립토 추세+마켓뉴트럴 봇 대시보드",
+  "start_url": "./?src=pwa",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#0e1114",
+  "theme_color": "#0e1114",
+  "orientation": "portrait-primary",
+  "icons": [
+    {"src": "icon-192.png", "sizes": "192x192", "type": "image/png"},
+    {"src": "icon-512.png", "sizes": "512x512", "type": "image/png"},
+    {"src": "icon-192-maskable.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable"},
+    {"src": "icon-512-maskable.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable"}
+  ]
+}

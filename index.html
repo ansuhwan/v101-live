@@ -1,0 +1,269 @@
+<title>라이브 계좌 · v10.1 (바이낸스 실잔고)</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0e1114">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="v10.1">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" href="icon-192.png">
+<style>
+  :root{
+    --bg:#f6f5f1;--surface:#fff;--surface-2:#f0eee8;--line:#e5e2da;
+    --ink:#15181d;--ink-2:#565d67;--ink-3:#8b929b;
+    --accent:#b9781a;--pos:#0f9d63;--neg:#cf3f3a;--grid:rgba(0,0,0,.06);
+    --shadow:0 1px 2px rgba(0,0,0,.05),0 8px 24px rgba(0,0,0,.05);
+  }
+  @media (prefers-color-scheme:dark){:root{
+    --bg:#0e1114;--surface:#161b21;--surface-2:#1b222b;--line:#242c36;
+    --ink:#eef2f7;--ink-2:#a4aebb;--ink-3:#68727f;
+    --accent:#f0a92b;--pos:#21b07d;--neg:#e2544f;--grid:rgba(255,255,255,.055);
+    --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 30px rgba(0,0,0,.35);}}
+  :root[data-theme="dark"]{
+    --bg:#0e1114;--surface:#161b21;--surface-2:#1b222b;--line:#242c36;
+    --ink:#eef2f7;--ink-2:#a4aebb;--ink-3:#68727f;
+    --accent:#f0a92b;--pos:#21b07d;--neg:#e2544f;--grid:rgba(255,255,255,.055);
+    --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 30px rgba(0,0,0,.35);}
+  :root[data-theme="light"]{
+    --bg:#f6f5f1;--surface:#fff;--surface-2:#f0eee8;--line:#e5e2da;
+    --ink:#15181d;--ink-2:#565d67;--ink-3:#8b929b;
+    --accent:#b9781a;--pos:#0f9d63;--neg:#cf3f3a;--grid:rgba(0,0,0,.06);
+    --shadow:0 1px 2px rgba(0,0,0,.05),0 8px 24px rgba(0,0,0,.05);}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+    line-height:1.5;-webkit-font-smoothing:antialiased;padding:clamp(16px,3vw,40px)}
+  .mono{font-family:ui-monospace,"SF Mono","Cascadia Code",Menlo,monospace;font-variant-numeric:tabular-nums}
+  .wrap{max-width:880px;margin:0 auto}
+  header{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap;margin-bottom:22px}
+  .title{font-size:clamp(22px,3.4vw,30px);font-weight:680;letter-spacing:-.02em;line-height:1.1}
+  .title .v{color:var(--accent)}
+  .sub{color:var(--ink-2);font-size:13.5px;margin-top:6px;max-width:54ch}
+  .live{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--ink-2);font-weight:560;
+    border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:5px 11px}
+  .dot{width:7px;height:7px;border-radius:50%;background:var(--pos);box-shadow:0 0 0 0 var(--pos);animation:pulse 2s infinite}
+  @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(33,176,125,.5)}70%{box-shadow:0 0 0 7px rgba(33,176,125,0)}100%{box-shadow:0 0 0 0 rgba(33,176,125,0)}}
+  @media (prefers-reduced-motion){.dot{animation:none}}
+  .icon-btn{width:34px;height:34px;border:1px solid var(--line);background:var(--surface);border-radius:9px;cursor:pointer;color:var(--ink-2);font-size:15px;display:grid;place-items:center}
+
+  .hero{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:22px 24px;margin-bottom:16px;box-shadow:var(--shadow);
+    display:grid;grid-template-columns:1.1fr 1fr;gap:20px;align-items:center}
+  @media(max-width:640px){.hero{grid-template-columns:1fr}}
+  .bal-lab{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-3);font-weight:600}
+  .bal{font-size:clamp(38px,8vw,60px);font-weight:680;letter-spacing:-.03em;line-height:1;margin:6px 0 2px}
+  .bal small{font-size:.42em;color:var(--ink-3);font-weight:600;letter-spacing:0}
+  .asof{font-size:12px;color:var(--ink-3)}
+  .deltas{display:flex;gap:22px;margin-top:14px}
+  .delta .dl{font-size:11px;color:var(--ink-3);text-transform:uppercase;letter-spacing:.05em;font-weight:600}
+  .delta .dv{font-size:20px;font-weight:640;margin-top:3px}
+  .pos{color:var(--pos)} .neg{color:var(--neg)}
+  .spark{width:100%}
+
+  .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px}
+  @media(max-width:640px){.grid3{grid-template-columns:1fr}}
+  .card{background:var(--surface);border:1px solid var(--line);border-radius:13px;padding:15px 16px;box-shadow:var(--shadow)}
+  .card h3{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-3);font-weight:600;margin-bottom:9px}
+  .row{display:flex;justify-content:space-between;align-items:baseline;gap:10px;padding:4px 0;font-size:13.5px}
+  .row+.row{border-top:1px solid var(--line)}
+  .row .k{color:var(--ink-2)} .row .val{font-weight:600}
+  .ok{color:var(--pos)} .warnc{color:var(--accent)}
+  .badge{display:inline-block;font-size:11px;font-weight:600;padding:2px 8px;border-radius:6px;background:var(--surface-2);color:var(--ink-2)}
+
+  .ledger{background:var(--surface);border:1px solid var(--line);border-radius:13px;padding:16px;box-shadow:var(--shadow);margin-bottom:16px}
+  .ledger h3{font-size:13px;font-weight:620;margin-bottom:2px}
+  .ledger .note{font-size:12px;color:var(--ink-3);margin-bottom:10px}
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th,td{text-align:right;padding:7px 6px;font-family:ui-monospace,monospace;font-variant-numeric:tabular-nums}
+  th{font-size:11px;color:var(--ink-3);text-transform:uppercase;letter-spacing:.04em;font-weight:600;border-bottom:1px solid var(--line)}
+  td:first-child,th:first-child{text-align:left}
+  tr td{border-bottom:1px solid var(--line)}
+  tr:last-child td{border-bottom:0}
+
+  .plan{background:var(--surface);border:1px solid var(--line);border-radius:13px;padding:16px;box-shadow:var(--shadow);margin-bottom:16px}
+  .plan h3{font-size:13px;font-weight:620;margin-bottom:3px}
+  .plan .note{font-size:12px;color:var(--ink-3);margin-bottom:12px}
+  .planstats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+  @media(max-width:560px){.planstats{grid-template-columns:repeat(2,1fr)}}
+  .ps{background:var(--surface-2);border-radius:9px;padding:10px 12px}
+  .ps .l{font-size:10.5px;color:var(--ink-3);text-transform:uppercase;letter-spacing:.05em;font-weight:600}
+  .ps .v{font-size:18px;font-weight:640;margin-top:3px}
+  .foot{color:var(--ink-3);font-size:12px;line-height:1.6;margin-top:6px}
+  .foot b{color:var(--ink-2)}
+  .axlab{fill:var(--ink-3);font-size:10px;font-family:ui-monospace,monospace}
+  .hm{display:grid;grid-template-columns:34px repeat(12,1fr);gap:3px;margin-top:14px;min-width:520px}
+  .hm .h{font-size:10px;color:var(--ink-3);text-align:center;padding:2px 0;font-weight:600}
+  .hm .yl{font-size:11px;color:var(--ink-2);display:flex;align-items:center;font-weight:600}
+  .cell{aspect-ratio:1.3;border-radius:5px;display:grid;place-items:center;font-size:10px;font-weight:600;
+    color:var(--ink);font-family:ui-monospace,monospace;font-variant-numeric:tabular-nums;background:var(--surface-2)}
+  .cell.hot{color:#fff} .cell.empty{background:transparent}
+  .cell.inprog{outline:1.5px dashed var(--ink-3);outline-offset:-1.5px}
+  .hlegend{display:flex;align-items:center;gap:6px;margin-top:11px;font-size:11px;color:var(--ink-3);flex-wrap:wrap}
+  .swatch{width:12px;height:12px;border-radius:3px;display:inline-block}
+  .spin{animation:spin .6s linear}@keyframes spin{to{transform:rotate(360deg)}}
+  @media (prefers-reduced-motion){.spin{animation:none}}
+</style>
+
+<div class="wrap">
+  <header>
+    <div>
+      <div class="title"><span class="v">라이브 계좌</span> · v10.1</div>
+      <div class="sub">바이낸스 선물 실잔고 (총 마진잔고 = 지갑 + 미실현손익). 봇이 매일 09:05 KST 기록한 원장 + 실시간 스냅샷.</div>
+    </div>
+    <div style="display:flex;gap:8px;align-items:center">
+      <span class="live"><span class="dot"></span> LIVE</span>
+      <button class="icon-btn" id="refresh" title="새로고침">↻</button>
+      <button class="icon-btn" id="theme" title="테마">◑</button>
+    </div>
+  </header>
+
+  <div class="hero">
+    <div>
+      <div class="bal-lab">현재 잔고</div>
+      <div class="bal mono" id="bal"></div>
+      <div class="asof" id="asof"></div>
+      <div class="deltas">
+        <div class="delta"><div class="dl">이번 달 (MTD)</div><div class="dv mono" id="mtd"></div></div>
+        <div class="delta"><div class="dl">전일 대비</div><div class="dv mono" id="d1"></div></div>
+      </div>
+    </div>
+    <div class="spark" id="spark"></div>
+  </div>
+
+  <div class="grid3">
+    <div class="card">
+      <h3>현재 전략</h3>
+      <div class="row"><span class="k">가동중</span><span class="val" id="stratnow">v8.1 · TV0.5</span></div>
+      <div class="row"><span class="k">v10.1 MN 개시</span><span class="val warnc" id="mncut">07-27 00:00 UTC</span></div>
+      <div class="row"><span class="k">전환</span><span class="val">TV0.6 + MN 동시</span></div>
+    </div>
+    <div class="card">
+      <h3>안전 상태</h3>
+      <div class="row"><span class="k">증거금 여유</span><span class="val ok" id="mratio"></span></div>
+      <div class="row"><span class="k">gross 노출</span><span class="val" id="grossx"></span></div>
+      <div class="row"><span class="k">gross 하드캡</span><span class="val ok">6배 ✓ 활성</span></div>
+    </div>
+    <div class="card">
+      <h3>이번 달 손익</h3>
+      <div class="row"><span class="k">7월 시작</span><span class="val mono" id="mstart"></span></div>
+      <div class="row"><span class="k">현재</span><span class="val mono" id="mnow"></span></div>
+      <div class="row"><span class="k">손익</span><span class="val mono" id="mpnl"></span></div>
+    </div>
+  </div>
+
+  <div class="ledger">
+    <h3>일별 잔고 원장</h3>
+    <div class="note">봇이 기록한 실제 스냅샷 (09:05 KST). 실계좌 추적은 07-23 시작 — 아직 초기입니다.</div>
+    <table id="tbl"><thead><tr><th>날짜</th><th>잔고 (USDT)</th><th>전일 대비</th><th>MTD</th></tr></thead><tbody></tbody></table>
+  </div>
+
+  <div class="ledger">
+    <h3>실제 월별 수익 <span class="badge" style="color:var(--pos)">실현</span></h3>
+    <div class="note">바이낸스 실잔고 기준 월간 손익. 봇 추적이 07월 시작이라 지금은 7월 1칸(진행중)뿐 — 달이 끝날 때마다 확정되어 채워집니다.</div>
+    <div style="overflow-x:auto"><div class="hm" id="heatReal"></div></div>
+    <div class="hlegend"><span class="swatch" style="border:1.5px dashed var(--ink-3);background:transparent"></span>진행중 (미확정) <span style="margin-left:auto">달 종료 시 확정</span></div>
+  </div>
+
+  <div class="plan">
+    <h3>장기 백테 기준선 <span class="badge">계획 · 실현 아님</span></h3>
+    <div class="note">v10.1 TV0.6/CAP5/gross6, 2019~2026 일봉종가 백테. 실계좌가 앞으로 향하는 목표 궤적이지 보장은 아닙니다.</div>
+    <div class="planstats" id="planstats"></div>
+    <div style="font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-3);font-weight:600;margin-top:16px">월별 수익 % (백테)</div>
+    <div style="overflow-x:auto"><div class="hm" id="heat"></div></div>
+    <div class="hlegend">
+      <span class="swatch" style="background:var(--neg)"></span>손실
+      <span class="swatch" style="background:var(--surface-2)"></span>0 근처
+      <span class="swatch" style="background:var(--pos)"></span>이익
+      <span style="margin-left:auto">진할수록 폭 큼</span>
+    </div>
+    <div class="foot" style="margin-top:12px">
+      지금 실계좌는 <b id="softnote"></b> — 백테에서도 최근 몇 달은 소강/하락 구간이었고, 수익은 소수 폭발월에 몰립니다.
+      v10.1 MN은 내일부터라 지금까지 실적은 순수 v8.1(추세)입니다.
+    </div>
+  </div>
+
+  <div class="foot">
+    <b>주의</b> — 과거·백테 성과는 미래를 보장하지 않습니다. 실계좌 히스토리가 아직 며칠뿐이라 추세 판단엔 이릅니다.
+    봇이 잔고를 올리면 자동으로 최신화됩니다. 앱을 다시 열거나 아래 새로고침으로 갱신.
+  </div>
+</div>
+
+<script>
+const MONTHLY={"2019-09": 0.0, "2019-10": 0.0, "2019-11": 9.6, "2019-12": 29.9, "2020-01": 9.5, "2020-02": 55.5, "2020-03": 64.5, "2020-04": 1.6, "2020-05": 2.8, "2020-06": -6.3, "2020-07": 35.6, "2020-08": 8.4, "2020-09": 9.0, "2020-10": 20.1, "2020-11": 30.4, "2020-12": 39.7, "2021-01": 46.1, "2021-02": 23.6, "2021-03": -3.6, "2021-04": 9.9, "2021-05": 294.3, "2021-06": -0.0, "2021-07": 31.4, "2021-08": -2.2, "2021-09": 7.1, "2021-10": 12.1, "2021-11": 21.4, "2021-12": -20.8, "2022-01": 21.7, "2022-02": 19.6, "2022-03": -19.7, "2022-04": 4.9, "2022-05": 55.3, "2022-06": 73.7, "2022-07": 5.7, "2022-08": 2.1, "2022-09": -1.7, "2022-10": -11.7, "2022-11": 91.5, "2022-12": 1.7, "2023-01": 17.9, "2023-02": 24.5, "2023-03": 24.0, "2023-04": -10.3, "2023-05": -7.5, "2023-06": 34.8, "2023-07": -14.3, "2023-08": 12.3, "2023-09": -16.7, "2023-10": 42.3, "2023-11": 2.7, "2023-12": 53.1, "2024-01": 3.3, "2024-02": 108.5, "2024-03": 8.7, "2024-04": -10.5, "2024-05": -3.3, "2024-06": -2.4, "2024-07": 28.4, "2024-08": 16.5, "2024-09": -3.1, "2024-10": -17.1, "2024-11": 70.2, "2024-12": 44.1, "2025-01": -32.9, "2025-02": 59.0, "2025-03": -21.0, "2025-04": 18.9, "2025-05": 62.1, "2025-06": 5.6, "2025-07": 61.5, "2025-08": 14.7, "2025-09": 26.3, "2025-10": 0.1, "2025-11": -0.7, "2025-12": -0.9, "2026-01": 56.0, "2026-02": 37.9, "2026-03": 2.7, "2026-04": -7.1, "2026-05": 4.7, "2026-06": 104.3, "2026-07": -0.9}, PLAN={"cagr": 536, "mdd": -36.1, "sharpe": 2.03, "worst_month": -32.9}, FALLBACK={"balance": 786.1, "asof": "2026-07-26 15:15 UTC", "month_start": 847.24, "d1": 0.2, "margin_ratio": 0.1, "gross_x": 0.26, "strategy": "v8.1 · TV0.5", "mn_start": "07-27 00:00 UTC", "ledger": [{"label": "7-23", "eq": 788.8, "d1": null}, {"label": "7-24", "eq": 785.74, "d1": -0.39}, {"label": "7-25", "eq": 783.98, "d1": -0.22}, {"label": "7-26", "eq": 784.57, "d1": 0.08}, {"label": "현재", "eq": 786.1, "d1": 0.2}], "real_monthly": {"2026-07": -7.2}};
+let LIVE=FALLBACK, REAL_MONTHLY=FALLBACK.real_monthly||{};
+const $=s=>document.querySelector(s);
+const f2=v=>v.toFixed(2), sp=v=>(v>=0?'+':'')+v.toFixed(2)+'%', cls=v=>v>=0?'pos':'neg';
+const MON=['1','2','3','4','5','6','7','8','9','10','11','12'];
+function renderHeatInto(m,elId,inprog){
+  const el=document.getElementById(elId); if(!el)return;
+  const years=[...new Set(Object.keys(m).map(k=>+k.slice(0,4)))].sort();
+  let h='<div class="h"></div>'+MON.map(x=>`<div class="h">${x}</div>`).join('');
+  years.forEach(y=>{ h+=`<div class="yl">${y}</div>`;
+    for(let mo=1;mo<=12;mo++){ const key=y+'-'+String(mo).padStart(2,'0');
+      if(!(key in m)){h+='<div class="cell empty"></div>';continue;}
+      const v=m[key], a=Math.min(Math.abs(v)/(v>=0?55:40),1)*0.9+0.08;
+      const bg=`color-mix(in srgb, var(${v>=0?'--pos':'--neg'}) ${Math.round(a*100)}%, var(--surface-2))`;
+      const ip=key===inprog?' inprog':'';
+      h+=`<div class="cell${a>0.55?' hot':''}${ip}" style="background:${bg}" title="${key}: ${(v>=0?'+':'')+v.toFixed(1)}%${ip?' (진행중)':''}">${v>=0?'+':''}${Math.round(v)}</div>`;
+    }});
+  el.innerHTML=h;
+}
+function spark(){
+  const pts=LIVE.ledger, n=pts.length, W=440,H=150,PL=8,PR=8,PT=14,PB=22;
+  const eqs=pts.map(p=>p.eq), mn=Math.min(...eqs,LIVE.month_start), mx=Math.max(...eqs,LIVE.month_start);
+  const pad=(mx-mn)*0.15||1;
+  const X=i=>PL+(i/(n-1))*(W-PL-PR), Y=v=>PT+(1-(v-(mn-pad))/((mx+pad)-(mn-pad)))*(H-PT-PB);
+  const y0=Y(LIVE.month_start), up=pts[n-1].eq>=pts[0].eq, col=up?'var(--pos)':'var(--neg)';
+  const lp='M'+pts.map((p,i)=>X(i).toFixed(1)+' '+Y(p.eq).toFixed(1)).join(' L');
+  const ap=`M${X(0).toFixed(1)} ${(H-PB)} `+pts.map((p,i)=>'L'+X(i).toFixed(1)+' '+Y(p.eq).toFixed(1)).join(' ')+` L${X(n-1).toFixed(1)} ${(H-PB)} Z`;
+  const dots=pts.map((p,i)=>`<circle cx="${X(i).toFixed(1)}" cy="${Y(p.eq).toFixed(1)}" r="${i===n-1?4:2.5}" fill="${col}"/>`).join('');
+  $('#spark').innerHTML=`<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" style="width:100%;height:150px;overflow:visible">
+    <defs><linearGradient id="sg" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="${col}" stop-opacity=".22"/><stop offset="1" stop-color="${col}" stop-opacity="0"/></linearGradient></defs>
+    <line x1="${PL}" x2="${W-PR}" y1="${y0.toFixed(1)}" y2="${y0.toFixed(1)}" stroke="var(--ink-3)" stroke-width="1" stroke-dasharray="3 3" opacity=".6"/>
+    <text class="axlab" x="${W-PR}" y="${(y0-5).toFixed(1)}" text-anchor="end">시작 ${f2(LIVE.month_start)}</text>
+    <path d="${ap}" fill="url(#sg)"/><path d="${lp}" fill="none" stroke="${col}" stroke-width="2" stroke-linejoin="round"/>${dots}
+    <text class="axlab" x="${X(0).toFixed(1)}" y="${H-6}" text-anchor="start">${pts[0].label}</text>
+    <text class="axlab" x="${X(n-1).toFixed(1)}" y="${H-6}" text-anchor="end">현재</text></svg>`;
+}
+function render(){
+  $('#bal').innerHTML=f2(LIVE.balance)+' <small>USDT</small>';
+  $('#asof').textContent='기준 '+LIVE.asof;
+  const mtd=(LIVE.balance/LIVE.month_start-1)*100;
+  $('#mtd').innerHTML=`<span class="${cls(mtd)}">${sp(mtd)}</span>`;
+  $('#d1').innerHTML=`<span class="${cls(LIVE.d1)}">${sp(LIVE.d1)}</span>`;
+  $('#mratio').textContent=LIVE.margin_ratio.toFixed(1)+'% (청산 대비 여유 큼)';
+  $('#grossx').textContent=LIVE.gross_x.toFixed(2)+'배 (캡 6 여유)';
+  if(LIVE.strategy) $('#stratnow').textContent=LIVE.strategy;
+  if(LIVE.mn_start) $('#mncut').textContent=LIVE.mn_start;
+  $('#mstart').textContent=f2(LIVE.month_start); $('#mnow').textContent=f2(LIVE.balance);
+  const pnl=LIVE.balance-LIVE.month_start;
+  $('#mpnl').innerHTML=`<span class="${cls(pnl)}">${(pnl>=0?'+':'')+f2(pnl)}</span>`;
+  $('#softnote').textContent=`이번 달 ${sp(mtd)}`;
+  $('#tbl tbody').innerHTML=LIVE.ledger.map(r=>{
+    const d1=r.d1==null?'—':`<span class="${cls(r.d1)}">${sp(r.d1)}</span>`;
+    const m=(r.eq/LIVE.month_start-1)*100;
+    return `<tr><td>${r.label}</td><td>${f2(r.eq)}</td><td>${d1}</td><td><span class="${cls(m)}">${sp(m)}</span></td></tr>`;}).join('');
+  $('#planstats').innerHTML=[['CAGR','+'+PLAN.cagr+'%'],['최대낙폭',PLAN.mdd+'%'],['Sharpe',PLAN.sharpe],['최악월',PLAN.worst_month+'%']]
+    .map(([l,v])=>`<div class="ps"><div class="l">${l}</div><div class="v mono">${v}</div></div>`).join('');
+  renderHeatInto(MONTHLY,'heat',null);
+  renderHeatInto(REAL_MONTHLY,'heatReal',Object.keys(REAL_MONTHLY).sort().pop());
+  spark();
+}
+function applyData(d){
+  LIVE=Object.assign({},FALLBACK,d);
+  REAL_MONTHLY=d.real_monthly||REAL_MONTHLY;
+  render();
+}
+function refresh(){
+  const el=$('#refresh'); if(el){el.classList.add('spin');}
+  fetch('equity.json?t='+Date.now(),{cache:'no-store'}).then(r=>r.json()).then(d=>{applyData(d);})
+    .catch(()=>{}).finally(()=>{const e=$('#refresh'); if(e)setTimeout(()=>e.classList.remove('spin'),400);});
+}
+render();      // 즉시 폴백으로 그림
+refresh();     // 최신 equity.json 당김
+document.addEventListener('visibilitychange',()=>{ if(!document.hidden) refresh(); });
+$('#theme').addEventListener('click',()=>{const c=document.documentElement.getAttribute('data-theme');
+  document.documentElement.setAttribute('data-theme',c==='dark'?'light':c==='light'?'dark':(matchMedia('(prefers-color-scheme:dark)').matches?'light':'dark'));render();});
+const rf=$('#refresh'); if(rf) rf.addEventListener('click',refresh);
+addEventListener('resize',spark);
+if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js').catch(()=>{});}
+</script>
