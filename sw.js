@@ -1,5 +1,5 @@
 // v10.1 라이브 계좌 PWA 서비스워커
-const CACHE = "v101-live-v3";
+const CACHE = "v101-live-v4";
 const ASSETS = [
   './', './index.html', './manifest.webmanifest',
   './icon-192.png', './icon-512.png', './apple-touch-icon.png'

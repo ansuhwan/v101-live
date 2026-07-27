@@ -35,8 +35,16 @@
     --c-long:#2a78d6;--c-short:#e34948;--axis:#c3c2b7;
     --shadow:0 1px 2px rgba(0,0,0,.05),0 8px 24px rgba(0,0,0,.05);}
   *{box-sizing:border-box;margin:0;padding:0}
+  /* PWA(standalone)는 상태바 아래까지 그려지므로 안전영역만큼 더 띄운다.
+     iOS=black-translucent, Android 15+=edge-to-edge 둘 다 env(safe-area-inset-*)로 해결. */
   body{background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
-    line-height:1.5;-webkit-font-smoothing:antialiased;padding:clamp(16px,3vw,40px)}
+    line-height:1.5;-webkit-font-smoothing:antialiased;--pad:clamp(16px,3vw,40px);
+    padding:calc(env(safe-area-inset-top,0px) + var(--pad))
+            calc(env(safe-area-inset-right,0px) + var(--pad))
+            calc(env(safe-area-inset-bottom,0px) + var(--pad))
+            calc(env(safe-area-inset-left,0px) + var(--pad))}
+  /* 설치형에서는 inset을 0으로 보고하는 기기가 있어 최소 34px는 확보(둘 중 큰 값). */
+  @media (display-mode:standalone){body{padding-top:calc(max(env(safe-area-inset-top,0px), 34px) + var(--pad))}}
   .mono{font-family:ui-monospace,"SF Mono","Cascadia Code",Menlo,monospace;font-variant-numeric:tabular-nums}
   .wrap{max-width:880px;margin:0 auto}
   header{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap;margin-bottom:22px}
