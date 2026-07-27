@@ -63,7 +63,7 @@
   .pos{color:var(--pos)} .neg{color:var(--neg)}
   .spark{width:100%}
 
-  .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px}
+  .grid3{display:grid;grid-template-columns:repeat(auto-fit,minmax(195px,1fr));gap:12px;margin-bottom:16px}
   @media(max-width:640px){.grid3{grid-template-columns:1fr}}
   .card{background:var(--surface);border:1px solid var(--line);border-radius:13px;padding:15px 16px;box-shadow:var(--shadow)}
   .card h3{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-3);font-weight:600;margin-bottom:9px}
@@ -92,7 +92,8 @@
   .lgrow .lb{color:var(--ink-2)} .lgrow .lv{margin-left:auto;font-weight:640;font-family:ui-monospace,monospace;font-variant-numeric:tabular-nums}
   .lgsep{border-top:1px solid var(--line);margin:3px 0}
   .bgrouph{font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-3);font-weight:600;margin:14px 0 6px}
-  .brow{display:grid;grid-template-columns:44px 1fr 52px;align-items:center;gap:8px;height:22px}
+  .brow{display:grid;grid-template-columns:42px 1fr 74px 62px;align-items:center;gap:7px;height:23px}
+  @media(max-width:480px){.brow{grid-template-columns:38px 1fr 64px 56px;gap:5px}}
   .bsym{font-size:11.5px;font-weight:600;color:var(--ink-2);font-family:ui-monospace,monospace}
   .btrack{position:relative;height:14px}
   .bzero{position:absolute;left:50%;top:-2px;bottom:-2px;width:1px;background:var(--axis)}
@@ -100,7 +101,12 @@
   .bfill.l{left:50%;margin-left:1px;background:var(--c-long);border-radius:0 4px 4px 0}
   .bfill.s{right:50%;margin-right:1px;background:var(--c-short);border-radius:4px 0 0 4px}
   .bval{font-size:11.5px;text-align:right;font-family:ui-monospace,monospace;font-variant-numeric:tabular-nums;color:var(--ink-2)}
-  .axends{display:grid;grid-template-columns:44px 1fr 52px;gap:8px;margin-top:7px}
+  .bval.n{color:var(--ink-3)}
+  .bhead{display:grid;grid-template-columns:42px 1fr 74px 62px;gap:7px;margin-bottom:3px}
+  @media(max-width:480px){.bhead{grid-template-columns:38px 1fr 64px 56px;gap:5px}}
+  .bhead span{font-size:9.5px;color:var(--ink-3);text-transform:uppercase;letter-spacing:.04em;font-weight:600;text-align:right}
+  .axends{display:grid;grid-template-columns:42px 1fr 74px 62px;gap:7px;margin-top:7px}
+  @media(max-width:480px){.axends{grid-template-columns:38px 1fr 64px 56px;gap:5px}}
   .axends span{font-size:10px;color:var(--ink-3)}
   .axends .l{text-align:left} .axends .r{text-align:right}
 
@@ -165,6 +171,13 @@
       <div class="row"><span class="k">gross 노출</span><span class="val" id="grossx"></span></div>
       <div class="row"><span class="k">gross 하드캡</span><span class="val ok">6배 ✓ 활성</span></div>
     </div>
+    <div class="card" id="cashcard" style="display:none">
+      <h3>현금 · 증거금</h3>
+      <div class="row"><span class="k">가용 현금</span><span class="val mono" id="cavail"></span></div>
+      <div class="row"><span class="k">사용중 증거금</span><span class="val mono" id="cused"></span></div>
+      <div class="row"><span class="k">지갑 잔고</span><span class="val mono" id="cwallet"></span></div>
+      <div class="row"><span class="k">미실현손익</span><span class="val mono" id="cupnl"></span></div>
+    </div>
     <div class="card">
       <h3>이번 달 손익</h3>
       <div class="row"><span class="k">7월 시작</span><span class="val mono" id="mstart"></span></div>
@@ -183,7 +196,8 @@
     <div id="bookbars"></div>
     <div class="axends"><span></span><span style="grid-column:2;display:flex;justify-content:space-between"><span class="l">◀ 숏</span><span class="r">롱 ▶</span></span></div>
     <div class="foot" style="margin-top:10px">
-      비중 = 각 종목 명목 ÷ 총 노출(gross). 금액은 공개하지 않습니다.
+      막대 길이 = 각 레그 명목 ÷ 총 노출(gross), 부호는 방향(왼쪽 숏 / 오른쪽 롱). 수량·명목은 진입가 기준입니다.
+      한 종목이 양쪽에 다 나오면 헤지 레그가 함께 있는 것(예: ETH 추세롱 + 바스켓숏).
       <b>MN 중립도</b>가 0%에서 크게 벗어나면 롱숏 균형이 깨진 것 — 점검 신호입니다.
     </div>
   </div>
@@ -258,14 +272,29 @@ function donutSVG(long,short){
     <text x="60" y="57" text-anchor="middle" fill="var(--ink)" style="font:640 19px ui-monospace,monospace">${LIVE.gross_x.toFixed(2)}×</text>
     <text x="60" y="72" text-anchor="middle" fill="var(--ink-3)" style="font:600 9.5px system-ui;letter-spacing:.05em">GROSS</text></svg>`;
 }
+const nf=(v,d)=>v.toLocaleString('en-US',{minimumFractionDigits:d,maximumFractionDigits:d});
+function qfmt(q){               // 코인마다 자릿수가 달라 크기에 맞춰 자른다(뒤 0은 버림)
+  const a=Math.abs(q);
+  return a.toLocaleString('en-US',{maximumFractionDigits:a>=100?0:a>=10?1:a>=1?2:a>=0.01?4:6});
+}
 function bars(list,mx){          // mx = 전체 공통 스케일(그룹별로 다시 정규화하면 비교가 거짓이 됨)
   if(!list.length) return '';
   return list.map(p=>{
     const w=(p.w/mx*48).toFixed(1), lg=p.side>0;
-    return `<div class="brow" title="${p.s} ${lg?'롱':'숏'} ${p.w.toFixed(1)}%">
+    return `<div class="brow" title="${p.s} ${lg?'롱':'숏'} · 비중 ${p.w.toFixed(1)}% · 수량 ${qfmt(p.q)} · 명목 ${nf(p.n,0)} USDT">
       <span class="bsym">${p.s}</span>
       <div class="btrack"><div class="bzero"></div><div class="bfill ${lg?'l':'s'}" style="width:${w}%"></div></div>
-      <span class="bval">${lg?'+':'−'}${p.w.toFixed(1)}%</span></div>`;}).join('');
+      <span class="bval">${lg?'+':'−'}${qfmt(p.q)}</span>
+      <span class="bval n">${nf(p.n,0)}</span></div>`;}).join('');
+}
+function renderCash(){
+  const c=LIVE.cash, card=$('#cashcard');
+  if(!c){ card.style.display='none'; return; }
+  card.style.display='';
+  $('#cavail').textContent=nf(c.avail,2);
+  $('#cused').innerHTML=`${nf(c.used,2)} <span style="color:var(--ink-3);font-weight:500">(${c.used_pct}%)</span>`;
+  $('#cwallet').textContent=nf(c.wallet,2);
+  $('#cupnl').innerHTML=`<span class="${cls(c.upnl)}">${(c.upnl>=0?'+':'')+nf(c.upnl,2)}</span>`;
 }
 function renderBook(){
   const b=LIVE.book, card=$('#bookcard');
@@ -279,6 +308,7 @@ function renderBook(){
     ['var(--c-long)','롱 노출',L.toFixed(0)+'%'],['var(--c-short)','숏 노출',S.toFixed(0)+'%']].map(
     ([c,l,v])=>`<div class="lgrow"><span class="sw" style="background:${c}"></span><span class="lb">${l}</span><span class="lv">${v}</span></div>`).join('')
     +'<div class="lgsep"></div>'+[
+      ['총 명목', b.gross_usdt?nf(b.gross_usdt,0)+' USDT':'—'],
       ['추세 BTC/ETH',(b.sleeve.trend||0).toFixed(0)+'%'],
       ['MN 알트',(b.sleeve.mn||0).toFixed(0)+'%'],
       ['MN 중립도 (net/gross)',neut==null?'—':(neut>=0?'+':'')+neut.toFixed(1)+'%'],
@@ -287,8 +317,9 @@ function renderBook(){
   $('#booknote').textContent=`실계좌 포지션 스냅샷 · 기준 ${LIVE.asof}`;
   const tr=b.positions.filter(p=>p.g==='trend'), mn=b.positions.filter(p=>p.g==='mn');
   const mx=Math.max(...b.positions.map(p=>p.w));
-  $('#bookbars').innerHTML=(tr.length?'<div class="bgrouph">추세 슬리브 (BTC/ETH)</div>'+bars(tr,mx):'')
-    +(mn.length?'<div class="bgrouph">MN 마켓뉴트럴 (알트)</div>'+bars(mn,mx):'');
+  const head='<div class="bhead"><span></span><span></span><span>수량</span><span>명목 USDT</span></div>';
+  $('#bookbars').innerHTML=(tr.length?'<div class="bgrouph">추세 슬리브 (BTC/ETH)</div>'+head+bars(tr,mx):'')
+    +(mn.length?'<div class="bgrouph">MN 마켓뉴트럴 (알트)</div>'+head+bars(mn,mx):'');
 }
 function spark(){
   const pts=LIVE.ledger, n=pts.length, W=440,H=150,PL=8,PR=8,PT=14,PB=22;
@@ -326,6 +357,7 @@ function render(){
     return `<tr><td>${r.label}</td><td>${f2(r.eq)}</td><td>${d1}</td><td><span class="${cls(m)}">${sp(m)}</span></td></tr>`;}).join('');
   $('#basecase tbody').innerHTML=BASECASE.map(([k,v])=>`<tr><td style="font-family:inherit;color:var(--ink-2)">${k}</td><td>${v}</td></tr>`).join('');
   renderHeatInto(REAL_MONTHLY,'heatReal',Object.keys(REAL_MONTHLY).sort().pop());
+  renderCash();
   renderBook();
   spark();
 }
