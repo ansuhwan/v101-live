@@ -13,22 +13,26 @@
     --bg:#f6f5f1;--surface:#fff;--surface-2:#f0eee8;--line:#e5e2da;
     --ink:#15181d;--ink-2:#565d67;--ink-3:#8b929b;
     --accent:#b9781a;--pos:#0f9d63;--neg:#cf3f3a;--grid:rgba(0,0,0,.06);
+    --c-long:#2a78d6;--c-short:#e34948;--axis:#c3c2b7;
     --shadow:0 1px 2px rgba(0,0,0,.05),0 8px 24px rgba(0,0,0,.05);
   }
   @media (prefers-color-scheme:dark){:root{
     --bg:#0e1114;--surface:#161b21;--surface-2:#1b222b;--line:#242c36;
     --ink:#eef2f7;--ink-2:#a4aebb;--ink-3:#68727f;
     --accent:#f0a92b;--pos:#21b07d;--neg:#e2544f;--grid:rgba(255,255,255,.055);
+    --c-long:#3987e5;--c-short:#e66767;--axis:#383835;
     --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 30px rgba(0,0,0,.35);}}
   :root[data-theme="dark"]{
     --bg:#0e1114;--surface:#161b21;--surface-2:#1b222b;--line:#242c36;
     --ink:#eef2f7;--ink-2:#a4aebb;--ink-3:#68727f;
     --accent:#f0a92b;--pos:#21b07d;--neg:#e2544f;--grid:rgba(255,255,255,.055);
+    --c-long:#3987e5;--c-short:#e66767;--axis:#383835;
     --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 30px rgba(0,0,0,.35);}
   :root[data-theme="light"]{
     --bg:#f6f5f1;--surface:#fff;--surface-2:#f0eee8;--line:#e5e2da;
     --ink:#15181d;--ink-2:#565d67;--ink-3:#8b929b;
     --accent:#b9781a;--pos:#0f9d63;--neg:#cf3f3a;--grid:rgba(0,0,0,.06);
+    --c-long:#2a78d6;--c-short:#e34948;--axis:#c3c2b7;
     --shadow:0 1px 2px rgba(0,0,0,.05),0 8px 24px rgba(0,0,0,.05);}
   *{box-sizing:border-box;margin:0;padding:0}
   body{background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
@@ -79,14 +83,33 @@
   tr td{border-bottom:1px solid var(--line)}
   tr:last-child td{border-bottom:0}
 
-  .plan{background:var(--surface);border:1px solid var(--line);border-radius:13px;padding:16px;box-shadow:var(--shadow);margin-bottom:16px}
-  .plan h3{font-size:13px;font-weight:620;margin-bottom:3px}
-  .plan .note{font-size:12px;color:var(--ink-3);margin-bottom:12px}
-  .planstats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
-  @media(max-width:560px){.planstats{grid-template-columns:repeat(2,1fr)}}
-  .ps{background:var(--surface-2);border-radius:9px;padding:10px 12px}
-  .ps .l{font-size:10.5px;color:var(--ink-3);text-transform:uppercase;letter-spacing:.05em;font-weight:600}
-  .ps .v{font-size:18px;font-weight:640;margin-top:3px}
+  /* ── 보유 종목 (도넛 + 다이버징 바) ── */
+  .booktop{display:grid;grid-template-columns:150px 1fr;gap:18px;align-items:center;margin-bottom:4px}
+  @media(max-width:560px){.booktop{grid-template-columns:1fr;justify-items:center;gap:12px}}
+  .legend{display:flex;flex-direction:column;gap:7px;width:100%}
+  .lgrow{display:flex;align-items:center;gap:8px;font-size:13px}
+  .lgrow .sw{width:11px;height:11px;border-radius:3px;flex:none}
+  .lgrow .lb{color:var(--ink-2)} .lgrow .lv{margin-left:auto;font-weight:640;font-family:ui-monospace,monospace;font-variant-numeric:tabular-nums}
+  .lgsep{border-top:1px solid var(--line);margin:3px 0}
+  .bgrouph{font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-3);font-weight:600;margin:14px 0 6px}
+  .brow{display:grid;grid-template-columns:44px 1fr 52px;align-items:center;gap:8px;height:22px}
+  .bsym{font-size:11.5px;font-weight:600;color:var(--ink-2);font-family:ui-monospace,monospace}
+  .btrack{position:relative;height:14px}
+  .bzero{position:absolute;left:50%;top:-2px;bottom:-2px;width:1px;background:var(--axis)}
+  .bfill{position:absolute;top:1px;height:12px;min-width:3px}
+  .bfill.l{left:50%;margin-left:1px;background:var(--c-long);border-radius:0 4px 4px 0}
+  .bfill.s{right:50%;margin-right:1px;background:var(--c-short);border-radius:4px 0 0 4px}
+  .bval{font-size:11.5px;text-align:right;font-family:ui-monospace,monospace;font-variant-numeric:tabular-nums;color:var(--ink-2)}
+  .axends{display:grid;grid-template-columns:44px 1fr 52px;gap:8px;margin-top:7px}
+  .axends span{font-size:10px;color:var(--ink-3)}
+  .axends .l{text-align:left} .axends .r{text-align:right}
+
+  details.plan{background:var(--surface);border:1px solid var(--line);border-radius:13px;box-shadow:var(--shadow);margin-bottom:16px}
+  details.plan>summary{list-style:none;cursor:pointer;padding:15px 16px;font-size:13px;font-weight:620;display:flex;align-items:center;gap:8px}
+  details.plan>summary::-webkit-details-marker{display:none}
+  details.plan>summary::after{content:'▾';margin-left:auto;color:var(--ink-3);font-size:12px}
+  details.plan[open]>summary::after{content:'▴'}
+  .planbody{padding:0 16px 16px}
   .foot{color:var(--ink-3);font-size:12px;line-height:1.6;margin-top:6px}
   .foot b{color:var(--ink-2)}
   .axlab{fill:var(--ink-3);font-size:10px;font-family:ui-monospace,monospace}
@@ -132,9 +155,9 @@
   <div class="grid3">
     <div class="card">
       <h3>현재 전략</h3>
-      <div class="row"><span class="k">가동중</span><span class="val" id="stratnow">v8.1 · TV0.5</span></div>
-      <div class="row"><span class="k">v10.1 MN 개시</span><span class="val warnc" id="mncut">07-27 00:00 UTC</span></div>
-      <div class="row"><span class="k">전환</span><span class="val">TV0.6 + MN 동시</span></div>
+      <div class="row"><span class="k">가동중</span><span class="val" id="stratnow">v10.1 · TV0.60 · MN</span></div>
+      <div class="row"><span class="k">v10.1 MN</span><span class="val warnc" id="mncut">가동중</span></div>
+      <div class="row"><span class="k">구성</span><span class="val">추세 BTC/ETH + MN 알트</span></div>
     </div>
     <div class="card">
       <h3>안전 상태</h3>
@@ -147,6 +170,21 @@
       <div class="row"><span class="k">7월 시작</span><span class="val mono" id="mstart"></span></div>
       <div class="row"><span class="k">현재</span><span class="val mono" id="mnow"></span></div>
       <div class="row"><span class="k">손익</span><span class="val mono" id="mpnl"></span></div>
+    </div>
+  </div>
+
+  <div class="ledger" id="bookcard" style="display:none">
+    <h3>보유 종목 · 노출 비중</h3>
+    <div class="note" id="booknote"></div>
+    <div class="booktop">
+      <div id="donut"></div>
+      <div class="legend" id="booklegend"></div>
+    </div>
+    <div id="bookbars"></div>
+    <div class="axends"><span></span><span style="grid-column:2;display:flex;justify-content:space-between"><span class="l">◀ 숏</span><span class="r">롱 ▶</span></span></div>
+    <div class="foot" style="margin-top:10px">
+      비중 = 각 종목 명목 ÷ 총 노출(gross). 금액은 공개하지 않습니다.
+      <b>MN 중립도</b>가 0%에서 크게 벗어나면 롱숏 균형이 깨진 것 — 점검 신호입니다.
     </div>
   </div>
 
@@ -163,32 +201,31 @@
     <div class="hlegend"><span class="swatch" style="border:1.5px dashed var(--ink-3);background:transparent"></span>진행중 (미확정) <span style="margin-left:auto">달 종료 시 확정</span></div>
   </div>
 
-  <div class="plan">
-    <h3>장기 백테 기준선 <span class="badge">계획 · 실현 아님</span></h3>
-    <div class="note">v10.1 TV0.6/CAP5/gross6, 2019~2026 일봉종가 백테. 실계좌가 앞으로 향하는 목표 궤적이지 보장은 아닙니다.</div>
-    <div class="planstats" id="planstats"></div>
-    <div style="font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-3);font-weight:600;margin-top:16px">월별 수익 % (백테)</div>
-    <div style="overflow-x:auto"><div class="hm" id="heat"></div></div>
-    <div class="hlegend">
-      <span class="swatch" style="background:var(--neg)"></span>손실
-      <span class="swatch" style="background:var(--surface-2)"></span>0 근처
-      <span class="swatch" style="background:var(--pos)"></span>이익
-      <span style="margin-left:auto">진할수록 폭 큼</span>
+  <details class="plan">
+    <summary>장기 백테에서 각오할 것 <span class="badge">계획 · 실현 아님</span></summary>
+    <div class="planbody">
+      <div class="note" style="font-size:12px;color:var(--ink-3);margin-bottom:10px">
+        v10.1 TV0.6/CAP5/gross6, 2019-09~2026-07 일봉 백테. 수익 자랑이 아니라 <b>버텨야 하는 구간</b>을 적어둔 것입니다.
+      </div>
+      <table id="basecase"><tbody></tbody></table>
+      <div class="foot" style="margin-top:10px">
+        기준선 CAGR <b>+536%</b> · MDD <b>−36.1%</b>(일봉 종가 기준, 장중 실낙폭은 ~1.3배 깊음) · Sharpe <b>2.03</b>.
+        2019~2024 구간이 설계에 쓰인 기간이라 그대로 재현될 값이 아닙니다. 실계좌가 이 표의 나쁜 구간 안에 있으면 <b>정상 범위</b>입니다.
+      </div>
     </div>
-    <div class="foot" style="margin-top:12px">
-      지금 실계좌는 <b id="softnote"></b> — 백테에서도 최근 몇 달은 소강/하락 구간이었고, 수익은 소수 폭발월에 몰립니다.
-      v10.1 MN은 내일부터라 지금까지 실적은 순수 v8.1(추세)입니다.
-    </div>
-  </div>
+  </details>
 
   <div class="foot">
     <b>주의</b> — 과거·백테 성과는 미래를 보장하지 않습니다. 실계좌 히스토리가 아직 며칠뿐이라 추세 판단엔 이릅니다.
-    봇이 잔고를 올리면 자동으로 최신화됩니다. 앱을 다시 열거나 아래 새로고침으로 갱신.
+    봇이 잔고를 올리면 자동으로 최신화됩니다. 앱을 다시 열거나 위 새로고침으로 갱신.
   </div>
 </div>
 
 <script>
-const MONTHLY={"2019-09": 0.0, "2019-10": 0.0, "2019-11": 9.6, "2019-12": 29.9, "2020-01": 9.5, "2020-02": 55.5, "2020-03": 64.5, "2020-04": 1.6, "2020-05": 2.8, "2020-06": -6.3, "2020-07": 35.6, "2020-08": 8.4, "2020-09": 9.0, "2020-10": 20.1, "2020-11": 30.4, "2020-12": 39.7, "2021-01": 46.1, "2021-02": 23.6, "2021-03": -3.6, "2021-04": 9.9, "2021-05": 294.3, "2021-06": -0.0, "2021-07": 31.4, "2021-08": -2.2, "2021-09": 7.1, "2021-10": 12.1, "2021-11": 21.4, "2021-12": -20.8, "2022-01": 21.7, "2022-02": 19.6, "2022-03": -19.7, "2022-04": 4.9, "2022-05": 55.3, "2022-06": 73.7, "2022-07": 5.7, "2022-08": 2.1, "2022-09": -1.7, "2022-10": -11.7, "2022-11": 91.5, "2022-12": 1.7, "2023-01": 17.9, "2023-02": 24.5, "2023-03": 24.0, "2023-04": -10.3, "2023-05": -7.5, "2023-06": 34.8, "2023-07": -14.3, "2023-08": 12.3, "2023-09": -16.7, "2023-10": 42.3, "2023-11": 2.7, "2023-12": 53.1, "2024-01": 3.3, "2024-02": 108.5, "2024-03": 8.7, "2024-04": -10.5, "2024-05": -3.3, "2024-06": -2.4, "2024-07": 28.4, "2024-08": 16.5, "2024-09": -3.1, "2024-10": -17.1, "2024-11": 70.2, "2024-12": 44.1, "2025-01": -32.9, "2025-02": 59.0, "2025-03": -21.0, "2025-04": 18.9, "2025-05": 62.1, "2025-06": 5.6, "2025-07": 61.5, "2025-08": 14.7, "2025-09": 26.3, "2025-10": 0.1, "2025-11": -0.7, "2025-12": -0.9, "2026-01": 56.0, "2026-02": 37.9, "2026-03": 2.7, "2026-04": -7.1, "2026-05": 4.7, "2026-06": 104.3, "2026-07": -0.9}, PLAN={"cagr": 536, "mdd": -36.1, "sharpe": 2.03, "worst_month": -32.9}, FALLBACK={"balance": 786.1, "asof": "2026-07-26 15:15 UTC", "month_start": 847.24, "d1": 0.2, "margin_ratio": 0.1, "gross_x": 0.26, "strategy": "v8.1 · TV0.5", "mn_start": "07-27 00:00 UTC", "ledger": [{"label": "7-23", "eq": 788.8, "d1": null}, {"label": "7-24", "eq": 785.74, "d1": -0.39}, {"label": "7-25", "eq": 783.98, "d1": -0.22}, {"label": "7-26", "eq": 784.57, "d1": 0.08}, {"label": "현재", "eq": 786.1, "d1": 0.2}], "real_monthly": {"2026-07": -7.2}};
+const PLAN={"cagr":536,"mdd":-36.1,"sharpe":2.03,"worst_month":-32.9},
+BASECASE=[["최장 무수익 구간","136일 (2020-03-13 → 07-26)"],["손실 나는 달","27% (83개월 중 22개)"],
+["최악 단월 / 3연속월","−32.9% / −19.8%"],["수익 집중도","상위 5개월이 전체 수익의 32%"],["월 중앙값 (평균)","+9.5% (+21.3%)"]],
+FALLBACK={"balance":793.7,"asof":"2026-07-27 06:05 UTC","month_start":847.24,"d1":0.87,"margin_ratio":1.21,"gross_x":2.57,"strategy":"v10.1 · TV0.60 · MN","mn_start":"가동중","ledger":[{"label":"07-23","eq":788.8,"d1":null},{"label":"07-24","eq":785.74,"d1":-0.39},{"label":"07-25","eq":783.98,"d1":-0.22},{"label":"07-26","eq":784.57,"d1":0.08},{"label":"07-27","eq":786.82,"d1":0.29},{"label":"현재","eq":793.7,"d1":0.87}],"real_monthly":{"2026-07":-6.3}};
 let LIVE=FALLBACK, REAL_MONTHLY=FALLBACK.real_monthly||{};
 const $=s=>document.querySelector(s);
 const f2=v=>v.toFixed(2), sp=v=>(v>=0?'+':'')+v.toFixed(2)+'%', cls=v=>v>=0?'pos':'neg';
@@ -207,6 +244,52 @@ function renderHeatInto(m,elId,inprog){
     }});
   el.innerHTML=h;
 }
+function donutSVG(long,short){
+  const R=46,S=17,C=2*Math.PI*R,G=4;                       // 4px 간격 = 조각 분리
+  const segs=[{v:long,c:'var(--c-long)'},{v:short,c:'var(--c-short)'}].filter(s=>s.v>0.05);
+  let acc=0,arcs='';
+  segs.forEach(s=>{ const len=C*s.v/100, dash=Math.max(len-G,1);
+    arcs+=`<circle cx="60" cy="60" r="${R}" fill="none" stroke="${s.c}" stroke-width="${S}"
+      stroke-dasharray="${dash.toFixed(1)} ${(C-dash).toFixed(1)}" stroke-dashoffset="${(-acc).toFixed(1)}"/>`;
+    acc+=len; });
+  return `<svg viewBox="0 0 120 120" style="width:130px;height:130px" role="img" aria-label="롱 ${long.toFixed(0)}% 숏 ${short.toFixed(0)}%">
+    <circle cx="60" cy="60" r="${R}" fill="none" stroke="var(--surface-2)" stroke-width="${S}"/>
+    <g transform="rotate(-90 60 60)">${arcs}</g>
+    <text x="60" y="57" text-anchor="middle" fill="var(--ink)" style="font:640 19px ui-monospace,monospace">${LIVE.gross_x.toFixed(2)}×</text>
+    <text x="60" y="72" text-anchor="middle" fill="var(--ink-3)" style="font:600 9.5px system-ui;letter-spacing:.05em">GROSS</text></svg>`;
+}
+function bars(list,mx){          // mx = 전체 공통 스케일(그룹별로 다시 정규화하면 비교가 거짓이 됨)
+  if(!list.length) return '';
+  return list.map(p=>{
+    const w=(p.w/mx*48).toFixed(1), lg=p.side>0;
+    return `<div class="brow" title="${p.s} ${lg?'롱':'숏'} ${p.w.toFixed(1)}%">
+      <span class="bsym">${p.s}</span>
+      <div class="btrack"><div class="bzero"></div><div class="bfill ${lg?'l':'s'}" style="width:${w}%"></div></div>
+      <span class="bval">${lg?'+':'−'}${p.w.toFixed(1)}%</span></div>`;}).join('');
+}
+function renderBook(){
+  const b=LIVE.book, card=$('#bookcard');
+  if(!b||!b.positions||!b.positions.length){ card.style.display='none'; return; }
+  card.style.display='';
+  const L=b.positions.filter(p=>p.side>0).reduce((a,p)=>a+p.w,0);
+  const S=b.positions.filter(p=>p.side<0).reduce((a,p)=>a+p.w,0);
+  $('#donut').innerHTML=donutSVG(L,S);
+  const neut=b.mn_neutral;
+  $('#booklegend').innerHTML=[
+    ['var(--c-long)','롱 노출',L.toFixed(0)+'%'],['var(--c-short)','숏 노출',S.toFixed(0)+'%']].map(
+    ([c,l,v])=>`<div class="lgrow"><span class="sw" style="background:${c}"></span><span class="lb">${l}</span><span class="lv">${v}</span></div>`).join('')
+    +'<div class="lgsep"></div>'+[
+      ['추세 BTC/ETH',(b.sleeve.trend||0).toFixed(0)+'%'],
+      ['MN 알트',(b.sleeve.mn||0).toFixed(0)+'%'],
+      ['MN 중립도 (net/gross)',neut==null?'—':(neut>=0?'+':'')+neut.toFixed(1)+'%'],
+      ['레그 수',b.legs+'개']
+    ].map(([l,v])=>`<div class="lgrow"><span class="lb">${l}</span><span class="lv">${v}</span></div>`).join('');
+  $('#booknote').textContent=`실계좌 포지션 스냅샷 · 기준 ${LIVE.asof}`;
+  const tr=b.positions.filter(p=>p.g==='trend'), mn=b.positions.filter(p=>p.g==='mn');
+  const mx=Math.max(...b.positions.map(p=>p.w));
+  $('#bookbars').innerHTML=(tr.length?'<div class="bgrouph">추세 슬리브 (BTC/ETH)</div>'+bars(tr,mx):'')
+    +(mn.length?'<div class="bgrouph">MN 마켓뉴트럴 (알트)</div>'+bars(mn,mx):'');
+}
 function spark(){
   const pts=LIVE.ledger, n=pts.length, W=440,H=150,PL=8,PR=8,PT=14,PB=22;
   const eqs=pts.map(p=>p.eq), mn=Math.min(...eqs,LIVE.month_start), mx=Math.max(...eqs,LIVE.month_start);
@@ -215,7 +298,7 @@ function spark(){
   const y0=Y(LIVE.month_start), up=pts[n-1].eq>=pts[0].eq, col=up?'var(--pos)':'var(--neg)';
   const lp='M'+pts.map((p,i)=>X(i).toFixed(1)+' '+Y(p.eq).toFixed(1)).join(' L');
   const ap=`M${X(0).toFixed(1)} ${(H-PB)} `+pts.map((p,i)=>'L'+X(i).toFixed(1)+' '+Y(p.eq).toFixed(1)).join(' ')+` L${X(n-1).toFixed(1)} ${(H-PB)} Z`;
-  const dots=pts.map((p,i)=>`<circle cx="${X(i).toFixed(1)}" cy="${Y(p.eq).toFixed(1)}" r="${i===n-1?4:2.5}" fill="${col}"/>`).join('');
+  const dots=pts.map((p,i)=>`<circle cx="${X(i).toFixed(1)}" cy="${Y(p.eq).toFixed(1)}" r="${i===n-1?4:2.5}" fill="${col}"><title>${p.label} ${f2(p.eq)}</title></circle>`).join('');
   $('#spark').innerHTML=`<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" style="width:100%;height:150px;overflow:visible">
     <defs><linearGradient id="sg" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="${col}" stop-opacity=".22"/><stop offset="1" stop-color="${col}" stop-opacity="0"/></linearGradient></defs>
     <line x1="${PL}" x2="${W-PR}" y1="${y0.toFixed(1)}" y2="${y0.toFixed(1)}" stroke="var(--ink-3)" stroke-width="1" stroke-dasharray="3 3" opacity=".6"/>
@@ -237,15 +320,13 @@ function render(){
   $('#mstart').textContent=f2(LIVE.month_start); $('#mnow').textContent=f2(LIVE.balance);
   const pnl=LIVE.balance-LIVE.month_start;
   $('#mpnl').innerHTML=`<span class="${cls(pnl)}">${(pnl>=0?'+':'')+f2(pnl)}</span>`;
-  $('#softnote').textContent=`이번 달 ${sp(mtd)}`;
   $('#tbl tbody').innerHTML=LIVE.ledger.map(r=>{
     const d1=r.d1==null?'—':`<span class="${cls(r.d1)}">${sp(r.d1)}</span>`;
     const m=(r.eq/LIVE.month_start-1)*100;
     return `<tr><td>${r.label}</td><td>${f2(r.eq)}</td><td>${d1}</td><td><span class="${cls(m)}">${sp(m)}</span></td></tr>`;}).join('');
-  $('#planstats').innerHTML=[['CAGR','+'+PLAN.cagr+'%'],['최대낙폭',PLAN.mdd+'%'],['Sharpe',PLAN.sharpe],['최악월',PLAN.worst_month+'%']]
-    .map(([l,v])=>`<div class="ps"><div class="l">${l}</div><div class="v mono">${v}</div></div>`).join('');
-  renderHeatInto(MONTHLY,'heat',null);
+  $('#basecase tbody').innerHTML=BASECASE.map(([k,v])=>`<tr><td style="font-family:inherit;color:var(--ink-2)">${k}</td><td>${v}</td></tr>`).join('');
   renderHeatInto(REAL_MONTHLY,'heatReal',Object.keys(REAL_MONTHLY).sort().pop());
+  renderBook();
   spark();
 }
 function applyData(d){
