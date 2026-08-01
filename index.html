@@ -271,6 +271,8 @@
       매일 09:00 KST(00:00 UTC)에 MN 알트북이 목표 비중을 다시 계산해 차이만큼만 주문합니다.
       <b>확대·축소</b>는 같은 방향에서 크기만 조절, <b>전환</b>은 기존 포지션을 청산하고 반대 방향으로 새로 잡은 것입니다.
       목표와 차이가 작거나 최소주문(5 USDT)에 못 미치면 주문하지 않고 그대로 둡니다.
+      오른쪽 손익은 <b>축소·전환에서 닫힌 만큼 확정된 금액</b>입니다 — 확대는 포지션을 닫지 않으니 <b>—</b>로 표시됩니다.
+      알트는 MN북만 거래하므로 이 손익은 온전히 MN의 것입니다.
     </div>
   </div>
 
@@ -541,16 +543,21 @@ function renderMnRebal(){
   b.textContent=r.mode==='LIVE'?'실주문':'모의(DRY)';
   b.className='badge '+(r.mode==='LIVE'?'b-ok':'');
   const tot=r.items.reduce((a,i)=>a+i.usd,0);
+  const nclose=r.items.filter(i=>i.pnl!=null).length;
   $('#mnrnote').innerHTML=`${r.ts} UTC · <b>${r.items.length}종 조정</b>`
-    +(r.n_hold?` · ${r.n_hold}종 유지`:'')+` · 거래규모 합계 ~${tot}$`
+    +(r.n_hold?` · ${r.n_hold}종 유지`:'')+` · 거래규모 ~${tot}$`
+    +(nclose?` · 확정 손익 <span class="${cls(r.realized)}"><b>${sgn(r.realized)}</b></span>`:'')
     +` <span style="color:var(--ink-3)">(비중 ${r.scale} × 레버 ${r.lev})</span>`;
   const K={'확대':'up','축소':'dn','전환':'sw'};
   $('#mnrlist').innerHTML=r.items.map(i=>{
     const c=i.side>0?'var(--c-long)':'var(--c-short)';
+    // 확대는 포지션을 닫지 않으니 실현손익이 없다(— 표기)
+    const pn=i.pnl==null?'<span class="mu" style="color:var(--ink-3);font-weight:500">—</span>'
+                        :`<span class="mu ${cls(i.pnl)}">${sgn(i.pnl)}</span>`;
     return `<div class="mrow"><span class="mc">${i.c.toUpperCase()}</span>`
       +`<span><span style="color:${c};font-weight:640">${i.side>0?'롱':'숏'}</span>`
       +`<span class="kind ${K[i.kind]||'dn'}">${i.kind}${i.note?' '+i.note:''}</span></span>`
-      +`<span class="mq">${i.qty}</span><span class="mu">~${i.usd}$</span></div>`;
+      +`<span class="mq">${i.qty} · ~${i.usd}$</span>${pn}</div>`;
   }).join('');
 }
 function renderTrades(){
