@@ -286,8 +286,8 @@
   </div>
 
   <div class="ledger">
-    <h3>실제 월별 수익 <span class="badge" style="color:var(--pos)">실현</span></h3>
-    <div class="note">바이낸스 실잔고 기준 월간 손익. 봇 추적이 07월 시작이라 지금은 7월 1칸(진행중)뿐 — 달이 끝날 때마다 확정되어 채워집니다.</div>
+    <h3>실제 월별 수익 <span class="badge b-ok">실계좌</span></h3>
+    <div class="note" id="realnote"></div>
     <div style="overflow-x:auto"><div class="hm" id="heatReal"></div></div>
     <div class="hlegend"><span class="swatch" style="border:1.5px dashed var(--ink-3);background:transparent"></span>진행중 (미확정) <span style="margin-left:auto">달 종료 시 확정</span></div>
   </div>
@@ -398,6 +398,20 @@ function renderBook(){
   const head='<div class="bhead"><span></span><span></span><span>수량</span><span>명목 USDT</span></div>';
   $('#bookbars').innerHTML=(tr.length?'<div class="bgrouph">추세 슬리브 (BTC/ETH)</div>'+head+bars(tr,mx):'')
     +(mn.length?'<div class="bgrouph">MN 마켓뉴트럴 (알트)</div>'+head+bars(mn,mx):'');
+}
+function renderRealNote(keys,cur){
+  // 달이 바뀌어도 안 낡도록 문구를 데이터에서 생성한다.
+  const el=$('#realnote'); if(!el)return;
+  const done=keys.filter(k=>k!==cur);
+  const mm=k=>+k.slice(5,7)+'월';
+  let s='바이낸스 실잔고 기준 월간 손익 — <b>미실현 평가 포함</b>(확정 손익만 보려면 위 “손익 분해”). ';
+  if(done.length){
+    const list=done.map(k=>`${mm(k)} ${REAL_MONTHLY[k]>=0?'+':''}${REAL_MONTHLY[k]}%`).join(' · ');
+    s+=`확정 ${done.length}개월(${list}), `;
+  }
+  s+=cur?`<b>${mm(cur)} 진행중</b> — 달이 끝나면 확정됩니다.`:'';
+  if(keys[0]==='2026-07') s+=' ※ 7월은 봇 가동 시작(07-05, 847 USDT) 이후 구간입니다.';
+  el.innerHTML=s;
 }
 function renderPnl(){
   const p=LIVE.pnl, card=$('#pnlcard');
@@ -515,7 +529,9 @@ function render(){
     const m=(r.eq/LIVE.month_start-1)*100;
     return `<tr><td>${r.label}</td><td>${f2(r.eq)}</td><td>${d1}</td><td><span class="${cls(m)}">${sp(m)}</span></td></tr>`;}).join('');
   $('#basecase tbody').innerHTML=BASECASE.map(([k,v])=>`<tr><td style="font-family:inherit;color:var(--ink-2)">${k}</td><td>${v}</td></tr>`).join('');
-  renderHeatInto(REAL_MONTHLY,'heatReal',Object.keys(REAL_MONTHLY).sort().pop());
+  const rk=Object.keys(REAL_MONTHLY).sort(), cur=rk[rk.length-1];
+  renderHeatInto(REAL_MONTHLY,'heatReal',cur);
+  renderRealNote(rk,cur);
   renderCash();
   renderPnl();
   renderTrades();
