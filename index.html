@@ -281,7 +281,7 @@
 
   <div class="ledger">
     <h3>일별 잔고 원장</h3>
-    <div class="note">봇이 기록한 실제 스냅샷 (09:05 KST). 실계좌 추적은 07-23 시작 — 아직 초기입니다.</div>
+    <div class="note" id="lednote"></div>
     <table id="tbl"><thead><tr><th>날짜</th><th>잔고 (USDT)</th><th>전일 대비</th><th>MTD</th></tr></thead><tbody></tbody></table>
   </div>
 
@@ -495,18 +495,23 @@ function renderParity(){
     : '';
 }
 function spark(){
-  const pts=LIVE.ledger, n=pts.length, W=440,H=150,PL=8,PR=8,PT=14,PB=22;
+  // 차트는 전체 기간(curve), 표는 최근 며칠(ledger). curve 없으면 ledger로 폴백.
+  const pts=(LIVE.curve&&LIVE.curve.length>1)
+    ? LIVE.curve.map(([label,eq])=>({label,eq})) : LIVE.ledger;
+  const n=pts.length, W=440,H=150,PL=8,PR=8,PT=14,PB=22;
   const eqs=pts.map(p=>p.eq), mn=Math.min(...eqs,LIVE.month_start), mx=Math.max(...eqs,LIVE.month_start);
   const pad=(mx-mn)*0.15||1;
   const X=i=>PL+(i/(n-1))*(W-PL-PR), Y=v=>PT+(1-(v-(mn-pad))/((mx+pad)-(mn-pad)))*(H-PT-PB);
   const y0=Y(LIVE.month_start), up=pts[n-1].eq>=pts[0].eq, col=up?'var(--pos)':'var(--neg)';
   const lp='M'+pts.map((p,i)=>X(i).toFixed(1)+' '+Y(p.eq).toFixed(1)).join(' L');
   const ap=`M${X(0).toFixed(1)} ${(H-PB)} `+pts.map((p,i)=>'L'+X(i).toFixed(1)+' '+Y(p.eq).toFixed(1)).join(' ')+` L${X(n-1).toFixed(1)} ${(H-PB)} Z`;
-  const dots=pts.map((p,i)=>`<circle cx="${X(i).toFixed(1)}" cy="${Y(p.eq).toFixed(1)}" r="${i===n-1?4:2.5}" fill="${col}"><title>${p.label} ${f2(p.eq)}</title></circle>`).join('');
+  // 점이 많으면 뭉개지므로 40점 이하일 때만 전부 찍고, 그 이상이면 끝점만.
+  const dots=pts.map((p,i)=>(n>40&&i!==n-1)?''
+    :`<circle cx="${X(i).toFixed(1)}" cy="${Y(p.eq).toFixed(1)}" r="${i===n-1?4:2.5}" fill="${col}"><title>${p.label} ${f2(p.eq)}</title></circle>`).join('');
   $('#spark').innerHTML=`<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" style="width:100%;height:150px;overflow:visible">
     <defs><linearGradient id="sg" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="${col}" stop-opacity=".22"/><stop offset="1" stop-color="${col}" stop-opacity="0"/></linearGradient></defs>
     <line x1="${PL}" x2="${W-PR}" y1="${y0.toFixed(1)}" y2="${y0.toFixed(1)}" stroke="var(--ink-3)" stroke-width="1" stroke-dasharray="3 3" opacity=".6"/>
-    <text class="axlab" x="${W-PR}" y="${(y0-5).toFixed(1)}" text-anchor="end">시작 ${f2(LIVE.month_start)}</text>
+    <text class="axlab" x="${W-PR}" y="${(y0-5).toFixed(1)}" text-anchor="end">이번 달 시작 ${f2(LIVE.month_start)}</text>
     <path d="${ap}" fill="url(#sg)"/><path d="${lp}" fill="none" stroke="${col}" stroke-width="2" stroke-linejoin="round"/>${dots}
     <text class="axlab" x="${X(0).toFixed(1)}" y="${H-6}" text-anchor="start">${pts[0].label}</text>
     <text class="axlab" x="${X(n-1).toFixed(1)}" y="${H-6}" text-anchor="end">현재</text></svg>`;
@@ -524,6 +529,10 @@ function render(){
   $('#mstart').textContent=f2(LIVE.month_start); $('#mnow').textContent=f2(LIVE.balance);
   const pnl=LIVE.balance-LIVE.month_start;
   $('#mpnl').innerHTML=`<span class="${cls(pnl)}">${(pnl>=0?'+':'')+f2(pnl)}</span>`;
+  const tot=LIVE.ledger_total||LIVE.ledger.length, shown=LIVE.ledger.length;
+  $('#lednote').innerHTML='봇이 기록한 실제 스냅샷 (09:05 KST). '
+    +(tot>shown?`전체 ${tot}일 중 <b>최근 ${shown}일</b>만 표시 — 위 그래프는 전체 기간입니다.`
+              :`추적 ${tot}일째 — 아직 초기입니다.`);
   $('#tbl tbody').innerHTML=LIVE.ledger.map(r=>{
     const d1=r.d1==null?'—':`<span class="${cls(r.d1)}">${sp(r.d1)}</span>`;
     const m=(r.eq/LIVE.month_start-1)*100;
