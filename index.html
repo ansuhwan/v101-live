@@ -134,6 +134,16 @@
   .tag.sl{background:rgba(226,84,79,.14);color:var(--neg)}
   .tag.tp{background:rgba(33,176,125,.14);color:var(--pos)}
   .tag.nt{background:var(--surface-2);color:var(--ink-2)}
+  /* 페이지네이션 */
+  .pager{display:flex;align-items:center;justify-content:center;gap:6px;margin-top:12px;flex-wrap:wrap}
+  .pager button{min-width:32px;height:32px;padding:0 9px;border:1px solid var(--line);background:var(--surface);
+    color:var(--ink-2);border-radius:8px;cursor:pointer;font-size:13px;font-weight:600;
+    font-variant-numeric:tabular-nums}
+  .pager button:hover:not(:disabled){border-color:var(--accent);color:var(--ink)}
+  .pager button[aria-current="true"]{background:var(--accent);border-color:var(--accent);color:#fff}
+  .pager button:disabled{opacity:.35;cursor:default}
+  .pager .pinfo{color:var(--ink-3);font-size:12px;margin-left:4px;font-variant-numeric:tabular-nums}
+  .pager .gap{color:var(--ink-3);padding:0 2px}
   .brow{display:grid;grid-template-columns:42px 1fr 74px 62px;align-items:center;gap:7px;height:23px}
   @media(max-width:480px){.brow{grid-template-columns:38px 1fr 64px 56px;gap:5px}}
   .bsym{font-size:11.5px;font-weight:600;color:var(--ink-2);font-family:ui-monospace,monospace}
@@ -283,6 +293,7 @@
     <h3>일별 잔고 원장</h3>
     <div class="note" id="lednote"></div>
     <table id="tbl"><thead><tr><th>날짜</th><th>잔고 (USDT)</th><th>전일 대비</th><th>MTD</th></tr></thead><tbody></tbody></table>
+    <div class="pager" id="ledpager"></div>
   </div>
 
   <div class="ledger">
@@ -399,6 +410,51 @@ function renderBook(){
   $('#bookbars').innerHTML=(tr.length?'<div class="bgrouph">추세 슬리브 (BTC/ETH)</div>'+head+bars(tr,mx):'')
     +(mn.length?'<div class="bgrouph">MN 마켓뉴트럴 (알트)</div>'+head+bars(mn,mx):'');
 }
+// ── 일별 원장 (전 기간, 페이지네이션) ─────────────────────────────
+const LED_PER=15;
+let LED_PAGE=0;
+function ldate(s){                 // 'YYYY-MM-DD'→'MM-DD' (해가 바뀌면 'YY-MM-DD'), '현재'는 그대로
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
+  const y=+s.slice(0,4), now=new Date().getFullYear();
+  return y===now? s.slice(5) : s.slice(2);
+}
+function renderLedger(){
+  const all=[...(LIVE.ledger||[])].reverse();        // 최신이 위
+  const tot=all.length;
+  $('#lednote').innerHTML='봇이 기록한 실제 스냅샷 (09:05 KST). '
+    +(tot>LED_PER?`전체 <b>${tot}일</b> — 아래에서 넘겨 보실 수 있습니다. 그래프는 전체 기간입니다.`
+                 :`추적 ${tot}일째 — 아직 초기입니다.`);
+  const pages=Math.max(1,Math.ceil(tot/LED_PER));
+  if(LED_PAGE>pages-1) LED_PAGE=pages-1;
+  if(LED_PAGE<0) LED_PAGE=0;
+  const slice=all.slice(LED_PAGE*LED_PER,(LED_PAGE+1)*LED_PER);
+  $('#tbl tbody').innerHTML=slice.map(r=>{
+    const d1=r.d1==null?'—':`<span class="${cls(r.d1)}">${sp(r.d1)}</span>`;
+    // MTD는 '그 행이 속한 달'의 월초자본 기준. ms가 없던 옛 데이터는 현재 월초로 폴백.
+    const base=r.ms||LIVE.month_start;
+    const m=(r.eq/base-1)*100;
+    return `<tr><td>${ldate(r.label)}</td><td>${f2(r.eq)}</td><td>${d1}</td>`
+      +`<td><span class="${cls(m)}">${sp(m)}</span></td></tr>`;}).join('');
+  // 페이저: ‹ 1 … n › (양끝 + 현재 주변만)
+  const el=$('#ledpager');
+  if(pages<=1){ el.innerHTML=''; return; }
+  const nums=[]; const push=p=>{ if(!nums.includes(p)&&p>=0&&p<pages) nums.push(p); };
+  push(0); for(let p=LED_PAGE-1;p<=LED_PAGE+1;p++) push(p); push(pages-1);
+  nums.sort((a,b)=>a-b);
+  let h=`<button data-p="${LED_PAGE-1}" ${LED_PAGE===0?'disabled':''} aria-label="이전">‹</button>`;
+  let prev=-1;
+  for(const p of nums){
+    if(prev>=0&&p-prev>1) h+='<span class="gap">…</span>';
+    h+=`<button data-p="${p}" ${p===LED_PAGE?'aria-current="true"':''}>${p+1}</button>`;
+    prev=p;
+  }
+  h+=`<button data-p="${LED_PAGE+1}" ${LED_PAGE===pages-1?'disabled':''} aria-label="다음">›</button>`;
+  h+=`<span class="pinfo">${LED_PAGE*LED_PER+1}–${Math.min((LED_PAGE+1)*LED_PER,tot)} / ${tot}일</span>`;
+  el.innerHTML=h;
+  el.querySelectorAll('button[data-p]').forEach(b=>b.addEventListener('click',()=>{
+    LED_PAGE=+b.dataset.p; renderLedger();
+  }));
+}
 function renderRealNote(keys,cur){
   // 달이 바뀌어도 안 낡도록 문구를 데이터에서 생성한다.
   const el=$('#realnote'); if(!el)return;
@@ -507,13 +563,13 @@ function spark(){
   const ap=`M${X(0).toFixed(1)} ${(H-PB)} `+pts.map((p,i)=>'L'+X(i).toFixed(1)+' '+Y(p.eq).toFixed(1)).join(' ')+` L${X(n-1).toFixed(1)} ${(H-PB)} Z`;
   // 점이 많으면 뭉개지므로 40점 이하일 때만 전부 찍고, 그 이상이면 끝점만.
   const dots=pts.map((p,i)=>(n>40&&i!==n-1)?''
-    :`<circle cx="${X(i).toFixed(1)}" cy="${Y(p.eq).toFixed(1)}" r="${i===n-1?4:2.5}" fill="${col}"><title>${p.label} ${f2(p.eq)}</title></circle>`).join('');
+    :`<circle cx="${X(i).toFixed(1)}" cy="${Y(p.eq).toFixed(1)}" r="${i===n-1?4:2.5}" fill="${col}"><title>${ldate(p.label)} ${f2(p.eq)}</title></circle>`).join('');
   $('#spark').innerHTML=`<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" style="width:100%;height:150px;overflow:visible">
     <defs><linearGradient id="sg" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="${col}" stop-opacity=".22"/><stop offset="1" stop-color="${col}" stop-opacity="0"/></linearGradient></defs>
     <line x1="${PL}" x2="${W-PR}" y1="${y0.toFixed(1)}" y2="${y0.toFixed(1)}" stroke="var(--ink-3)" stroke-width="1" stroke-dasharray="3 3" opacity=".6"/>
     <text class="axlab" x="${W-PR}" y="${(y0-5).toFixed(1)}" text-anchor="end">이번 달 시작 ${f2(LIVE.month_start)}</text>
     <path d="${ap}" fill="url(#sg)"/><path d="${lp}" fill="none" stroke="${col}" stroke-width="2" stroke-linejoin="round"/>${dots}
-    <text class="axlab" x="${X(0).toFixed(1)}" y="${H-6}" text-anchor="start">${pts[0].label}</text>
+    <text class="axlab" x="${X(0).toFixed(1)}" y="${H-6}" text-anchor="start">${ldate(pts[0].label)}</text>
     <text class="axlab" x="${X(n-1).toFixed(1)}" y="${H-6}" text-anchor="end">현재</text></svg>`;
 }
 function render(){
@@ -529,14 +585,7 @@ function render(){
   $('#mstart').textContent=f2(LIVE.month_start); $('#mnow').textContent=f2(LIVE.balance);
   const pnl=LIVE.balance-LIVE.month_start;
   $('#mpnl').innerHTML=`<span class="${cls(pnl)}">${(pnl>=0?'+':'')+f2(pnl)}</span>`;
-  const tot=LIVE.ledger_total||LIVE.ledger.length, shown=LIVE.ledger.length;
-  $('#lednote').innerHTML='봇이 기록한 실제 스냅샷 (09:05 KST). '
-    +(tot>shown?`전체 ${tot}일 중 <b>최근 ${shown}일</b>만 표시 — 위 그래프는 전체 기간입니다.`
-              :`추적 ${tot}일째 — 아직 초기입니다.`);
-  $('#tbl tbody').innerHTML=LIVE.ledger.map(r=>{
-    const d1=r.d1==null?'—':`<span class="${cls(r.d1)}">${sp(r.d1)}</span>`;
-    const m=(r.eq/LIVE.month_start-1)*100;
-    return `<tr><td>${r.label}</td><td>${f2(r.eq)}</td><td>${d1}</td><td><span class="${cls(m)}">${sp(m)}</span></td></tr>`;}).join('');
+  renderLedger();
   $('#basecase tbody').innerHTML=BASECASE.map(([k,v])=>`<tr><td style="font-family:inherit;color:var(--ink-2)">${k}</td><td>${v}</td></tr>`).join('');
   const rk=Object.keys(REAL_MONTHLY).sort(), cur=rk[rk.length-1];
   renderHeatInto(REAL_MONTHLY,'heatReal',cur);
