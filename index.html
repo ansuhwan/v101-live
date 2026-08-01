@@ -144,6 +144,19 @@
   .pager button:disabled{opacity:.35;cursor:default}
   .pager .pinfo{color:var(--ink-3);font-size:12px;margin-left:4px;font-variant-numeric:tabular-nums}
   .pager .gap{color:var(--ink-3);padding:0 2px}
+  /* MN 리밸런싱 */
+  .mrow{display:grid;grid-template-columns:52px 1fr auto auto;gap:9px;align-items:baseline;
+    font-size:13px;padding:7px 0}
+  .mrow+.mrow{border-top:1px solid var(--line)}
+  .mrow .mc{font-weight:680;letter-spacing:.01em}
+  .mrow .mq{font-family:ui-monospace,Menlo,monospace;font-variant-numeric:tabular-nums;
+    color:var(--ink-3);font-size:12px;text-align:right}
+  .mrow .mu{font-family:ui-monospace,Menlo,monospace;font-variant-numeric:tabular-nums;
+    font-weight:640;text-align:right;min-width:46px}
+  .kind{font-size:10.5px;font-weight:660;border-radius:4px;padding:1px 5px;margin-left:6px}
+  .kind.up{background:rgba(33,176,125,.14);color:var(--pos)}
+  .kind.dn{background:var(--surface-2);color:var(--ink-2)}
+  .kind.sw{background:rgba(240,169,43,.16);color:var(--accent)}
   .brow{display:grid;grid-template-columns:42px 1fr 74px 62px;align-items:center;gap:7px;height:23px}
   @media(max-width:480px){.brow{grid-template-columns:38px 1fr 64px 56px;gap:5px}}
   .bsym{font-size:11.5px;font-weight:600;color:var(--ink-2);font-family:ui-monospace,monospace}
@@ -247,6 +260,17 @@
       <b>매매 실현손익</b>은 포지션을 닫아서 확정된 손익, <b>수수료·펀딩</b>은 거래 비용입니다.
       비용 비중이 크면 회전율 문제, 매매손실이 크면 전략이 안 맞는 국면입니다.
       <b>미실현</b>은 아직 안 닫은 포지션의 평가손익이라 잔고에는 반영돼 있지만 확정된 건 아닙니다.
+    </div>
+  </div>
+
+  <div class="ledger" id="mnrcard" style="display:none">
+    <h3>오늘 아침 리밸런싱 <span class="badge" id="mnrbadge"></span></h3>
+    <div class="note" id="mnrnote"></div>
+    <div id="mnrlist"></div>
+    <div class="foot" style="margin-top:10px">
+      매일 09:00 KST(00:00 UTC)에 MN 알트북이 목표 비중을 다시 계산해 차이만큼만 주문합니다.
+      <b>확대·축소</b>는 같은 방향에서 크기만 조절, <b>전환</b>은 기존 포지션을 청산하고 반대 방향으로 새로 잡은 것입니다.
+      목표와 차이가 작거나 최소주문(5 USDT)에 못 미치면 주문하지 않고 그대로 둡니다.
     </div>
   </div>
 
@@ -509,6 +533,26 @@ function renderPnl(){
     +`background:${v>=0?'var(--pos)':'var(--neg)'}"></span></span>`
     +`<span class="pn ${cls(v)}">${sgn(v)}</span></div>`).join('') : '';
 }
+function renderMnRebal(){
+  const r=LIVE.mn_rebal, card=$('#mnrcard');
+  if(!r||!r.items||!r.items.length){ card.style.display='none'; return; }
+  card.style.display='';
+  const b=$('#mnrbadge');
+  b.textContent=r.mode==='LIVE'?'실주문':'모의(DRY)';
+  b.className='badge '+(r.mode==='LIVE'?'b-ok':'');
+  const tot=r.items.reduce((a,i)=>a+i.usd,0);
+  $('#mnrnote').innerHTML=`${r.ts} UTC · <b>${r.items.length}종 조정</b>`
+    +(r.n_hold?` · ${r.n_hold}종 유지`:'')+` · 거래규모 합계 ~${tot}$`
+    +` <span style="color:var(--ink-3)">(비중 ${r.scale} × 레버 ${r.lev})</span>`;
+  const K={'확대':'up','축소':'dn','전환':'sw'};
+  $('#mnrlist').innerHTML=r.items.map(i=>{
+    const c=i.side>0?'var(--c-long)':'var(--c-short)';
+    return `<div class="mrow"><span class="mc">${i.c.toUpperCase()}</span>`
+      +`<span><span style="color:${c};font-weight:640">${i.side>0?'롱':'숏'}</span>`
+      +`<span class="kind ${K[i.kind]||'dn'}">${i.kind}${i.note?' '+i.note:''}</span></span>`
+      +`<span class="mq">${i.qty}</span><span class="mu">~${i.usd}$</span></div>`;
+  }).join('');
+}
 function renderTrades(){
   const t=LIVE.trades, card=$('#tradecard');
   if(!t||!t.length){ card.style.display='none'; return; }
@@ -592,6 +636,7 @@ function render(){
   renderRealNote(rk,cur);
   renderCash();
   renderPnl();
+  renderMnRebal();
   renderTrades();
   renderParity();
   renderBook();
