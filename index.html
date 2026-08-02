@@ -113,6 +113,18 @@
   .psig{display:flex;gap:10px;align-items:baseline;font-size:12.5px;padding:5px 0;color:var(--ink-2)}
   .psig+.psig{border-top:1px dashed var(--line)}
   .psig .sd{font-weight:640}
+  /* 봇 생존 배지 — 봇이 멈추면 초록 점을 빨간 정지등으로 */
+  .dot.stale{background:var(--neg);animation:none}
+  .live.stale{border-color:var(--neg);color:var(--neg)}
+  /* 북 가동 상태 */
+  .bkrow{display:grid;grid-template-columns:20px 92px 1fr auto;gap:9px;align-items:baseline;
+    font-size:13px;padding:6px 0}
+  .bkrow+.bkrow{border-top:1px solid var(--line)}
+  .bkrow .bkd{font-size:11px;text-align:center}
+  .bkrow .bkn{color:var(--ink-2)}
+  .bkrow .bks{font-weight:620}
+  .bkrow .bka{margin-left:auto;color:var(--ink-3);font-size:12px;
+    font-family:ui-monospace,Menlo,monospace;font-variant-numeric:tabular-nums}
   /* 손익 분해 */
   #pnltbl td:nth-child(2),#pnltbl td:nth-child(3),#pnltbl th:nth-child(2),#pnltbl th:nth-child(3){text-align:right}
   #pnltbl tr.sum td{font-weight:700;border-top:2px solid var(--line)}
@@ -208,7 +220,7 @@
       <div class="sub">바이낸스 선물 실잔고 (총 마진잔고 = 지갑 + 미실현손익). 봇이 매일 09:05 KST 기록한 원장 + 실시간 스냅샷.</div>
     </div>
     <div style="display:flex;gap:8px;align-items:center">
-      <span class="live"><span class="dot"></span> LIVE</span>
+      <span class="live" id="livebadge"><span class="dot" id="livedot"></span> LIVE</span>
       <button class="icon-btn" id="refresh" title="새로고침">↻</button>
       <button class="icon-btn" id="theme" title="테마">◑</button>
     </div>
@@ -238,7 +250,8 @@
       <h3>안전 상태</h3>
       <div class="row"><span class="k">증거금 여유</span><span class="val ok" id="mratio"></span></div>
       <div class="row"><span class="k">gross 노출</span><span class="val" id="grossx"></span></div>
-      <div class="row"><span class="k">gross 하드캡</span><span class="val ok">6배 ✓ 활성</span></div>
+      <div class="row" title="지금 신호가 모두 켜졌을 때의 노출 대비 실제 노출. 낮으면 북이 비어 있다는 뜻입니다."><span class="k">가동률</span><span class="val" id="fillrate">—</span></div>
+      <div class="row" title="목표변동성 ÷ 실현변동성. 시장이 잠잠하면 커지고 요동치면 작아집니다."><span class="k">레버리지</span><span class="val" id="levbd">—</span></div>
     </div>
     <div class="card" id="cashcard" style="display:none">
       <h3>현금 · 증거금</h3>
@@ -249,9 +262,21 @@
     </div>
     <div class="card">
       <h3>이번 달 손익</h3>
-      <div class="row"><span class="k">7월 시작</span><span class="val mono" id="mstart"></span></div>
+      <div class="row"><span class="k" id="mstartlab">이번 달 시작</span><span class="val mono" id="mstart"></span></div>
       <div class="row"><span class="k">현재</span><span class="val mono" id="mnow"></span></div>
       <div class="row"><span class="k">손익</span><span class="val mono" id="mpnl"></span></div>
+    </div>
+  </div>
+
+  <div class="ledger" id="expocard" style="display:none">
+    <h3>노출 추이 <span class="badge" id="expobadge"></span></h3>
+    <div class="note" id="exponote"></div>
+    <div id="expochart"></div>
+    <div class="foot" style="margin-top:10px">
+      <b>사용중 증거금 = 총 명목 ÷ 10</b>입니다(거래소 심볼 레버 10배 고정). 전략이 실제로 쓰는
+      레버리지(위 <b>레버리지</b> 행)와는 다른 숫자예요. 그래서 증거금이 줄었다면 손실이 아니라
+      <b>포지션이 닫혀서 명목이 줄어든 것</b>인 경우가 대부분입니다.
+      계단처럼 뚝 떨어졌다면 그 시각에 청산이 있었고, 잔물결은 코인 가격이 움직인 만큼입니다.
     </div>
   </div>
 
@@ -295,6 +320,7 @@
     <h3>봇 점검 · 백테 대조 <span class="badge" id="pbadge"></span></h3>
     <div class="note" id="pnote"></div>
     <div id="pchecks"></div>
+    <div id="pbooks"></div>
     <div id="psigs"></div>
     <div class="foot" style="margin-top:10px">
       바이낸스 API에서 캔들을 새로 받아 백테 규칙을 재현하고, 봇이 실제로 넣은 주문과 대조한 결과입니다.
@@ -606,6 +632,62 @@ function renderTrades(){
     return `<div class="trow"><span class="tt">${e.ts}</span><span class="tb">${e.book}</span>${mid}${right}</div>`;
   }).join('');
 }
+function renderExpo(){
+  // 노출·증거금 시계열. 잔고만 그리면 "증거금이 준다"가 손실인지 포지션 축소인지 못 가린다.
+  const e=LIVE.expo, card=$('#expocard');
+  if(!e||e.length<3){ card.style.display='none'; return; }
+  card.style.display='';
+  const n=e.length, W=440,H=132,PL=8,PR=8,PT=14,PB=20;
+  const used=e.map(r=>r[2]);
+  const mn=Math.min(...used), mx=Math.max(...used), pad=(mx-mn)*0.18||1;
+  const X=i=>PL+(i/(n-1))*(W-PL-PR);
+  const Y=t=>PT+(1-(t-(mn-pad))/((mx+pad)-(mn-pad)))*(H-PT-PB);
+  const chg=used[0]?(used[n-1]/used[0]-1)*100:0, up=chg>=0, col=up?'var(--pos)':'var(--neg)';
+  const b=$('#expobadge');
+  b.textContent=`${n}시간 ${up?'+':'−'}${Math.abs(chg).toFixed(0)}%`;
+  b.className='badge '+(up?'b-ok':'b-ng');
+  const last=e[n-1];
+  $('#exponote').innerHTML=`사용중 증거금 <b>${nf(last[2],1)} USDT</b> · 총 명목 <b>${last[1].toFixed(2)}배</b>`
+    +` <span style="color:var(--ink-3)">(최근 ${n<24?n+'시간':Math.round(n/24)+'일'} 매시 기록)</span>`;
+  const lp='M'+e.map((r,i)=>X(i).toFixed(1)+' '+Y(r[2]).toFixed(1)).join(' L');
+  const ap=`M${X(0).toFixed(1)} ${H-PB} `+e.map((r,i)=>'L'+X(i).toFixed(1)+' '+Y(r[2]).toFixed(1)).join(' ')
+    +` L${X(n-1).toFixed(1)} ${H-PB} Z`;
+  const dots=e.map((r,i)=>(n>48&&i!==n-1)?''
+    :`<circle cx="${X(i).toFixed(1)}" cy="${Y(r[2]).toFixed(1)}" r="${i===n-1?4:2}" fill="${col}">`
+      +`<title>${r[0]} · 증거금 ${nf(r[2],1)} · gross ${r[1].toFixed(2)}배</title></circle>`).join('');
+  $('#expochart').innerHTML=`<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" style="width:100%;height:132px;overflow:visible">
+    <defs><linearGradient id="eg" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="${col}" stop-opacity=".2"/><stop offset="1" stop-color="${col}" stop-opacity="0"/></linearGradient></defs>
+    <path d="${ap}" fill="url(#eg)"/><path d="${lp}" fill="none" stroke="${col}" stroke-width="2" stroke-linejoin="round"/>${dots}
+    <text class="axlab" x="${PL}" y="${H-5}" text-anchor="start">${e[0][0]}</text>
+    <text class="axlab" x="${W-PR}" y="${H-5}" text-anchor="end">현재</text>
+    <text class="axlab" x="${W-PR}" y="${(Y(mx)-4).toFixed(1)}" text-anchor="end">최대 ${nf(mx,0)}</text></svg>`;
+}
+function renderBooks(p){
+  // "어느 북이 지금 일하고 있나" — 비어 있는 북과 마지막 신호 경과를 같이 보여준다.
+  const el=$('#pbooks'); if(!el) return;
+  const rows=[];
+  (p.trend||[]).forEach(t=>{
+    const on=t.pos!==0;
+    rows.push([on, '추세 '+t.a.toUpperCase(),
+      on?(t.pos>0?'롱 보유':'숏 보유'):'무포지션',
+      on?(t.held!=null?`${t.held}시간째`:'')
+        :(t.ago!=null?`마지막 신호 ${t.ago>=48?Math.floor(t.ago/24)+'일':t.ago+'시간'} 전 (${t.last_sig})`
+                     :'최근 30일 신호 없음')]);
+  });
+  (p.sleeve||[]).forEach(s=>{
+    const on=s.pos!==0;
+    rows.push([on, '슬리브 '+s.a.toUpperCase(),
+      on?(s.pos>0?'롱 보유':'숏 보유'):'무포지션',
+      s.dir4==null?'':`4h 방향 ${s.dir4>0?'상승':s.dir4<0?'하락':'중립'}`]);
+  });
+  if(p.mn_legs!=null) rows.push([p.mn_legs>0,'MN 알트',
+    p.mn_legs>0?`${p.mn_legs}종 가동`:'무포지션','매일 00:00 UTC 리밸런스']);
+  el.innerHTML='<div class="bgrouph">북 가동 상태</div>'+rows.map(([on,name,state,note])=>
+    `<div class="bkrow"><span class="bkd" style="color:${on?'var(--pos)':'var(--ink-3)'}">${on?'●':'○'}</span>`
+    +`<span class="bkn">${name}</span>`
+    +`<span class="bks" style="color:${on?'var(--ink)':'var(--ink-3)'}">${state}</span>`
+    +`<span class="bka">${note}</span></div>`).join('');
+}
 function renderParity(){
   const p=LIVE.parity, card=$('#paritycard');
   if(!p||!p.checks||!p.checks.length){ card.style.display='none'; return; }
@@ -619,6 +701,7 @@ function renderParity(){
   $('#pchecks').innerHTML=p.checks.map(c=>
     `<div class="pchk"><span class="st s-${c.s}">${ico[c.s]||'·'}</span>`
     +`<span class="pk">${c.k}</span><span class="pv">${c.v}</span></div>`).join('');
+  renderBooks(p);
   const sg=p.signals||[];
   $('#psigs').innerHTML=sg.length
     ? '<div class="bgrouph">최근 백테 진입신호</div>'+sg.map(s=>
@@ -656,9 +739,36 @@ function render(){
   $('#mtd').innerHTML=`<span class="${cls(mtd)}">${sp(mtd)}</span>`;
   $('#d1').innerHTML=`<span class="${cls(LIVE.d1)}">${sp(LIVE.d1)}</span>`;
   $('#mratio').textContent=LIVE.margin_ratio.toFixed(1)+'% (청산 대비 여유 큼)';
-  $('#grossx').textContent=LIVE.gross_x.toFixed(2)+'배 (캡 6 여유)';
+  const P=LIVE.parity||{}, gcap=P.gross_cap||6;
+  $('#grossx').textContent=LIVE.gross_x.toFixed(2)+`배 (캡 ${gcap} 여유)`;
+  // 가동률 — 지금 신호가 다 켜졌을 때(이론 만재) 대비 실제 노출. "왜 이것밖에 안 쓰나"의 답.
+  if(P.gross_theory>0){
+    const r=LIVE.gross_x/P.gross_theory*100;
+    $('#fillrate').innerHTML=`<span class="${r<60?'warnc':''}">${r.toFixed(0)}%</span>`
+      +` <span style="color:var(--ink-3);font-weight:500">(만재 ${P.gross_theory.toFixed(2)}배)</span>`;
+  } else $('#fillrate').textContent='—';
+  // 레버리지 분해 — TV ÷ 실현변동성, 캡에 걸렸으면 그렇다고 표시
+  if(P.lev!=null){
+    const capped=P.lev_cap&&P.lev>=P.lev_cap-1e-9;
+    $('#levbd').innerHTML=`${P.lev.toFixed(2)}배 <span style="color:var(--ink-3);font-weight:500">`
+      +(capped?`(캡 ${P.lev_cap}배 도달)`
+              :(P.tv&&P.rv?`(TV ${P.tv.toFixed(2)} ÷ 변동성 ${(P.rv*100).toFixed(1)}%)`:''))+'</span>';
+  } else $('#levbd').textContent='—';
   if(LIVE.strategy) $('#stratnow').textContent=LIVE.strategy;
   if(LIVE.mn_start) $('#mncut').textContent=LIVE.mn_start;
+  // 달이 바뀌어도 안 낡도록 라벨을 데이터(asof)에서 만든다 — 예전엔 '7월 시작'으로 박혀 있었다.
+  const mlab=(LIVE.asof||'').slice(0,7).match(/^\d{4}-(\d{2})$/);
+  $('#mstartlab').textContent=mlab?`${+mlab[1]}월 시작`:'이번 달 시작';
+  // 봇 생존 — asof는 대시보드 푸시 시각이라 봇이 죽어도 화면은 멀쩡해 보인다
+  const bt=LIVE.bot, bd=$('#livedot'), bb=$('#livebadge');
+  if(bt){
+    const stale=!bt.ok;
+    bd.className='dot'+(stale?' stale':'');
+    bb.className='live'+(stale?' stale':'');
+    bb.lastChild.textContent=stale?` 봇 응답없음 ${bt.age_min}분`
+      :(bt.age_min<90?` LIVE · 봇 ${bt.age_min}분 전`:' LIVE');
+    bb.title=`봇 마지막 실행 ${bt.last_run}`;
+  }
   $('#mstart').textContent=f2(LIVE.month_start); $('#mnow').textContent=f2(LIVE.balance);
   const pnl=LIVE.balance-LIVE.month_start;
   $('#mpnl').innerHTML=`<span class="${cls(pnl)}">${(pnl>=0?'+':'')+f2(pnl)}</span>`;
@@ -668,6 +778,7 @@ function render(){
   renderHeatInto(REAL_MONTHLY,'heatReal',cur);
   renderRealNote(rk,cur);
   renderCash();
+  renderExpo();
   renderPnl();
   renderMnRebal();
   renderTrades();
