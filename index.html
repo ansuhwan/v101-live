@@ -125,6 +125,11 @@
   .bkrow .bks{font-weight:620}
   .bkrow .bka{margin-left:auto;color:var(--ink-3);font-size:12px;
     font-family:ui-monospace,Menlo,monospace;font-variant-numeric:tabular-nums}
+  /* 낙폭 게이지 — 지금 낙폭이 '각오한 MDD' 중 어디쯤인지 */
+  .ddg{margin-top:13px}
+  .ddg .ddt{position:relative;height:7px;border-radius:4px;background:var(--surface-2);overflow:hidden}
+  .ddg .ddf{position:absolute;left:0;top:0;height:100%;border-radius:4px;background:var(--neg);opacity:.85}
+  .ddg .ddlab{display:flex;justify-content:space-between;font-size:11px;color:var(--ink-3);margin-top:5px}
   /* 손익 분해 */
   #pnltbl td:nth-child(2),#pnltbl td:nth-child(3),#pnltbl th:nth-child(2),#pnltbl th:nth-child(3){text-align:right}
   #pnltbl tr.sum td{font-weight:700;border-top:2px solid var(--line)}
@@ -234,7 +239,9 @@
       <div class="deltas">
         <div class="delta"><div class="dl">이번 달 (MTD)</div><div class="dv mono" id="mtd"></div></div>
         <div class="delta"><div class="dl">전일 대비</div><div class="dv mono" id="d1"></div></div>
+        <div class="delta" id="ddwrap" style="display:none"><div class="dl">고점 대비</div><div class="dv mono" id="ddv"></div></div>
       </div>
+      <div id="ddgauge" style="display:none"></div>
     </div>
     <div class="spark" id="spark"></div>
   </div>
@@ -632,6 +639,21 @@ function renderTrades(){
     return `<div class="trow"><span class="tt">${e.ts}</span><span class="tb">${e.book}</span>${mid}${right}</div>`;
   }).join('');
 }
+function renderDD(){
+  // 고점 대비 낙폭 — "각오한 MDD −36.1%" 옆에 지금 위치를 보여줘야 숫자가 의미를 갖는다.
+  const d=LIVE.dd, w=$('#ddwrap'), g=$('#ddgauge');
+  if(!d||d.peak==null){ w.style.display='none'; g.style.display='none'; return; }
+  w.style.display=''; g.style.display='';
+  $('#ddv').innerHTML=d.pct>=-0.005 ? '<span class="pos">신고점</span>'
+                                    : `<span class="neg">${sp(d.pct)}</span>`;
+  const plan=Math.abs(PLAN.mdd), cur=Math.abs(Math.min(d.pct,0));
+  const fill=Math.min(cur/plan*100,100);
+  g.className='ddg';
+  g.innerHTML=`<div class="ddt" title="각오한 최대낙폭 ${PLAN.mdd}% 중 ${(cur/plan*100).toFixed(0)}% 지점">`
+    +`<div class="ddf" style="width:${fill.toFixed(1)}%"></div></div>`
+    +`<div class="ddlab"><span>고점 ${f2(d.peak)}${d.since?` (${d.since})`:''}`
+    +`${d.provisional?' · 잠정':''}</span><span>각오한 최대 ${PLAN.mdd}%</span></div>`;
+}
 function renderExpo(){
   // 노출·증거금 시계열. 잔고만 그리면 "증거금이 준다"가 손실인지 포지션 축소인지 못 가린다.
   const e=LIVE.expo, card=$('#expocard');
@@ -777,6 +799,7 @@ function render(){
   const rk=Object.keys(REAL_MONTHLY).sort(), cur=rk[rk.length-1];
   renderHeatInto(REAL_MONTHLY,'heatReal',cur);
   renderRealNote(rk,cur);
+  renderDD();
   renderCash();
   renderExpo();
   renderPnl();
