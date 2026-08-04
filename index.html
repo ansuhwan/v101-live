@@ -328,6 +328,7 @@
     <div class="note" id="pnote"></div>
     <div id="pchecks"></div>
     <div id="pbooks"></div>
+    <div id="pens"></div>
     <div id="psigs"></div>
     <div class="foot" style="margin-top:10px">
       바이낸스 API에서 캔들을 새로 받아 백테 규칙을 재현하고, 봇이 실제로 넣은 주문과 대조한 결과입니다.
@@ -710,6 +711,55 @@ function renderBooks(p){
     +`<span class="bks" style="color:${on?'var(--ink)':'var(--ink-3)'}">${state}</span>`
     +`<span class="bka">${note}</span></div>`).join('');
 }
+function renderEns(e){
+  // v10.4 앙상블 오버레이. 게이트가 OFF면 v10.1과 동일 동작 — 그걸 명시해 준다.
+  const el=$('#pens'); if(!el) return;
+  if(!e){ el.innerHTML=''; return; }
+  if(e.err){ el.innerHTML='<div class="bgrouph">앙상블 오버레이</div>'
+    +`<div class="bkrow"><span class="bkd" style="color:var(--neg)">●</span>`
+    +`<span class="bkn">점검 실패</span><span class="bks">${e.err}</span></div>`; return; }
+  const on=e.gate, dd=(e.dd*100), th=(e.th*100);
+  // 게이트까지 남은 거리 — "얼마나 더 빠지면 켜지나"가 제일 궁금한 값이다.
+  const gap=dd-th;
+  const head=`<div class="bgrouph">앙상블 오버레이 (v10.4)`
+    +(e.dry?' <span style="color:var(--ink-3);font-weight:400">· DRY</span>':'')
+    +(e.forced?' <span style="color:var(--warn,#c80);font-weight:400">· 게이트강제</span>':'')
+    +`</div>`;
+  const rows=[];
+  rows.push([on, '게이트', on?'ON — 6코어 앙상블이 90% 인계':'OFF — v10.1과 동일 동작',
+    e.date? `낙폭 ${dd.toFixed(2)}% / 임계 ${th.toFixed(2)}%`
+          + (on?'':` · ${Math.abs(gap).toFixed(2)}%p 더 빠지면 발동`)
+          : '아직 미계산 (다음 00:00 UTC)']);
+  rows.push([e.held>0, '앙상블 코어', e.held>0?`${e.held}/${e.n} 보유`:'무포지션',
+    e.mism>0?`⚠ 백테와 ${e.mism}개 불일치`:'백테와 일치']);
+  const ef=e.eff||{};
+  rows.push([true, '실효 가중',
+    `추세 ${(ef.base_trend*100||0).toFixed(1)}% · 슬리브 ${(ef.sleeve*100||0).toFixed(1)}%`
+    +` · 바스켓 ${(ef.basket*100||0).toFixed(1)}% · 앙상블 ${(e.eff_ens*100||0).toFixed(1)}%`,
+    on?'게이트 ON 배분':'게이트 OFF = 현행 배분']);
+  let html=head+rows.map(([ok,name,state,note])=>
+    `<div class="bkrow"><span class="bkd" style="color:${ok?'var(--pos)':'var(--ink-3)'}">${ok?'●':'○'}</span>`
+    +`<span class="bkn">${name}</span>`
+    +`<span class="bks" style="color:${ok?'var(--ink)':'var(--ink-3)'}">${state}</span>`
+    +`<span class="bka">${note}</span></div>`).join('');
+  // 코어별 가중 (역변동성) — 6개가 고르면 정상
+  if(e.w){
+    const ws=Object.entries(e.w);
+    html+='<div class="psig" style="flex-wrap:wrap;gap:10px">'
+      +ws.map(([k,v])=>`<span class="mono" style="color:var(--ink-2)">${k.split('/')[0]}`
+        +` <b style="color:var(--ink)">${(v*100).toFixed(1)}%</b></span>`).join('')
+      +'</div>';
+  }
+  (e.legs||[]).forEach(x=>{
+    const p=v=>v===1?'롱':v===-1?'숏':'-';
+    html+=`<div class="psig"><span class="sd">${x.a.toUpperCase()}</span>`
+      +`<span>${x.n}</span>`
+      +`<span style="color:${x.got>0?'var(--c-long)':x.got<0?'var(--c-short)':'var(--ink-3)'};font-weight:640">${p(x.got)}</span>`
+      +`<span class="mono" style="margin-left:auto">백테 ${p(x.want)} · 수량 ${x.qty||0}`
+      +` ${x.ok?'✓':'✕'}</span></div>`;
+  });
+  el.innerHTML=html;
+}
 function renderParity(){
   const p=LIVE.parity, card=$('#paritycard');
   if(!p||!p.checks||!p.checks.length){ card.style.display='none'; return; }
@@ -724,6 +774,7 @@ function renderParity(){
     `<div class="pchk"><span class="st s-${c.s}">${ico[c.s]||'·'}</span>`
     +`<span class="pk">${c.k}</span><span class="pv">${c.v}</span></div>`).join('');
   renderBooks(p);
+  renderEns(p.ens);
   const sg=p.signals||[];
   $('#psigs').innerHTML=sg.length
     ? '<div class="bgrouph">최근 백테 진입신호</div>'+sg.map(s=>
