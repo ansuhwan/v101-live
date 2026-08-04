@@ -754,6 +754,27 @@ function spark(){
     <text class="axlab" x="${X(0).toFixed(1)}" y="${H-6}" text-anchor="start">${ldate(pts[0].label)}</text>
     <text class="axlab" x="${X(n-1).toFixed(1)}" y="${H-6}" text-anchor="end">현재</text></svg>`;
 }
+// 봇 생존 — asof는 '대시보드 푸시 시각'이라 봇이 죽어도 화면은 멀쩡해 보인다.
+// 경과시간은 브라우저에서 매번 다시 잰다. 푸시 때 계산한 age_min을 그대로 쓰면
+// 봇(:00)-푸시(:05) 간격이 늘 같아서 화면이 영원히 '5분 전'에 얼어붙는다.
+function botAge(){                 // 분, 모르면 null
+  const bt=LIVE.bot; if(!bt) return null;
+  const t=bt.last_run_iso?Date.parse(bt.last_run_iso):NaN;
+  if(!isNaN(t)) return Math.max(0,Math.floor((Date.now()-t)/60000));
+  return typeof bt.age_min==='number'?bt.age_min:null;   // 구버전 equity.json 폴백
+}
+function agefmt(m){
+  return m>=1440?`${Math.floor(m/1440)}일`:m>=120?`${Math.floor(m/60)}시간`:`${m}분`;
+}
+function renderBot(){
+  const bt=LIVE.bot, bd=$('#livedot'), bb=$('#livebadge'), age=botAge();
+  if(!bt||age===null) return;
+  const stale=age>=90;             // 매시 크론 → 90분 넘으면 한 번 걸른 것
+  bd.className='dot'+(stale?' stale':'');
+  bb.className='live'+(stale?' stale':'');
+  bb.lastChild.textContent=stale?` 봇 응답없음 ${agefmt(age)}`:` LIVE · 봇 ${age}분 전`;
+  bb.title=`봇 마지막 실행 ${bt.last_run}`;
+}
 function render(){
   $('#bal').innerHTML=f2(LIVE.balance)+' <small>USDT</small>';
   $('#asof').textContent='기준 '+LIVE.asof;
@@ -781,16 +802,7 @@ function render(){
   // 달이 바뀌어도 안 낡도록 라벨을 데이터(asof)에서 만든다 — 예전엔 '7월 시작'으로 박혀 있었다.
   const mlab=(LIVE.asof||'').slice(0,7).match(/^\d{4}-(\d{2})$/);
   $('#mstartlab').textContent=mlab?`${+mlab[1]}월 시작`:'이번 달 시작';
-  // 봇 생존 — asof는 대시보드 푸시 시각이라 봇이 죽어도 화면은 멀쩡해 보인다
-  const bt=LIVE.bot, bd=$('#livedot'), bb=$('#livebadge');
-  if(bt){
-    const stale=!bt.ok;
-    bd.className='dot'+(stale?' stale':'');
-    bb.className='live'+(stale?' stale':'');
-    bb.lastChild.textContent=stale?` 봇 응답없음 ${bt.age_min}분`
-      :(bt.age_min<90?` LIVE · 봇 ${bt.age_min}분 전`:' LIVE');
-    bb.title=`봇 마지막 실행 ${bt.last_run}`;
-  }
+  renderBot();
   $('#mstart').textContent=f2(LIVE.month_start); $('#mnow').textContent=f2(LIVE.balance);
   const pnl=LIVE.balance-LIVE.month_start;
   $('#mpnl').innerHTML=`<span class="${cls(pnl)}">${(pnl>=0?'+':'')+f2(pnl)}</span>`;
@@ -821,6 +833,7 @@ function refresh(){
 }
 render();      // 즉시 폴백으로 그림
 refresh();     // 최신 equity.json 당김
+setInterval(renderBot,30000);   // 열어둔 채로도 배지가 늙어간다
 document.addEventListener('visibilitychange',()=>{ if(!document.hidden) refresh(); });
 $('#theme').addEventListener('click',()=>{const c=document.documentElement.getAttribute('data-theme');
   document.documentElement.setAttribute('data-theme',c==='dark'?'light':c==='light'?'dark':(matchMedia('(prefers-color-scheme:dark)').matches?'light':'dark'));render();});
