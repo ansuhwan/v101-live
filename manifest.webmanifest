@@ -1,6 +1,6 @@
 {
-  "name": "v10.1 라이브 계좌",
-  "short_name": "v10.1",
+  "name": "라이브 계좌",
+  "short_name": "라이브계좌",
   "description": "바이낸스 실잔고 · 크립토 추세+마켓뉴트럴 봇 대시보드",
   "start_url": "./?src=pwa",
   "scope": "./",

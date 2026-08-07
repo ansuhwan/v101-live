@@ -1,10 +1,11 @@
-<title>라이브 계좌 · v10.1 (바이낸스 실잔고)</title>
+<!-- 버전은 어디에도 박지 않는다 — 봇이 보내는 strategy 문자열에서 뽑아 쓴다(v10.1→v10.4처럼 올라가도 안 낡게). -->
+<title>라이브 계좌 (바이낸스 실잔고)</title>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#0e1114">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="v10.1">
+<meta name="apple-mobile-web-app-title" content="라이브 계좌">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" href="icon-192.png">
@@ -221,7 +222,7 @@
 <div class="wrap">
   <header>
     <div>
-      <div class="title"><span class="v">라이브 계좌</span> · v10.1</div>
+      <div class="title"><span class="v">라이브 계좌</span> · <span id="vertag"></span></div>
       <div class="sub">바이낸스 선물 실잔고 (총 마진잔고 = 지갑 + 미실현손익). 봇이 매일 09:05 KST 기록한 원장 + 실시간 스냅샷.</div>
     </div>
     <div style="display:flex;gap:8px;align-items:center">
@@ -249,8 +250,8 @@
   <div class="grid3">
     <div class="card">
       <h3>현재 전략</h3>
-      <div class="row"><span class="k">가동중</span><span class="val" id="stratnow">v10.1 · TV0.60 · MN</span></div>
-      <div class="row"><span class="k">v10.1 MN</span><span class="val warnc" id="mncut">가동중</span></div>
+      <div class="row"><span class="k">가동중</span><span class="val" id="stratnow"></span></div>
+      <div class="row"><span class="k">MN 오버레이</span><span class="val warnc" id="mncut">가동중</span></div>
       <div class="row"><span class="k">구성</span><span class="val">추세 BTC/ETH + MN 알트</span></div>
     </div>
     <div class="card">
@@ -396,7 +397,7 @@
 const PLAN={"cagr":536,"mdd":-36.1,"sharpe":2.03,"worst_month":-32.9},
 BASECASE=[["최장 무수익 구간","136일 (2020-03-13 → 07-26)"],["손실 나는 달","27% (83개월 중 22개)"],
 ["최악 단월 / 3연속월","−32.9% / −19.8%"],["수익 집중도","상위 5개월이 전체 수익의 32%"],["월 중앙값 (평균)","+9.5% (+21.3%)"]],
-FALLBACK={"balance":793.7,"asof":"2026-07-27 06:05 UTC","month_start":847.24,"d1":0.87,"margin_ratio":1.21,"gross_x":2.57,"strategy":"v10.1 · TV0.60 · MN","mn_start":"가동중","ledger":[{"label":"07-23","eq":788.8,"d1":null},{"label":"07-24","eq":785.74,"d1":-0.39},{"label":"07-25","eq":783.98,"d1":-0.22},{"label":"07-26","eq":784.57,"d1":0.08},{"label":"07-27","eq":786.82,"d1":0.29},{"label":"현재","eq":793.7,"d1":0.87}],"real_monthly":{"2026-07":-6.3}};
+FALLBACK={"balance":793.7,"asof":"2026-07-27 06:05 UTC","month_start":847.24,"d1":0.87,"margin_ratio":1.21,"gross_x":2.57,"strategy":"v10.4 · TV0.60 · MN9 · 앙상블OFF","mn_start":"가동중","ledger":[{"label":"07-23","eq":788.8,"d1":null},{"label":"07-24","eq":785.74,"d1":-0.39},{"label":"07-25","eq":783.98,"d1":-0.22},{"label":"07-26","eq":784.57,"d1":0.08},{"label":"07-27","eq":786.82,"d1":0.29},{"label":"현재","eq":793.7,"d1":0.87}],"real_monthly":{"2026-07":-6.3}};
 let LIVE=FALLBACK, REAL_MONTHLY=FALLBACK.real_monthly||{};
 const $=s=>document.querySelector(s);
 const f2=v=>v.toFixed(2), sp=v=>(v>=0?'+':'')+v.toFixed(2)+'%', cls=v=>v>=0?'pos':'neg';
@@ -848,7 +849,12 @@ function render(){
       +(capped?`(캡 ${P.lev_cap}배 도달)`
               :(P.tv&&P.rv?`(TV ${P.tv.toFixed(2)} ÷ 변동성 ${(P.rv*100).toFixed(1)}%)`:''))+'</span>';
   } else $('#levbd').textContent='—';
-  if(LIVE.strategy) $('#stratnow').textContent=LIVE.strategy;
+  if(LIVE.strategy){
+    $('#stratnow').textContent=LIVE.strategy;
+    // 헤더·탭 제목의 버전도 여기서 만든다(예전엔 'v10.1'이 HTML에 박혀 v10.4로 올려도 안 바뀌었다)
+    const v=LIVE.strategy.match(/^v[\d.]+/);
+    if(v){ $('#vertag').textContent=v[0]; document.title=`라이브 계좌 · ${v[0]} (바이낸스 실잔고)`; }
+  }
   if(LIVE.mn_start) $('#mncut').textContent=LIVE.mn_start;
   // 달이 바뀌어도 안 낡도록 라벨을 데이터(asof)에서 만든다 — 예전엔 '7월 시작'으로 박혀 있었다.
   const mlab=(LIVE.asof||'').slice(0,7).match(/^\d{4}-(\d{2})$/);
