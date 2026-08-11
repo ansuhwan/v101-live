@@ -377,11 +377,13 @@
     <summary>장기 백테에서 각오할 것 <span class="badge">계획 · 실현 아님</span></summary>
     <div class="planbody">
       <div class="note" style="font-size:12px;color:var(--ink-3);margin-bottom:10px">
-        v10.1 TV0.6/CAP5/gross6, 2019-09~2026-07 일봉 백테. 수익 자랑이 아니라 <b>버텨야 하는 구간</b>을 적어둔 것입니다.
+        v10.4 · TV0.60/CAP5/gross6 · MN9 · f0.45/cap1.5, 2019-09~2026-08 일봉 백테.
+        <b>봇이 실제로 하는 실행방식</b>(진입 순간 명목 고정 → 자연청산)으로 채점했습니다.
+        수익 자랑이 아니라 <b>버텨야 하는 구간</b>을 적어둔 것입니다.
       </div>
       <table id="basecase"><tbody></tbody></table>
       <div class="foot" style="margin-top:10px">
-        기준선 CAGR <b>+536%</b> · MDD <b>−36.1%</b>(일봉 종가 기준, 장중 실낙폭은 ~1.3배 깊음) · Sharpe <b>2.03</b>.
+        기준선 CAGR <b>+859%</b> · MDD <b>−37.6%</b>(일봉 종가 기준, 장중 실낙폭은 ~1.3배 깊음) · Sharpe <b>2.29</b>.
         2019~2024 구간이 설계에 쓰인 기간이라 그대로 재현될 값이 아닙니다. 실계좌가 이 표의 나쁜 구간 안에 있으면 <b>정상 범위</b>입니다.
       </div>
     </div>
@@ -394,9 +396,9 @@
 </div>
 
 <script>
-const PLAN={"cagr":536,"mdd":-36.1,"sharpe":2.03,"worst_month":-32.9},
-BASECASE=[["최장 무수익 구간","136일 (2020-03-13 → 07-26)"],["손실 나는 달","27% (83개월 중 22개)"],
-["최악 단월 / 3연속월","−32.9% / −19.8%"],["수익 집중도","상위 5개월이 전체 수익의 32%"],["월 중앙값 (평균)","+9.5% (+21.3%)"]],
+const PLAN={"cagr":859,"mdd":-37.6,"sharpe":2.29,"worst_month":-32.9},
+BASECASE=[["최장 무수익 구간","135일 (2021-09-09 → 2022-01-21)"],["손실 나는 달","30% (84개월 중 25개)"],
+["최악 단월 / 3연속월","−32.9% / −17.2%"],["수익 집중도","상위 5개월이 월수익 합의 31%"],["월 중앙값 (평균)","+11.0% (+26.1%)"]],
 FALLBACK={"balance":793.7,"asof":"2026-07-27 06:05 UTC","month_start":847.24,"d1":0.87,"margin_ratio":1.21,"gross_x":2.57,"strategy":"v10.4 · TV0.60 · MN9 · 앙상블OFF","mn_start":"가동중","ledger":[{"label":"07-23","eq":788.8,"d1":null},{"label":"07-24","eq":785.74,"d1":-0.39},{"label":"07-25","eq":783.98,"d1":-0.22},{"label":"07-26","eq":784.57,"d1":0.08},{"label":"07-27","eq":786.82,"d1":0.29},{"label":"현재","eq":793.7,"d1":0.87}],"real_monthly":{"2026-07":-6.3}};
 let LIVE=FALLBACK, REAL_MONTHLY=FALLBACK.real_monthly||{};
 const $=s=>document.querySelector(s);
