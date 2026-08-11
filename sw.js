@@ -1,5 +1,5 @@
 // v10.1 라이브 계좌 PWA 서비스워커
-const CACHE = "v101-live-v15";   // v15: 기준선 v10.1 → v10.4 라이브 실행방식 (2026-08-11)
+const CACHE = "v101-live-v16";   // v16: 게이트 임계 −4.5% 반영 + 레그 백테/기대 분리 (2026-08-11)
 const ASSETS = [
   './', './index.html', './manifest.webmanifest',
   './icon-192.png', './icon-512.png', './apple-touch-icon.png'
