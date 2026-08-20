@@ -840,12 +840,17 @@ function render(){
   $('#d1').innerHTML=`<span class="${cls(LIVE.d1)}">${sp(LIVE.d1)}</span>`;
   $('#mratio').textContent=LIVE.margin_ratio.toFixed(1)+'% (청산 대비 여유 큼)';
   const P=LIVE.parity||{}, gcap=P.gross_cap||6;
-  $('#grossx').textContent=LIVE.gross_x.toFixed(2)+`배 (캡 ${gcap} 여유)`;
+  // 🔑 2026-08-21: 캡은 '실명목'이 아니라 '공식 gross'(P0를 1.0으로 가정)에 걸린다.
+  //   실제 P0 배수는 거래량 사이징·rm틸트 때문에 최대 1.7배까지 가므로 실명목이 캡을 넘는 게
+  //   정상이다. 예전 문구 "6.69배 (캡 6 여유)"는 자기모순이라 둘을 나란히 보여준다.
+  $('#grossx').textContent=LIVE.gross_x.toFixed(2)+'배'
+    +(P.gross_theory>0?` · 공식 ${P.gross_theory.toFixed(2)}배 (캡 ${gcap})`:` (캡 ${gcap})`);
   // 가동률 — 지금 신호가 다 켜졌을 때(이론 만재) 대비 실제 노출. "왜 이것밖에 안 쓰나"의 답.
   if(P.gross_theory>0){
     const r=LIVE.gross_x/P.gross_theory*100;
     $('#fillrate').innerHTML=`<span class="${r<60?'warnc':''}">${r.toFixed(0)}%</span>`
-      +` <span style="color:var(--ink-3);font-weight:500">(만재 ${P.gross_theory.toFixed(2)}배)</span>`;
+      +` <span style="color:var(--ink-3);font-weight:500">(공식만재 ${P.gross_theory.toFixed(2)}배`
+      +(r>105?' · 사이징 가중>1이라 100% 초과 가능':'')+`)</span>`;
   } else $('#fillrate').textContent='—';
   // 레버리지 분해 — TV ÷ 실현변동성, 캡에 걸렸으면 그렇다고 표시
   if(P.lev!=null){
