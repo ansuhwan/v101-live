@@ -1,5 +1,5 @@
 // v10.1 라이브 계좌 PWA 서비스워커
-const CACHE = "v101-live-v17";   // v17: gross 캡 표기 정정(공식 gross vs 실명목 분리) (2026-08-21)
+const CACHE = "v101-live-v18";   // v18: 기준선 B2·v13 MN 재계산(1006%/−30.0%/2.38) + 푸터 PLAN 연동 (2026-08-24)
 const ASSETS = [
   './', './index.html', './manifest.webmanifest',
   './icon-192.png', './icon-512.png', './apple-touch-icon.png'
