@@ -1,5 +1,5 @@
 // v10.1 라이브 계좌 PWA 서비스워커
-const CACHE = "v101-live-v18";   // v18: 기준선 B2·v13 MN 재계산(1006%/−30.0%/2.38) + 푸터 PLAN 연동 (2026-08-24)
+const CACHE = "v101-live-v19";   // v19: 기준선 B2·v13 MN 재계산(1006%/−30.0%/2.38) + 푸터 PLAN 연동 + 게이트OFF 잔존코어(고아) 상태 표시 (2026-08-24)
 const ASSETS = [
   './', './index.html', './manifest.webmanifest',
   './icon-192.png', './icon-512.png', './apple-touch-icon.png'

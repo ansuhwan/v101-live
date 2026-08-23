@@ -732,8 +732,14 @@ function renderEns(e){
     e.date? `낙폭 ${dd.toFixed(2)}% / 임계 ${th.toFixed(2)}%`
           + (on?'':` · ${Math.abs(gap).toFixed(2)}%p 더 빠지면 발동`)
           : '아직 미계산 (다음 00:00 UTC)']);
+  // 게이트 OFF 잔존코어(고아) = 의도된 보유(자연청산 대기). 불일치가 아니라 크기를 보여준다 (08-24).
+  const oph=e.orphan||{};
+  const ophNote=(oph.n>0)
+    ? `게이트 OFF 잔존 ${oph.n}개 = 자본 ${Number(oph.x||0).toFixed(2)}x (캡 밖)`
+      +(oph.min_sl_pct!=null?` · SL까지 ${Number(oph.min_sl_pct).toFixed(1)}%`:'')
+    : null;
   rows.push([e.held>0, '앙상블 코어', e.held>0?`${e.held}/${e.n} 보유`:'무포지션',
-    e.mism>0?`⚠ 백테와 ${e.mism}개 불일치`:'백테와 일치']);
+    e.mism>0?`⚠ 백테와 ${e.mism}개 불일치`:(ophNote||'백테와 일치')]);
   const ef=e.eff||{};
   rows.push([true, '실효 가중',
     `추세 ${(ef.base_trend*100||0).toFixed(1)}% · 슬리브 ${(ef.sleeve*100||0).toFixed(1)}%`
@@ -761,7 +767,7 @@ function renderEns(e){
       +`<span>${x.n}</span>`
       +`<span style="color:${x.got>0?'var(--c-long)':x.got<0?'var(--c-short)':'var(--ink-3)'};font-weight:640">${p(x.got)}</span>`
       +`<span class="mono" style="margin-left:auto">백테 ${p(paper)} · 기대 ${p(x.want)}`
-      +` · 수량 ${x.qty||0} ${x.ok?'✓':'✕'}</span></div>`;
+      +` · 수량 ${x.qty||0} ${x.orphan?'고아':(x.ok?'✓':'✕')}</span></div>`;
   });
   el.innerHTML=html;
 }
