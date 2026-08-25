@@ -377,13 +377,13 @@
     <summary>장기 백테에서 각오할 것 <span class="badge">계획 · 실현 아님</span></summary>
     <div class="planbody">
       <div class="note" style="font-size:12px;color:var(--ink-3);margin-bottom:10px">
-        v10.4 · TV0.60/CAP5/gross6 · <b>MN v13</b>(08-19 배포) · f0.45/cap1.5 · 게이트 −4.5%, 2019-09~<span id="pl-end"></span> 일봉 백테.
-        <b>봇이 실제로 하는 실행방식</b>(진입 순간 명목 고정 → 자연청산, <b>게이트 OFF 후 남은 앙상블 코어도 자연청산까지 보유</b>)으로 채점했습니다.
+        v10.4 · TV0.60/CAP5/gross6 · <b>MN v13</b>(08-19 배포) · f0.45/cap1.5 · 게이트 −4.5%, 2019-09~<span id="pl-end"></span> <b>매봉 MTM 회계</b> 백테.
+        <b>봇이 실제로 하는 실행방식</b>(게이트 ON인 봉에만 신규 진입, 신호가 <b>새로</b> 켜진 봉만, 진입 순간 명목 고정 → 자연청산, <b>게이트 OFF 후 남은 앙상블 코어도 자연청산까지 보유</b>)으로 채점했습니다.
         수익 자랑이 아니라 <b>버텨야 하는 구간</b>을 적어둔 것입니다.
       </div>
       <table id="basecase"><tbody></tbody></table>
       <div class="foot" style="margin-top:10px">
-        기준선 CAGR <b id="pl-cagr"></b> · MDD <b id="pl-mdd"></b>(일봉 종가 기준, 장중 실낙폭은 ~1.3배 깊음) · Sharpe <b id="pl-sh"></b> · 최악 하루 <b id="pl-wd"></b>.
+        기준선 CAGR <b id="pl-cagr"></b> · MDD <b id="pl-mdd"></b>(<b>매봉 MTM</b> — 계좌에 실제로 찍히는 기준. 예전엔 청산일에만 손익을 적어 8%p 얕게 나왔습니다) · Sharpe <b id="pl-sh"></b> · 최악 하루 <b id="pl-wd"></b>.
         2019~2024 구간이 설계에 쓰인 기간이라 그대로 재현될 값이 아닙니다. 실계좌가 이 표의 나쁜 구간 안에 있으면 <b>정상 범위</b>입니다.
       </div>
     </div>
@@ -396,9 +396,9 @@
 </div>
 
 <script>
-const PLAN={"cagr":1006,"mdd":-30.0,"sharpe":2.38,"worst_month":-26.9,"worst_day":-25.9,"frame":"라이브 실행방식(B2)·v13 MN·일봉 실현회계 — MTM 체감 MDD ≈ ×1.3","data_end":"2026-08-23"},
-BASECASE=[["최장 무수익 구간","117일 (2020-03-13 → 2020-07-07)"],["손실 나는 달","26% (84개월 중 22개)"],["최악 단월 / 3연속월","−26.9% / −4.6%"],["최악 하루","−25.9% (일봉 종가 기준)"],["수익 집중도","상위 5개월이 월수익 합의 30%"],["월 중앙값 (평균)","+12.3% (+27.6%)"]],
-FALLBACK={"balance":793.7,"asof":"2026-07-27 06:05 UTC","month_start":847.24,"d1":0.87,"margin_ratio":1.21,"gross_x":2.57,"strategy":"v10.4 · TV0.60 · MN9 · 앙상블OFF","mn_start":"가동중","ledger":[{"label":"07-23","eq":788.8,"d1":null},{"label":"07-24","eq":785.74,"d1":-0.39},{"label":"07-25","eq":783.98,"d1":-0.22},{"label":"07-26","eq":784.57,"d1":0.08},{"label":"07-27","eq":786.82,"d1":0.29},{"label":"현재","eq":793.7,"d1":0.87}],"real_monthly":{"2026-07":-6.3}};
+const PLAN={"cagr":945,"mdd":-38.1,"sharpe":2.31,"worst_month":-35.7,"worst_day":-34.9,"frame":"라이브 실행방식(게이트제한+fresh진입+OFF보유+진입일가중)·MN v13·매봉 MTM 회계","data_end":"2026-08-25"},
+BASECASE=[["최장 무수익 구간","134일 (2020-03-13 → 2020-07-25)"],["손실 나는 달","35% (84개월 중 29개)"],["최악 단월 / 3연속월","−35.7% / −8.9%"],["최악 하루","−34.9% (매봉 MTM 기준)"],["수익 집중도","상위 5개월이 월수익 합의 31%"],["월 중앙값 (평균)","+10.5% (+28.1%)"]],
+FALLBACK={"balance":793.7,"asof":"2026-07-27 06:05 UTC","month_start":847.24,"d1":0.87,"margin_ratio":1.21,"gross_x":2.57,"strategy":"v10.4 · TV0.60 · MN v13 · 앙상블OFF","mn_start":"가동중","ledger":[{"label":"07-23","eq":788.8,"d1":null},{"label":"07-24","eq":785.74,"d1":-0.39},{"label":"07-25","eq":783.98,"d1":-0.22},{"label":"07-26","eq":784.57,"d1":0.08},{"label":"07-27","eq":786.82,"d1":0.29},{"label":"현재","eq":793.7,"d1":0.87}],"real_monthly":{"2026-07":-6.3}};
 let LIVE=FALLBACK, REAL_MONTHLY=FALLBACK.real_monthly||{};
 const $=s=>document.querySelector(s);
 const f2=v=>v.toFixed(2), sp=v=>(v>=0?'+':'')+v.toFixed(2)+'%', cls=v=>v>=0?'pos':'neg';
