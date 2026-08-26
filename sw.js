@@ -1,5 +1,5 @@
 // v10.1 라이브 계좌 PWA 서비스워커
-const CACHE = "v101-live-v21";   // v21: MN 라벨을 실행 북 버전에서 유도 (MN9=코인수 오해 제거 → MN v13·9종) (2026-08-26)
+const CACHE = "v101-live-v22";   // v22: 사이징 입력을 봇과 동일한 base 곡선으로 (945%/−38.1% → 962%/−47.1%) — 봇은 앙상블 낙폭을 보고 레버를 줄이지 않는다 (2026-08-26)
 const ASSETS = [
   './', './index.html', './manifest.webmanifest',
   './icon-192.png', './icon-512.png', './apple-touch-icon.png'
