@@ -1,5 +1,5 @@
 // v10.1 라이브 계좌 PWA 서비스워커
-const CACHE = "v101-live-v22";   // v22: 사이징 입력을 봇과 동일한 base 곡선으로 (945%/−38.1% → 962%/−47.1%) — 봇은 앙상블 낙폭을 보고 레버를 줄이지 않는다 (2026-08-26)
+const CACHE = "v101-live-v23";   // v23: 게이트 OFF 코어 전량청산 배포 — 각오한 MDD −47.1% → −36.0%, 최악하루 −42.9 → −25.3% (2026-08-26)
 const ASSETS = [
   './', './index.html', './manifest.webmanifest',
   './icon-192.png', './icon-512.png', './apple-touch-icon.png'
