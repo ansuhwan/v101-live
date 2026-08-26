@@ -1,5 +1,5 @@
 // v10.1 라이브 계좌 PWA 서비스워커
-const CACHE = "v101-live-v20";   // v20: 기준선을 LIVE-MIRROR+**매봉 MTM**으로 교체 (945%/−38.1%/2.31) — 예전 B2·청산봉(1006%/−30.0%)은 MDD를 8%p 얕게 보여줬다 (2026-08-25)
+const CACHE = "v101-live-v21";   // v21: MN 라벨을 실행 북 버전에서 유도 (MN9=코인수 오해 제거 → MN v13·9종) (2026-08-26)
 const ASSETS = [
   './', './index.html', './manifest.webmanifest',
   './icon-192.png', './icon-512.png', './apple-touch-icon.png'
