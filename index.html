@@ -699,11 +699,16 @@ function renderBooks(p){
         :(t.ago!=null?`마지막 신호 ${t.ago>=48?Math.floor(t.ago/24)+'일':t.ago+'시간'} 전 (${t.last_sig})`
                      :'최근 30일 신호 없음')]);
   });
+  // 진입시각 패리티(p_ok)는 규칙검사(ok)와 별개다. 여기 안 보이면 "N건 불일치"가 어느 종목에서
+  // 났는지 폰에서 알 수 없다(08-31). 'YYYY-MM-DD HH:MM:SS' → 'MM-DD HH:MM'.
+  const hm=t=>t?String(t).slice(5,16):'-';
   (p.sleeve||[]).forEach(s=>{
     const on=s.pos!==0;
+    let note=s.dir4==null?'':`4h 방향 ${s.dir4>0?'상승':s.dir4<0?'하락':'중립'}`;
+    if(s.p_ok===false) note+=` · <span style="color:var(--neg)">⚠ 진입 불일치</span> 라이브 ${hm(s.p_live_ts)} / 백테 ${hm(s.p_bt_ts)}`;
+    else if(s.p_ok===true&&on) note+=' · 진입 일치';
     rows.push([on, '슬리브 '+s.a.toUpperCase(),
-      on?(s.pos>0?'롱 보유':'숏 보유'):'무포지션',
-      s.dir4==null?'':`4h 방향 ${s.dir4>0?'상승':s.dir4<0?'하락':'중립'}`]);
+      on?(s.pos>0?'롱 보유':'숏 보유'):'무포지션', note]);
   });
   if(p.mn_legs!=null) rows.push([p.mn_legs>0,'MN 알트',
     p.mn_legs>0?`${p.mn_legs}종 가동`:'무포지션','매일 00:00 UTC 리밸런스']);

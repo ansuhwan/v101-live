@@ -1,5 +1,5 @@
 // v10.1 라이브 계좌 PWA 서비스워커
-const CACHE = "v101-live-v23";   // v23: 게이트 OFF 코어 전량청산 배포 — 각오한 MDD −47.1% → −36.0%, 최악하루 −42.9 → −25.3% (2026-08-26)
+const CACHE = "v101-live-v24";   // v24: 슬리브 행에 진입시각 패리티(어느 종목이 왜 불일치인지) 표시 (2026-08-31)
 const ASSETS = [
   './', './index.html', './manifest.webmanifest',
   './icon-192.png', './icon-512.png', './apple-touch-icon.png'
