@@ -179,6 +179,8 @@
   #tbl tr.mdiv td{border-top:2.5px solid var(--ink-3);border-bottom:1px solid var(--line);
     background:var(--surface-2);font-family:inherit;font-size:11.5px;font-weight:640;
     color:var(--ink-2);letter-spacing:.02em;padding:6px 8px;text-align:left}
+  #tbl tr.mdiv .mend{color:var(--ink-3);font-weight:600;
+    font-family:ui-monospace,Menlo,monospace;font-variant-numeric:tabular-nums}
   .brow{display:grid;grid-template-columns:42px 1fr 74px 62px;align-items:center;gap:7px;height:23px}
   @media(max-width:480px){.brow{grid-template-columns:38px 1fr 64px 56px;gap:5px}}
   .bsym{font-size:11.5px;font-weight:600;color:var(--ink-2);font-family:ui-monospace,monospace}
@@ -504,14 +506,22 @@ function renderLedger(){
   // 페이지 첫 행의 '위쪽 행'(=직전 페이지 마지막)으로 월 비교를 이어붙인다
   let prevYm=start>0?ym(all[start-1]):null;
   let html='';
-  for(const r of slice){
+  for(let i=0;i<slice.length;i++){
+    const r=slice[i], gi=start+i;
     const y=ym(r);
     // 🚨 MTD는 달마다 기준점이 바뀐다 → 경계를 안 그리면 "하루만에 +8%"처럼 보인다
     if(y&&prevYm&&y!==prevYm){
       const mret=REAL_MONTHLY[y];
+      // 마감 자본 = 다음 달 월초자본(= 바로 위 행의 ms). 봇이 월수익을 그렇게 계산하므로
+      // (real_monthly = 다음달 month_start / 이번달 month_start − 1) 표시와 계산식이 일치한다.
+      // 위 행이 없거나 옛 데이터로 ms가 비면 기준자본×(1+마감%)로 되짚는다(반올림 오차 有).
+      const up=gi>0?all[gi-1]:null;
+      const mend=(up&&up.ms!=null)?up.ms
+                :(r.ms!=null&&mret!=null?r.ms*(1+mret/100):null);
       html+=`<tr class="mdiv"><td colspan="4">${+y.slice(5,7)}월`
         +(r.ms?` · 기준자본 ${f2(r.ms)}`:'')
         +(mret!=null?` · 마감 <span class="${cls(mret)}">${(mret>=0?'+':'')+mret}%</span>`:'')
+        +(mend!=null?` <span class="mend">(${f2(mend)})</span>`:'')
         +`</td></tr>`;
     }
     if(y) prevYm=y;
@@ -643,7 +653,7 @@ function renderTrades(){
   }).join('');
 }
 function renderDD(){
-  // 고점 대비 낙폭 — "각오한 MDD −36.1%" 옆에 지금 위치를 보여줘야 숫자가 의미를 갖는다.
+  // 고점 대비 낙폭 — "각오한 MDD"(PLAN.mdd, v25 기준 −31.1%) 옆에 지금 위치를 보여줘야 숫자가 의미를 갖는다.
   const d=LIVE.dd, w=$('#ddwrap'), g=$('#ddgauge');
   if(!d||d.peak==null){ w.style.display='none'; g.style.display='none'; return; }
   w.style.display=''; g.style.display='';

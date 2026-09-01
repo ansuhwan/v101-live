@@ -1,5 +1,6 @@
 // v10.1 라이브 계좌 PWA 서비스워커
-const CACHE = "v101-live-v25";   // v25: ①슬리브EMA150+②바스켓VT상수+슬리브올림 배포 — 각오 기준선 1035%/-31.1% (2026-09-01)
+const CACHE = "v101-live-v26";   // v26: 일별 원장 월경계에 마감 자본 병기 (2026-09-01)
+// v25: ①슬리브EMA150+②바스켓VT상수+슬리브올림 배포 — 각오 기준선 1035%/-31.1% (2026-09-01)
 const ASSETS = [
   './', './index.html', './manifest.webmanifest',
   './icon-192.png', './icon-512.png', './apple-touch-icon.png'
