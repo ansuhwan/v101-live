@@ -379,7 +379,7 @@
     <summary>장기 백테에서 각오할 것 <span class="badge">계획 · 실현 아님</span></summary>
     <div class="planbody">
       <div class="note" style="font-size:12px;color:var(--ink-3);margin-bottom:10px">
-        v10.4 · TV0.60/CAP5/gross6 · <b>MN v13</b>(08-19 배포) · f0.45/cap1.5 · 게이트 −4.5%, 2019-09~<span id="pl-end"></span> <b>매봉 MTM 회계</b> 백테.
+        v10.4 · TV0.70/CAP5/gross6 (09-01 TV 0.60→0.70) · <b>MN v13</b>(08-19 배포) · f0.45/cap1.5 · 게이트 −4.5%, 2019-09~<span id="pl-end"></span> <b>매봉 MTM 회계</b> 백테.
         <b>봇이 실제로 하는 실행방식</b>(게이트 ON인 봉에만 신규 진입, 신호가 <b>새로</b> 켜진 봉만, 진입 순간 명목 고정 → 자연청산, <b>게이트가 꺼지면 앙상블 코어를 전량청산</b>(2026-08-26~))으로 채점했습니다.
         수익 자랑이 아니라 <b>버텨야 하는 구간</b>을 적어둔 것입니다.
       </div>
@@ -398,8 +398,8 @@
 </div>
 
 <script>
-const PLAN={"cagr":1035,"mdd":-31.1,"sharpe":2.44,"worst_month":-26.8,"worst_day":-24.9,"frame":"라이브 실행방식(게이트제한+fresh진입+게이트OFF 코어청산+진입일가중)·MN v13·슬리브EMA150·바스켓VT상수·매봉 MTM 회계·사이징은 base곡선(봇과 동일)","data_end":"2026-08-31"},
-BASECASE=[["최장 무수익 구간","134일 (2020-03-13 → 2020-07-25)"],["손실 나는 달","33% (84개월 중 28개)"],["최악 단월 / 3연속월","−26.8% / −20.6%"],["최악 하루","−24.9% (매봉 MTM 기준)"],["수익 집중도","상위 5개월이 월수익 합의 31%"],["월 중앙값 (평균)","+10.8% (+28.5%)"]],
+const PLAN={"cagr":1264,"mdd":-35.8,"sharpe":2.42,"worst_month":-31.1,"worst_day":-29.0,"frame":"라이브 실행방식(게이트제한+fresh진입+게이트OFF 코어청산+진입일가중)·MN v13·슬리브EMA150·바스켓VT상수·TV0.70·매봉 MTM 회계·사이징은 base곡선(봇과 동일)","data_end":"2026-09-01"},
+BASECASE=[["최장 무수익 구간","134일 (2020-03-13 → 2020-07-25)"],["손실 나는 달","35% (85개월 중 30개)"],["최악 단월 / 3연속월","−31.1% / −22.7%"],["최악 하루","−29.0% (매봉 MTM 기준)"],["수익 집중도","상위 5개월이 월수익 합의 31%"],["월 중앙값 (평균)","+10.1% (+31.4%)"]],
 FALLBACK={"balance":793.7,"asof":"2026-07-27 06:05 UTC","month_start":847.24,"d1":0.87,"margin_ratio":1.21,"gross_x":2.57,"strategy":"v10.4 · TV0.60 · MN v13·9종 · 앙상블OFF","mn_start":"가동중","ledger":[{"label":"07-23","eq":788.8,"d1":null},{"label":"07-24","eq":785.74,"d1":-0.39},{"label":"07-25","eq":783.98,"d1":-0.22},{"label":"07-26","eq":784.57,"d1":0.08},{"label":"07-27","eq":786.82,"d1":0.29},{"label":"현재","eq":793.7,"d1":0.87}],"real_monthly":{"2026-07":-6.3}};
 let LIVE=FALLBACK, REAL_MONTHLY=FALLBACK.real_monthly||{};
 const $=s=>document.querySelector(s);
@@ -653,7 +653,7 @@ function renderTrades(){
   }).join('');
 }
 function renderDD(){
-  // 고점 대비 낙폭 — "각오한 MDD"(PLAN.mdd, v25 기준 −31.1%) 옆에 지금 위치를 보여줘야 숫자가 의미를 갖는다.
+  // 고점 대비 낙폭 — "각오한 MDD"(PLAN.mdd, v27 기준 −35.8%) 옆에 지금 위치를 보여줘야 숫자가 의미를 갖는다.
   const d=LIVE.dd, w=$('#ddwrap'), g=$('#ddgauge');
   if(!d||d.peak==null){ w.style.display='none'; g.style.display='none'; return; }
   w.style.display=''; g.style.display='';
