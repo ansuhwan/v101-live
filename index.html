@@ -275,7 +275,8 @@ header.top{position:sticky;top:0;z-index:40;background:color-mix(in srgb,var(--b
 .cols{display:grid;grid-template-columns:252px 1fr;gap:22px;padding-top:22px;align-items:start}
 @media(max-width:960px){
   /* 폰에선 잔고가 먼저 보여야 한다 — 사이드바를 아래로 내린다 */
-  .cols{display:flex;flex-direction:column;gap:16px}
+  /* align-items:start 가 남으면 flex 아이템이 늘어나지 않고 내용폭으로 쪼그라든다 */
+  .cols{display:flex;flex-direction:column;gap:16px;align-items:stretch}
   main{order:1} aside{order:2}
 }
 aside{display:flex;flex-direction:column;gap:14px;position:sticky;top:76px}
@@ -407,6 +408,9 @@ aside .card{padding:15px}
 /* 좁은 칼럼에서 4열이 뭉개지므로 설명을 아랫줄로 내린다 */
 #pbooks .bkrow,#pens .bkrow{grid-template-columns:20px auto 1fr;align-items:start}
 #pbooks .bkrow .bka,#pens .bkrow .bka{grid-column:2/-1;margin-left:0;padding-top:2px}
+
+#expochart{position:relative;touch-action:pan-y}
+#expochart svg{display:block;width:100%;height:auto;cursor:crosshair}
 
 /* ── 원본 컴포넌트 미세 조정 ────────────────────────────────────── */
 .badge{font-family:var(--sans)}
@@ -1328,7 +1332,18 @@ function renderStyle2(){
 
 /* ── 메인 차트 (원본 spark() 대체) : 지표탭 · 기간 · 스크럽 ── */
 let CKIND='ret', CPER=0, CACT=-1, CGEO=null;
-const CDIM={W:900,H:280,PL:64,PR:18,PT:26,PB:30};
+/* viewBox 를 실제 픽셀 폭에 맞춘다. 900 고정이면 폰(430px)에서 0.48배로 줄어
+   10.5px 축 글자가 5px 이 된다(2026-09-05 사용자 제보). 1:1 이면 글자가 안 줄어든다. */
+function ckDim(){
+  const el=document.querySelector('#spark');
+  const w=Math.max(300, Math.round((el&&el.clientWidth)||900));
+  const narrow=w<620;
+  return {W:w,
+    H: narrow ? Math.round(w*0.80) : Math.max(240, Math.min(300, Math.round(w*0.33))),
+    PL: narrow?46:64, PR:16, PT: narrow?22:26, PB: narrow?32:30,
+    FS: narrow?11.5:10.5, MFS: narrow?12:11, XN: narrow?3:4};
+}
+var CDIM=ckDim();
 function ckSeries(){
   const L=(LIVE.ledger||[]).filter(r=>typeof r.eq==='number');
   const s=CPER>0?L.slice(Math.max(0,L.length-1-CPER)):L;
@@ -1340,7 +1355,8 @@ const ckFmtV=v=>CKIND==='ret'?pctS2(v):CKIND==='pnl'?(v>=0?'+':'−')+f2(Math.ab
 const ckFmtAx=v=>CKIND==='ret'?nf(v,1)+'%':(krw()?won(v):nf(v,0));
 function spark(){
   const s=ckSeries(), n=s.length; if(n<2){ $('#spark').innerHTML=''; return; }
-  const {W,H,PL,PR,PT,PB}=CDIM, vs=s.map(p=>p.v);
+  CDIM=ckDim();
+  const {W,H,PL,PR,PT,PB,FS,MFS,XN}=CDIM, vs=s.map(p=>p.v);
   const zero=CKIND!=='eq';
   let mn=Math.min(...vs), mx=Math.max(...vs);
   if(zero){ mn=Math.min(mn,0); mx=Math.max(mx,0); }
@@ -1351,7 +1367,7 @@ function spark(){
   for(let k=0;k<5;k++){ const v=lo+(hi-lo)/4*k, y=Y(v);
     grid+=`<line x1="${PL}" x2="${W-PR}" y1="${y.toFixed(1)}" y2="${y.toFixed(1)}" stroke="var(--grid)" stroke-width="1"/>`;
     ylab+=`<text x="${PL-9}" y="${(y+3.7).toFixed(1)}" text-anchor="end" fill="var(--ink-3)"
-      style="font-family:var(--mono);font-size:10.5px">${ckFmtAx(v)}</text>`; }
+      style="font-family:var(--mono);font-size:${FS}px">${ckFmtAx(v)}</text>`; }
   const baseV=zero?0:s[0].eq, y0=Y(baseV);
   const t=Math.max(0,Math.min(1,(y0-PT)/(H-PT-PB)));
   const lp='M'+s.map((p,i)=>X(i).toFixed(1)+' '+Y(p.v).toFixed(1)).join(' L');
@@ -1362,11 +1378,12 @@ function spark(){
     const ty=up?Math.max(y-13,PT+11):Math.min(y+21,H-PB-4);
     return `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="3.6" fill="var(--surface)" stroke="var(--ink-2)" stroke-width="1.6"/>`
       +`<text x="${x.toFixed(1)}" y="${ty.toFixed(1)}" text-anchor="${anc}" fill="var(--ink-2)"
-         style="font-family:var(--mono);font-size:11px;font-weight:600">${txt}</text>`;};
+         style="font-family:var(--mono);font-size:${MFS}px;font-weight:600">${txt}</text>`;};
   const marks=n>2?mark(iMx,'Max '+ckFmtV(s[iMx].v),true)+mark(iMn,'Min '+ckFmtV(s[iMn].v),false):'';
-  const xi=[0,Math.floor((n-1)/3),Math.floor(2*(n-1)/3),n-1].filter((v,i,a)=>a.indexOf(v)===i);
-  const xt=xi.map(i=>`<text x="${X(i).toFixed(1)}" y="${H-9}" fill="var(--ink-3)"
-    text-anchor="${i===0?'start':i===n-1?'end':'middle'}" style="font-family:var(--mono);font-size:10.5px">${ldate(s[i].label)}</text>`).join('');
+  const xi=[];
+  for(let k=0;k<XN;k++) xi.push(Math.round((n-1)*k/(XN-1)));
+  const xt=xi.filter((v,i,a)=>a.indexOf(v)===i).map(i=>`<text x="${X(i).toFixed(1)}" y="${H-9}" fill="var(--ink-3)"
+    text-anchor="${i===0?'start':i===n-1?'end':'middle'}" style="font-family:var(--mono);font-size:${FS}px">${ldate(s[i].label)}</text>`).join('');
   const scrub=CACT>=0&&CACT<n, ai=scrub?CACT:n-1;
   const cc=s[ai].v>=baseV?'var(--pos)':'var(--neg)';
   const cur=(scrub?`<line x1="${X(ai).toFixed(1)}" x2="${X(ai).toFixed(1)}" y1="${PT}" y2="${H-PB}" stroke="var(--ink-3)" stroke-width="1" opacity=".4"/>`
@@ -1391,7 +1408,8 @@ function spark(){
   if(scrub&&box.width){
     const k=box.width/W;
     el.hidden=false;
-    el.style.left=Math.min(Math.max(X(ai)*k,76),box.width-76)+'px';
+    const pad=Math.min(76, box.width*0.22);
+    el.style.left=Math.min(Math.max(X(ai)*k,pad),box.width-pad)+'px';
     el.style.top=Math.max(Y(s[ai].v)*k-52,0)+'px';
     el.innerHTML=`<span class="rv" style="color:${cc}">${ckFmtV(s[ai].v)}</span>
       <span class="rd">${ldate(s[ai].label)} · ${f2(s[ai].eq)}</span>`;
@@ -1444,6 +1462,82 @@ function renderBook(){
   }).join('');
 }
 
+/* ── 노출 추이 (원본 renderExpo() 대체) : 메인 차트와 같은 문법 ── */
+let EACT2=-1, EGEO2=null;
+function exDim(){
+  const el=document.querySelector('#expochart');
+  const w=Math.max(300, Math.round((el&&el.clientWidth)||900));
+  const narrow=w<620;
+  return {W:w, H: narrow?Math.round(w*0.62):Math.max(190,Math.min(230,Math.round(w*0.25))),
+    PL: narrow?46:64, PR:16, PT:20, PB: narrow?30:28, FS: narrow?11.5:10.5};
+}
+var EDIM=exDim();
+function renderExpo(){
+  const e=LIVE.expo, card=$('#expocard');
+  if(!e||e.length<3){ card.style.display='none'; return; }
+  card.style.display='';
+  EDIM=exDim();
+  const {W,H,PL,PR,PT,PB,FS}=EDIM, n=e.length, used=e.map(r=>r[2]);
+  const mn=Math.min(...used), mx=Math.max(...used), pad=(mx-mn)*0.18||1;
+  const lo=mn-pad, hi=mx+pad;
+  const X=i=>PL+(i/(n-1))*(W-PL-PR), Y=v=>PT+(1-(v-lo)/(hi-lo))*(H-PT-PB);
+  EGEO2={X,Y,n};
+  const chg=used[0]?(used[n-1]/used[0]-1)*100:0, up=chg>=0, c=up?'var(--pos)':'var(--neg)';
+  const b=$('#expobadge');
+  b.textContent=`${n}시간 ${up?'+':'−'}${Math.abs(chg).toFixed(0)}%`;
+  b.className='badge '+(up?'b-ok':'b-ng');
+  const last=e[n-1];
+  $('#exponote').innerHTML=`사용중 증거금 <b>${m1(last[2])} ${unit()}</b> · 총 명목 <b>${last[1].toFixed(2)}배</b>`
+    +` <span style="color:var(--ink-3)">(최근 ${n<24?n+'시간':Math.round(n/24)+'일'} 매시 기록)</span>`;
+  let grid='',ylab='';
+  for(let k=0;k<4;k++){ const v=lo+(hi-lo)/3*k, y=Y(v);
+    grid+=`<line x1="${PL}" x2="${W-PR}" y1="${y.toFixed(1)}" y2="${y.toFixed(1)}" stroke="var(--grid)" stroke-width="1"/>`;
+    ylab+=`<text x="${PL-9}" y="${(y+3.7).toFixed(1)}" text-anchor="end" fill="var(--ink-3)"
+      style="font-family:var(--mono);font-size:${FS}px">${krw()?won(v):nf(v,0)}</text>`; }
+  const lp='M'+e.map((r,i)=>X(i).toFixed(1)+' '+Y(r[2]).toFixed(1)).join(' L');
+  const ap=`M${X(0).toFixed(1)} ${H-PB} `+e.map((r,i)=>'L'+X(i).toFixed(1)+' '+Y(r[2]).toFixed(1)).join(' ')+` L${X(n-1).toFixed(1)} ${H-PB} Z`;
+  const iMx=used.indexOf(mx);
+  const anc=X(iMx)>W-PR-64?'end':X(iMx)<PL+64?'start':'middle';
+  const mk=`<circle cx="${X(iMx).toFixed(1)}" cy="${Y(mx).toFixed(1)}" r="3.6" fill="var(--surface)" stroke="var(--ink-2)" stroke-width="1.6"/>`
+    +`<text x="${X(iMx).toFixed(1)}" y="${Math.max(Y(mx)-12,PT+10).toFixed(1)}" text-anchor="${anc}" fill="var(--ink-2)"
+       style="font-family:var(--mono);font-size:${FS+0.5}px;font-weight:600">최대 ${krw()?won(mx):nf(mx,0)}</text>`;
+  const scrub=EACT2>=0&&EACT2<n, ei=scrub?EACT2:n-1;
+  const cur=(scrub?`<line x1="${X(ei).toFixed(1)}" x2="${X(ei).toFixed(1)}" y1="${PT}" y2="${H-PB}" stroke="var(--ink-3)" stroke-width="1" opacity=".4"/>`
+      +`<circle cx="${X(ei).toFixed(1)}" cy="${Y(e[ei][2]).toFixed(1)}" r="10" fill="${c}" opacity=".16"/>`:'')
+    +`<circle cx="${X(ei).toFixed(1)}" cy="${Y(e[ei][2]).toFixed(1)}" r="4.4" fill="${c}" stroke="var(--surface)" stroke-width="2"/>`;
+  const xt=[0,Math.floor((n-1)/2),n-1].map(i=>`<text x="${X(i).toFixed(1)}" y="${H-8}" fill="var(--ink-3)"
+    text-anchor="${i===0?'start':i===n-1?'end':'middle'}" style="font-family:var(--mono);font-size:${FS}px">${i===n-1?'현재':e[i][0]}</text>`).join('');
+  $('#expochart').innerHTML=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="사용중 증거금 추이">
+    <defs><linearGradient id="exG" x1="0" x2="0" y1="0" y2="1">
+      <stop offset="0" stop-color="${c}" stop-opacity=".26"/><stop offset="1" stop-color="${c}" stop-opacity="0"/></linearGradient></defs>
+    ${grid}${ylab}<path d="${ap}" fill="url(#exG)"/>
+    <path d="${lp}" fill="none" stroke="${c}" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>
+    ${mk}${cur}${xt}</svg><div class="readout" id="ex-read" hidden></div>`;
+  if(scrub){
+    const el=$('#ex-read'), box=$('#expochart').getBoundingClientRect();
+    if(box.width){
+      const k=box.width/W, pad2=Math.min(76, box.width*0.22);
+      el.hidden=false;
+      el.style.left=Math.min(Math.max(X(ei)*k,pad2),box.width-pad2)+'px';
+      el.style.top=Math.max(Y(e[ei][2])*k-52,0)+'px';
+      el.innerHTML=`<span class="rv" style="color:${c}">${m1(e[ei][2])}</span>
+        <span class="rd">${e[ei][0]} · gross ${e[ei][1].toFixed(2)}×</span>`;
+    }
+  }
+}
+(function(){
+  const w=$('#expochart'); if(!w) return;
+  const pk=ev=>{ if(!EGEO2) return;
+    const box=w.getBoundingClientRect(), rel=(ev.clientX-box.left)/box.width*EDIM.W;
+    EACT2=Math.max(0,Math.min(EGEO2.n-1,Math.round((rel-EDIM.PL)/(EDIM.W-EDIM.PL-EDIM.PR)*(EGEO2.n-1))));
+    renderExpo(); };
+  const rel=()=>{ if(EACT2<0) return; EACT2=-1; renderExpo(); };
+  w.addEventListener('pointerdown',e=>{w.setPointerCapture(e.pointerId);pk(e);});
+  w.addEventListener('pointermove',e=>{ if(e.buttons||e.pointerType==='mouse') pk(e); });
+  ['pointerleave','pointerup','pointercancel'].forEach(t=>w.addEventListener(t,rel));
+})();
+addEventListener('resize',()=>{ try{ renderExpo(); }catch(e){} });
+
 /* ── 차트 조작 ── */
 function ckPick(ev){
   if(!CGEO) return;
@@ -1476,7 +1570,8 @@ function setTab2(t){
   [...document.querySelectorAll('.tab')].forEach(b=>b.setAttribute('aria-selected', b.dataset.tab===t?'true':'false'));
   [...document.querySelectorAll('main>section')].forEach(s=>{ s.hidden = s.dataset.tab!==t; });
   try{ localStorage.setItem('tab',t); }catch(e){}
-  requestAnimationFrame(()=>{ if(t==='pf') spark(); });
+  // �닲��� �꺆��� �룺�씠 0�씠�씪 viewBox 媛� �뤃諛깃컪�쑝濡� �옟�엺�떎 ��� 蹂댁씠�뒗 �닚媛� �떎�떆 洹몃┛�떎
+  requestAnimationFrame(()=>{ try{ if(t==='pf') spark(); if(t==='pnl') renderExpo(); }catch(e){} });
 }
 (function(){
   const TB=[...document.querySelectorAll('.tab')];
