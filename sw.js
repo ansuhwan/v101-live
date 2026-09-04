@@ -1,5 +1,6 @@
 // v10.1 라이브 계좌 PWA 서비스워커
-const CACHE = "v101-live-v32";   // v32: 모바일 — 사이드바 폭 · 차트 viewBox 반응형
+const CACHE = "v101-live-v33";   // v33: 손익 탭 가로 넘침(히트맵 min-width) 수정
+// v32:   // v32: 모바일 — 사이드바 폭 · 차트 viewBox 반응형
 // v31:   // v31: LoT 레이아웃 (사이드바 · 탭 3개 · 스크럽 차트 · ⓘ)
 // v30: 통화 버튼 알약형
 // v29: 앱셸도 network-first — 갱신이 새로고침 한 번에 닿게

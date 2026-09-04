@@ -283,6 +283,16 @@ aside{display:flex;flex-direction:column;gap:14px;position:sticky;top:76px}
 @media(max-width:960px){aside{position:static}}
 main{min-width:0}
 main>section{display:flex;flex-direction:column;gap:16px;min-width:0}
+/* flex/grid 아이템은 min-width:auto 가 기본이라 내용폭 아래로 못 줄어든다.
+   그러면 안쪽 overflow-x:auto 가 무력해져 카드가 부풀고 페이지가 가로로 넘친다
+   (월별 히트맵 12칸 = 520px, 2026-09-05 사용자 제보). */
+main>section>*,.duo>*,aside>*{min-width:0}
+/* 월별 히트맵은 min-width:520px 이라 폰에선 가로 스크롤이 강제된다 — 칸을 줄여 한 화면에 넣는다 */
+@media(max-width:620px){
+  .hm{min-width:0;grid-template-columns:24px repeat(12,1fr);gap:2px;margin-top:12px}
+  .hm .h{font-size:8.5px} .hm .yl{font-size:9.5px}
+  .cell{font-size:8.5px;border-radius:4px}
+}
 main>section[hidden]{display:none}   /* display:flex 가 hidden 을 덮어쓰지 않게 */
 .duo{display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start}
 @media(max-width:960px){.duo{grid-template-columns:1fr}}
