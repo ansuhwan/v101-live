@@ -8,7 +8,7 @@
 <meta name="apple-mobile-web-app-title" content="라이브 계좌">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;600;700&family=IBM+Plex+Mono:wght@400;600;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;600;700&display=swap">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" href="icon-192.png">
@@ -232,8 +232,11 @@
   @media (prefers-reduced-motion){.spin{animation:none}}
 
 /* ══════════ LoT 레이아웃 (2026-09-05) — 위 원본 스타일을 덮어쓴다 ══════════ */
-:root{--sans:'IBM Plex Sans KR',system-ui,-apple-system,'Segoe UI',Roboto,'Malgun Gothic',sans-serif;
-  --mono:'IBM Plex Mono',ui-monospace,'SF Mono','Cascadia Code',Menlo,monospace;
+:root{
+  /* 한 벌로 간다 — 숫자를 별도 모노로 빼면 타자기 인상이 나서 복고로 보인다.
+     Inter 가 라틴·숫자, Noto Sans KR 이 한글을 받는다. 정렬은 tabular-nums. */
+  --sans:'Inter','Noto Sans KR',system-ui,-apple-system,'Segoe UI',Roboto,'Apple SD Gothic Neo','Malgun Gothic',sans-serif;
+  --mono:'Inter','Noto Sans KR',system-ui,-apple-system,'Segoe UI',Roboto,'Apple SD Gothic Neo','Malgun Gothic',sans-serif;
   --k1:#b9781a;--k2:#2a78d6;--k3:#0f9d63;--k4:#cf3f3a;--k5:#7a5cc7;--k6:#2a9d9d;--k0:#a9a79c;--warn:#c8791b}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
   --k1:#f0a92b;--k2:#3987e5;--k3:#21b07d;--k4:#e2544f;--k5:#9b7ee0;--k6:#3bb8b8;--k0:#5d666f;--warn:#e0a63c}}
@@ -241,8 +244,12 @@
 
 body{font-family:var(--sans);line-height:1.55;letter-spacing:-.003em;word-break:keep-all;
   padding:0 clamp(14px,2.6vw,30px) calc(env(safe-area-inset-bottom,0px) + 56px)}
-.mono,.bal,.val,td,th{font-variant-numeric:tabular-nums}
-.mono{font-family:var(--mono)}
+.mono,.bal,.val,td,th,.st4 .v,.mini .v,.s4 .v,.lval,.kv b,.frow .fv,.bval,.mu,.tv,.pn,.lv{
+  font-variant-numeric:tabular-nums;font-feature-settings:'tnum' 1}
+.mono{font-family:var(--mono);letter-spacing:0}
+/* 그로테스크는 큰 크기에서 자간을 조여야 성글어 보이지 않는다 */
+.bal{letter-spacing:-.032em}
+.st4 .v,.mini .v,.s4 .v{letter-spacing:-.018em}
 .wrap{max-width:1320px}
 ::selection{background:color-mix(in srgb,var(--accent) 30%,transparent)}
 
