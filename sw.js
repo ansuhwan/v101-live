@@ -1,5 +1,6 @@
 // v10.1 라이브 계좌 PWA 서비스워커
-const CACHE = "v101-live-v35";   // v35: 원화 시 사용중 증거금 행 줄바꿈 수정
+const CACHE = "v101-live-v36";   // v36: 현재 전략/안전 상태 카드 높이 맞춤
+// v35:   // v35: 원화 시 사용중 증거금 행 줄바꿈 수정
 // v34:   // v34: 폰트 Inter+Noto Sans KR (Plex Mono 타자기 인상 제거)
 // v33:   // v33: 손익 탭 가로 넘침(히트맵 min-width) 수정
 // v32:   // v32: 모바일 — 사이드바 폭 · 차트 viewBox 반응형
