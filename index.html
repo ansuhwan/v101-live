@@ -302,11 +302,6 @@ main>section>*,.duo>*,aside>*{min-width:0}
 }
 main>section[hidden]{display:none}   /* display:flex 가 hidden 을 덮어쓰지 않게 */
 .duo{display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start}
-/* 행 수가 달라 높이가 어긋나는 쌍은 eq 를 붙여 맞춘다.
-   남는 높이는 행들이 flex:1 로 나눠 가져 아래에 빈칸으로 몰리지 않는다. */
-.duo.eq{align-items:stretch}
-.duo.eq>.card{display:flex;flex-direction:column}
-.duo.eq>.card .row{flex:1;align-items:center}
 @media(max-width:960px){.duo{grid-template-columns:1fr}}
 
 /* ── 카드 통일 ──────────────────────────────────────────────────── */
@@ -553,7 +548,7 @@ aside .card{padding:15px}
       <div id="bookbars"></div>
     </div>
 
-    <div class="duo eq">
+    <div class="duo">
       <div class="card">
         <div class="chead"><h3>현재 전략</h3></div>
         <div class="row"><span class="k">가동중</span><span class="val" id="stratnow"></span></div>
