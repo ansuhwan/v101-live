@@ -306,6 +306,8 @@ main>section[hidden]{display:none}   /* display:flex 가 hidden 을 덮어쓰지
 .duo.fill{align-items:stretch}
 .duo.fill>.ledger{display:flex;flex-direction:column}
 .duo.fill>.ledger .style4{flex:1;align-content:space-between;row-gap:18px}
+.duo.fill>.card{display:flex;flex-direction:column}
+.duo.fill>.card .row{flex:1;align-items:center}
 @media(max-width:960px){.duo{grid-template-columns:1fr}}
 
 /* ── 카드 통일 ──────────────────────────────────────────────────── */
@@ -552,7 +554,7 @@ aside .card{padding:15px}
       <div id="bookbars"></div>
     </div>
 
-    <div class="duo">
+    <div class="duo fill">
       <div class="card">
         <div class="chead"><h3>현재 전략</h3></div>
         <div class="row"><span class="k">가동중</span><span class="val" id="stratnow"></span></div>
