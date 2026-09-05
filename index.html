@@ -302,6 +302,10 @@ main>section>*,.duo>*,aside>*{min-width:0}
 }
 main>section[hidden]{display:none}   /* display:flex 가 hidden 을 덮어쓰지 않게 */
 .duo{display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start}
+/* 높이를 맞출 쌍에만 fill. 지표 칸이 대부분을 채우고, 남는 차이는 행이 나눠 갖는다. */
+.duo.fill{align-items:stretch}
+.duo.fill>.ledger{display:flex;flex-direction:column}
+.duo.fill>.ledger .style4{flex:1;align-content:space-between;row-gap:18px}
 @media(max-width:960px){.duo{grid-template-columns:1fr}}
 
 /* ── 카드 통일 ──────────────────────────────────────────────────── */
@@ -532,7 +536,7 @@ aside .card{padding:15px}
       <div class="hint" id="ck-hint"></div>
     </div>
 
-    <div class="duo">
+    <div class="duo fill">
       <div class="ledger" id="bookcard" style="display:none">
         <div class="chead"><h3>포트폴리오 비중</h3><span class="rt" id="booknote"></span></div>
         <div class="dowrap"><div id="donut"></div><div class="legend" id="booklegend"></div></div>
@@ -1242,7 +1246,9 @@ const IC2={
   bot:'<rect x="4.2" y="8.2" width="15.6" height="11.4" rx="3.2"/><path d="M12 8.2V5.4"/><circle cx="12" cy="4.2" r="1.5"/><path d="M9.2 13.2v1.6M14.8 13.2v1.6"/>',
   theme:'<circle cx="12" cy="12" r="7.6"/><path d="M12 4.4a7.6 7.6 0 0 1 0 15.2" fill="currentColor" stroke="none"/>',
   spark:'<path d="M3.5 17.5l5-6 3.5 3.2L20.5 5.5"/>',
-  refresh:'<path d="M20 12a8 8 0 1 1-2.6-5.9"/><path d="M20.5 4v4.6h-4.6"/>'
+  refresh:'<path d="M20 12a8 8 0 1 1-2.6-5.9"/><path d="M20.5 4v4.6h-4.6"/>',
+  up:'<path d="M12 19.5V5.2"/><path d="M6.2 11l5.8-5.8L17.8 11"/>',
+  down:'<path d="M12 4.5v14.3"/><path d="M17.8 13l-5.8 5.8L6.2 13"/>'
 };
 const ico2=(k,sz)=>`<svg viewBox="0 0 24 24" width="${sz||16}" height="${sz||16}" fill="none" stroke="currentColor"
   stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${IC2[k]||''}</svg>`;
@@ -1262,7 +1268,11 @@ function stats2(){
   let pk=-Infinity, mdd=0;
   eq.forEach(v=>{pk=Math.max(pk,v); mdd=Math.min(mdd,v/pk-1);});
   const i30=Math.max(0,n-1-30);
+  let iBest=0,iWorst=0;
+  rt.forEach((v,i)=>{ if(v>rt[iBest]) iBest=i; if(v<rt[iWorst]) iWorst=i; });
   return {L,n,eq,rt,
+    best:rt[iBest]*100, bestD:L[iBest+1]?L[iBest+1].label:'',
+    worst:rt[iWorst]*100, worstD:L[iWorst+1]?L[iWorst+1].label:'',
     sharpe: sd>0?mu/sd*Math.sqrt(365):0,
     mdd, win: rt.filter(x=>x>0).length,
     r30:(eq[n-1]/eq[i30]-1)*100, rall:(eq[n-1]/eq[0]-1)*100, i30};
@@ -1342,12 +1352,14 @@ function renderStyle2(){
     ['check','일 수익 비율',nf(winp,2)+'%',`${S.win}/${S.rt.length}일`,null,'winday'],
     ['drop','최대낙폭',nf(Math.abs(S.mdd*100),2)+'%',`원장 ${S.n}일 구간`,risk,'mdd'],
     ['clock','평균 보유 기간',H.avg==null?'—':nf(H.avg/24,2)+'일',H.n?`표본 ${H.n}건`:'표본 없음',null,'hold'],
-    ['swap','30일 체결 횟수',t30==null?'—':t30+'회',d7?`최근 7일 ${d7.n}건 환산`:'—',null,'trd30']
+    ['swap','30일 체결 횟수',t30==null?'—':t30+'회',d7?`최근 7일 ${d7.n}건 환산`:'—',null,'trd30'],
+    ['up','최고 하루',pctS2(S.best),ldate(S.bestD),null,'best'],
+    ['down','최악 하루',pctS2(S.worst),ldate(S.worstD),null,'worst']
   ];
   $('#y-grid').innerHTML=cells.map(([ic,l,v,n,bg,inf])=>`<div class="s4">
     <span class="ic">${ico2(ic,17)}</span>
     <span><span class="l">${l} <button class="info" data-info="${inf}" aria-label="${l} 설명"></button></span>
-      <span class="v">${v}${bg?`<span class="badge ${bg[1]}">${bg[0]}</span>`:''}</span>
+      <span class="v ${inf==='best'?'pos':inf==='worst'?'neg':''}">${v}${bg?`<span class="badge ${bg[1]}">${bg[0]}</span>`:''}</span>
       <span class="n">${n}</span></span></div>`).join('');
 }
 
@@ -1631,6 +1643,12 @@ function info2(){
    hold:['표본이 매우 작다',
      `원장에 담긴 최근 체결 <b>${(LIVE.trades||[]).length}건</b>에서 완결 짝 <b>${H.n}건</b>으로 낸 값이다.
       추세·슬리브북만 해당하고, 매일 리밸런싱하는 MN 알트는 빠져 있다.`],
+   best:['이상치가 하나 끼어 있다',
+     `원장 ${S.n}일 중 하루 수익률이 가장 컸던 날(<b>${ldate(S.bestD)}</b>)이다.
+      이 하루가 표본 변동성과 샤프지수를 크게 부풀린다 — 평상시 하루 움직임으로 보면 안 된다.`],
+   worst:['하루 기준이다',
+     `원장 ${S.n}일 중 하루 수익률이 가장 나빴던 날(<b>${ldate(S.worstD)}</b>)이다.
+      고점에서 저점까지 이어진 낙폭은 옆의 <b>최대낙폭</b>을 봐라 — 다른 수치다.`],
    trd30:['환산값이다',
      `최근 7일 체결 <b>${(LIVE.pnl&&LIVE.pnl.d7?LIVE.pnl.d7.n:'?')}건</b>을 30일로 늘려 잡은 값이다. 실제 30일 집계가 아니다.`],
    cum:['입출금이 보정되지 않았다',
