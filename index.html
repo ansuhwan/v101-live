@@ -141,7 +141,8 @@
   .ddg{margin-top:13px}
   .ddg .ddt{position:relative;height:7px;border-radius:4px;background:var(--surface-2);overflow:hidden}
   .ddg .ddf{position:absolute;left:0;top:0;height:100%;border-radius:4px;background:var(--neg);opacity:.85}
-  .ddg .ddlab{display:flex;justify-content:space-between;font-size:11px;color:var(--ink-3);margin-top:5px}
+  .ddg .ddlab{display:flex;justify-content:space-between;flex-wrap:wrap;gap:1px 10px;font-size:11px;color:var(--ink-3);margin-top:5px}
+  .ddg .ddlab>span+span{margin-left:auto}   /* 줄바꿈돼도 오른쪽에 붙는다 */
   /* 손익 분해 */
   #pnltbl td:nth-child(2),#pnltbl td:nth-child(3),#pnltbl th:nth-child(2),#pnltbl th:nth-child(3){text-align:right}
   #pnltbl tr.sum td{font-weight:700;border-top:2px solid var(--line)}
@@ -948,11 +949,16 @@ function renderDD(){
                                     : `<span class="neg">${sp(d.pct)}</span>`;
   const plan=Math.abs(PLAN.mdd), cur=Math.abs(Math.min(d.pct,0));
   const fill=Math.min(cur/plan*100,100);
+  // 각오한 MDD를 %로만 보면 체감이 안 온다 → 그게 오면 잔고가 얼마가 되는지 금액으로 같이 준다.
+  // 고점 기준이라 새 고점이 나면 이 바닥값도 같이 올라간다(통화 토글도 f2가 따라간다).
+  const floor=d.peak*(1+PLAN.mdd/100);
   g.className='ddg';
-  g.innerHTML=`<div class="ddt" title="각오한 최대낙폭 ${PLAN.mdd}% 중 ${(cur/plan*100).toFixed(0)}% 지점">`
+  g.innerHTML=`<div class="ddt" title="각오한 최대낙폭 ${PLAN.mdd}% 중 ${(cur/plan*100).toFixed(0)}% 지점`
+    +` · 다 맞으면 ${f2(floor)} ${unit()}">`
     +`<div class="ddf" style="width:${fill.toFixed(1)}%"></div></div>`
     +`<div class="ddlab"><span>고점 ${f2(d.peak)}${d.since?` (${d.since})`:''}`
-    +`${d.provisional?' · 잠정':''}</span><span>각오한 최대 ${PLAN.mdd}%</span></div>`;
+    +`${d.provisional?' · 잠정':''}</span>`
+    +`<span>각오한 최대 ${PLAN.mdd}% <b style="color:var(--ink-2);font-weight:640">${f2(floor)}</b></span></div>`;
 }
 function renderExpo(){
   // 노출·증거금 시계열. 잔고만 그리면 "증거금이 준다"가 손실인지 포지션 축소인지 못 가린다.
