@@ -1,0 +1,48 @@
+# 서버 밖 감시: 봇의 매시 equity.json 커밋이 MAX_GAP_MIN 분 넘게 끊기면 Discord 로 알린다.
+# 09-22 16시간 네트워크 단절 사고의 교훈 — 서버 안 알림(Discord webhook)은 서버가 밖으로
+# 못 나가면 같이 끊긴다. 이 워크플로는 GitHub 인프라에서 돌아 EC2 와 무관하다.
+#
+# 준비: 레포 Settings → Secrets and variables → Actions → New repository secret
+#       이름 DISCORD_WEBHOOK, 값 = 봇 .env 의 DISCORD_WEBHOOK 과 같은 URL.
+# 주의: GitHub 예약 실행은 수 분~수십 분 지연될 수 있다(정각 부근이 제일 심해 :17/:47 사용).
+#       → 실제 감지 지연 ≈ MAX_GAP_MIN + 최대 30분. 봇 커밋이 60일 끊기면 예약이 자동 비활성화됨.
+name: bot-watchdog
+
+on:
+  schedule:
+    - cron: '17,47 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 마지막 equity.json 커밋 공백 측정
+        env:
+          GH_TOKEN: ${{ github.token }}
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+          MAX_GAP_MIN: 130   # 봇 push 는 매시 :05 → 정상 최대 공백 60분, 한 번 건너뛰면 120분
+        run: |
+          set -euo pipefail
+          last_iso=$(gh api "repos/${GITHUB_REPOSITORY}/commits?path=equity.json&per_page=1" \
+                     --jq '.[0].commit.committer.date')
+          last=$(date -u -d "$last_iso" +%s)
+          now=$(date -u +%s)
+          gap=$(( (now - last) / 60 ))
+          echo "last equity.json commit: $last_iso  (gap ${gap} min, limit ${MAX_GAP_MIN})"
+          if [ "$gap" -le "$MAX_GAP_MIN" ]; then
+            echo "OK"
+            exit 0
+          fi
+          msg="🚨 [watchdog] 대시보드 커밋 공백 ${gap}분 (마지막 ${last_iso}). EC2 네트워크 단절 또는 봇 정지 의심 — 콘솔에서 인스턴스 상태 확인."
+          if [ -z "${DISCORD_WEBHOOK}" ]; then
+            echo "DISCORD_WEBHOOK secret 없음 — 알림 못 보냄"; echo "$msg"; exit 1
+          fi
+          payload=$(python3 -c 'import json,sys; print(json.dumps({"content": sys.argv[1]}))' "$msg")   # ASCII 이스케이프 → 인코딩 무관
+          code=$(curl -s -o /dev/null -w '%{http_code}' -X POST -H 'Content-Type: application/json' \
+                 -d "$payload" "$DISCORD_WEBHOOK")
+          echo "discord http $code"
+          exit 1   # 실패로 남겨 Actions 탭·이메일에도 빨간 표시
