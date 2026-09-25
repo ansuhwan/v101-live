@@ -451,6 +451,22 @@ aside .card{padding:15px}
 .note{font-size:12.5px}
 .plan{background:var(--surface);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow)}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+/* ── DRY 탭 (2026-09-26) — 6B 얹기 북 모의운영, dry.json 은 암호문 ─────── */
+#dryform{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+#dryform input{flex:1 1 180px;min-width:0;font:inherit;font-size:15px;padding:9px 12px;border-radius:10px;
+  border:1px solid var(--line);background:var(--surface-2);color:var(--ink)}
+#dryform button,.drybtn{font:inherit;font-size:13px;font-weight:600;padding:9px 16px;border-radius:10px;border:0;
+  background:var(--accent);color:#fff;cursor:pointer}
+.drybtn.ghost{background:transparent;color:var(--ink-3);border:1px solid var(--line);padding:5px 10px;font-size:11.5px}
+#drychart{position:relative}
+#drychart svg{display:block;width:100%;height:auto}
+.drytbl{width:100%;border-collapse:collapse;font-size:12.5px}
+.drytbl th,.drytbl td{padding:6px 6px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap}
+.drytbl th:first-child,.drytbl td:first-child,.drytbl td.l,.drytbl th.l{text-align:left}
+.drytbl th{color:var(--ink-3);font-weight:600;font-size:11px}
+.drychips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.drychips span{font-size:11.5px;padding:3px 9px;border-radius:999px;background:var(--surface-2);border:1px solid var(--line);color:var(--ink-2)}
 </style>
 
 <header class="top"><div class="topin">
@@ -460,6 +476,7 @@ aside .card{padding:15px}
     <button class="tab" role="tab" data-tab="pf"  aria-selected="true">포트폴리오</button>
     <button class="tab" role="tab" data-tab="pnl" aria-selected="false">손익</button>
     <button class="tab" role="tab" data-tab="bot" aria-selected="false">봇 점검</button>
+    <button class="tab" role="tab" data-tab="dry" aria-selected="false">DRY</button>
   </nav>
   <div class="tmeta">
     <span class="live" id="livebadge"><span class="dot" id="livedot"></span> LIVE</span>
@@ -666,6 +683,57 @@ aside .card{padding:15px}
         </div>
       </div>
     </details>
+   </section>
+
+   <!-- ══ DRY (6B 얹기 북 모의운영) ══ -->
+   <section data-tab="dry" role="tabpanel" hidden>
+    <div class="ledger" id="drylock">
+      <div class="chead"><h3>DRY · 6B 얹기 북 모의운영</h3><span class="rt"><span class="badge" id="dryasof0"></span></span></div>
+      <div class="note">DRY 기록은 암호화돼 올라옵니다. 비밀번호는 <b>이 기기에만</b> 저장되고 어디로도 전송되지 않습니다.</div>
+      <form id="dryform" autocomplete="on"><input id="drypw" type="password" autocomplete="current-password" placeholder="DRY 비밀번호" aria-label="DRY 비밀번호"><button type="submit">열기</button></form>
+      <div class="note" id="dryerr" style="margin-top:8px"></div>
+    </div>
+    <div id="drybody" hidden>
+      <div class="hero">
+        <div>
+          <div class="bal-lab">가상 자산 (주문 없음)</div>
+          <div class="bal mono" id="dryeq"></div>
+          <div class="asof" id="dryasof"></div>
+        </div>
+        <div class="stats4">
+          <div class="st4"><div class="l">수익률</div><div class="v" id="dryret"></div><div class="n" id="dryret-n"></div></div>
+          <div class="st4"><div class="l">보유</div><div class="v" id="drypos"></div><div class="n" id="drypos-n"></div></div>
+          <div class="st4"><div class="l">게이트</div><div class="v" id="drygate"></div><div class="n" id="drygate-n"></div></div>
+          <div class="st4"><div class="l">비용</div><div class="v" id="drycost"></div><div class="n" id="drycost-n"></div></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="chead"><h3>가상 자산 추이</h3><span class="rt" id="drycurve-n"></span></div>
+        <div id="drychart"></div>
+      </div>
+      <div class="ledger">
+        <div class="chead"><h3>지금 보유</h3><span class="rt" id="dryposnote"></span></div>
+        <div style="overflow-x:auto"><table class="drytbl" id="dryposs"></table></div>
+      </div>
+      <div class="ledger">
+        <div class="chead"><h3>체결 실측 · 북별</h3><span class="rt"><span class="badge">백테에 없던 값</span></span></div>
+        <div class="note">슬리피지 = 실제 호가 체결가 vs 시간봉 시가(백테 체결가), +면 불리. 손익은 청산분만, <b>시가 기준</b>은 백테식 손익.</div>
+        <div style="overflow-x:auto"><table class="drytbl" id="dryexec"></table></div>
+      </div>
+      <div class="duo fill">
+        <div class="ledger">
+          <div class="chead"><h3>최근 거래</h3></div>
+          <div style="overflow-x:auto"><table class="drytbl" id="drytrades"></table></div>
+        </div>
+        <div class="ledger">
+          <div class="chead"><h3>신호</h3><span class="rt" id="drysig-n"></span></div>
+          <div class="drychips" id="dryreasons"></div>
+          <div style="overflow-x:auto;margin-top:10px"><table class="drytbl" id="drysigs"></table></div>
+        </div>
+      </div>
+      <div class="foot" id="dryrules" style="margin-top:10px"></div>
+      <div style="margin-top:10px"><button class="drybtn ghost" id="drylogout" type="button">이 기기에서 비밀번호 지우기</button></div>
+    </div>
    </section>
   </main>
 </div></div>
@@ -1617,7 +1685,7 @@ function setTab2(t){
   [...document.querySelectorAll('main>section')].forEach(s=>{ s.hidden = s.dataset.tab!==t; });
   try{ localStorage.setItem('tab',t); }catch(e){}
   // �닲��� �꺆��� �룺�씠 0�씠�씪 viewBox 媛� �뤃諛깃컪�쑝濡� �옟�엺�떎 ��� 蹂댁씠�뒗 �닚媛� �떎�떆 洹몃┛�떎
-  requestAnimationFrame(()=>{ try{ if(t==='pf') spark(); if(t==='pnl') renderExpo(); }catch(e){} });
+  requestAnimationFrame(()=>{ try{ if(t==='pf') spark(); if(t==='pnl') renderExpo(); if(t==='dry') renderDry(); }catch(e){} });
 }
 (function(){
   const TB=[...document.querySelectorAll('.tab')];
@@ -1628,7 +1696,7 @@ function setTab2(t){
       e.preventDefault(); const nx=TB[(i+d+TB.length)%TB.length]; nx.focus(); setTab2(nx.dataset.tab);
     });
   });
-  const valid=v=>v==='pnl'||v==='bot'||v==='pf';
+  const valid=v=>v==='pnl'||v==='bot'||v==='pf'||v==='dry';
   let t0='pf';
   try{ const v=localStorage.getItem('tab'); if(valid(v)) t0=v; }catch(e){}
   const h=(location.hash||'').replace('#','');        // #pnl / #bot 딥링크가 저장값보다 우선
@@ -1702,6 +1770,119 @@ function info2(){
   addEventListener('scroll',close,true);
 })();
 
+/* ── DRY 탭 (2026-09-26) : 6B 얹기 북 모의운영 ──────────────────────
+   dry.json = AES-256-GCM 암호문(키 = PBKDF2-SHA256(비밀번호, salt, iter)). 비밀번호는 이 기기 localStorage 에만 둔다.
+   암호화 안 된 dry.json 은 표시하지 않는다(실수로 평문이 올라와도 화면에 안 뜨게). */
+let DRY=null, DRYENV=null, DRYERR='';
+const DRYBK={u4:'급등4h',u1:'급등1h',d1:'투매1h',rev:'반전숏'};
+const dryB64=s=>Uint8Array.from(atob(s),c=>c.charCodeAt(0));
+const dryN=(v,d)=>v==null||!isFinite(v)?'—':nf(+v,d);
+function dryKey(){ try{ return localStorage.getItem('drykey')||''; }catch(e){ return ''; } }
+async function dryDecrypt(env,pw){
+  const km=await crypto.subtle.importKey('raw',new TextEncoder().encode(pw),'PBKDF2',false,['deriveKey']);
+  const key=await crypto.subtle.deriveKey({name:'PBKDF2',salt:dryB64(env.salt),iterations:env.iter,hash:'SHA-256'},
+    km,{name:'AES-GCM',length:256},false,['decrypt']);
+  const pt=await crypto.subtle.decrypt({name:'AES-GCM',iv:dryB64(env.iv)},key,dryB64(env.ct));
+  return JSON.parse(new TextDecoder().decode(pt));
+}
+async function loadDry(){
+  try{
+    const r=await fetch('dry.json?t='+Date.now(),{cache:'no-store'});
+    if(!r.ok){ DRY=null; DRYENV=null; DRYERR='아직 게시된 DRY 기록이 없습니다.'; renderDry(); return; }
+    DRYENV=await r.json(); const k=dryKey();
+    if(!DRYENV.enc){ DRY=null; DRYERR='암호화되지 않은 파일은 표시하지 않습니다.'; }
+    else if(!k){ DRY=null; DRYERR=''; }
+    else { try{ DRY=await dryDecrypt(DRYENV,k); DRYERR=''; }catch(e){ DRY=null; DRYERR='비밀번호가 맞지 않습니다.'; } }
+  }catch(e){ DRYERR='DRY 기록을 불러오지 못했습니다.'; }
+  renderDry();
+}
+function dryAge(asof){ const m=String(asof||'').match(/(\d{4})-(\d{2})-(\d{2}) (\d{2}):(\d{2})/); if(!m) return null;
+  return (Date.now()-Date.UTC(+m[1],+m[2]-1,+m[3],+m[4],+m[5]))/36e5; }
+function dryChart(){
+  const el=$('#drychart'), c=(DRY&&DRY.curve)||[]; if(!el) return;
+  if(c.length<2){ el.innerHTML='<div class="note">두 시간 이상 쌓이면 그려집니다.</div>'; $('#drycurve-n').textContent=''; return; }
+  const W=Math.max(300,Math.round(el.clientWidth||600)), narrow=W<620;
+  const H=narrow?Math.round(W*0.55):Math.max(180,Math.min(230,Math.round(W*0.25))), PL=narrow?50:64, PR=16, PT=18, PB=26, FS=narrow?11.5:10.5;
+  const v=c.map(r=>r[1]), n=v.length, base=DRY.equity0||v[0];
+  const mn=Math.min(...v,base), mx=Math.max(...v,base), pad=(mx-mn)*0.15||Math.max(1,base*0.01), lo=mn-pad, hi=mx+pad;
+  const X=i=>PL+(i/(n-1))*(W-PL-PR), Y=x=>PT+(1-(x-lo)/(hi-lo))*(H-PT-PB);
+  let grid='', ylab='';
+  for(let k=0;k<4;k++){ const yv=lo+(hi-lo)/3*k, y=Y(yv);
+    grid+=`<line x1="${PL}" x2="${W-PR}" y1="${y.toFixed(1)}" y2="${y.toFixed(1)}" stroke="var(--grid)" stroke-width="1"/>`;
+    ylab+=`<text x="${PL-8}" y="${(y+3.7).toFixed(1)}" text-anchor="end" fill="var(--ink-3)" style="font-family:var(--mono);font-size:${FS}px">${nf(yv,0)}</text>`; }
+  const col=v[n-1]>=base?'var(--pos)':'var(--neg)', y0=Y(base);
+  const lp='M'+v.map((x,i)=>X(i).toFixed(1)+' '+Y(x).toFixed(1)).join(' L');
+  const xt=[0,Math.floor((n-1)/2),n-1].filter((x,i,a)=>a.indexOf(x)===i).map(i=>`<text x="${X(i).toFixed(1)}" y="${H-7}" fill="var(--ink-3)"
+    text-anchor="${i===0?'start':i===n-1?'end':'middle'}" style="font-family:var(--mono);font-size:${FS}px">${String(c[i][0]).slice(5,13)}</text>`).join('');
+  el.innerHTML=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="DRY 가상 자산 추이">${grid}${ylab}
+    <line x1="${PL}" x2="${W-PR}" y1="${y0.toFixed(1)}" y2="${y0.toFixed(1)}" stroke="var(--ink-3)" stroke-width="1" stroke-dasharray="3 3" opacity=".7"/>
+    <path d="${lp}" fill="none" stroke="${col}" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>
+    <circle cx="${X(n-1).toFixed(1)}" cy="${Y(v[n-1]).toFixed(1)}" r="4" fill="${col}" stroke="var(--surface)" stroke-width="2"/>${xt}</svg>`;
+  $('#drycurve-n').textContent=`${n}점 · 점선 = 시작 자본`;
+}
+function renderDry(){
+  const lock=$('#drylock'), body=$('#drybody'); if(!lock||!body) return;
+  const a0=DRYENV&&DRYENV.asof, age=dryAge(a0), b0=$('#dryasof0');
+  if(b0){ b0.textContent=a0?('갱신 '+String(a0).slice(5,16)+' UTC'):'기록 없음'; b0.className='badge '+(age!=null&&age<2.2?'b-ok':'b-warn'); }
+  if(!DRY){ lock.style.display=''; body.hidden=true; $('#dryerr').textContent=DRYERR; return; }
+  lock.style.display='none'; body.hidden=false;
+  const D=DRY, R0=D.rules||{}, w=R0.w||{};
+  $('#dryeq').textContent=dryN(D.equity,2)+' USDT';
+  $('#dryasof').textContent=`${D.asof} 기준 · 시작 ${D.start} · 가상 자본 ${dryN(D.equity0,0)} USDT`+(age!=null&&age>2.2?` · ⚠️ ${age.toFixed(1)}시간째 갱신 없음`:'');
+  const rp=+D.ret_pct||0;
+  $('#dryret').innerHTML=`<span class="${cls(rp)}">${tri2(rp)}${pctS2(rp)}</span>`;
+  const pd=s=>Date.parse(String(s).replace(' UTC','').replace(' ','T')+'Z');
+  $('#dryret-n').textContent=`${Math.max(0,(pd(D.asof)-pd(D.start))/864e5).toFixed(1)}일째`;
+  const P=D.positions||[];
+  $('#drypos').textContent=P.length+'개';
+  $('#drypos-n').textContent=`gross ${dryN(D.gross_x,2)}× · 손절 금지 ${Object.keys(D.blocks||{}).length}종`;
+  const g=D.gate||{};
+  $('#drygate').innerHTML=g.open?'<span class="pos">열림</span>':'<span class="neg">닫힘</span>';
+  $('#drygate-n').textContent=`MAIN 순롱 ${g.net_x==null?'—':(+g.net_x).toFixed(2)+'×'} (≤ ${R0.gate_max!=null?R0.gate_max:0.5} 이면 열림)`;
+  $('#drycost').textContent=dryN(-(D.fees||0)-(D.funding||0),2);
+  $('#drycost-n').textContent=`수수료 ${dryN(D.fees,2)} · 펀딩 ${dryN(D.funding,2)}`;
+  dryChart();
+  const bk=k=>DRYBK[k]||k, px=v=>dryN(v,v!=null&&Math.abs(v)<1?5:2);
+  $('#dryposnote').textContent=P.length?`${P.length}개 · 가상 명목 USDT`:'';
+  $('#dryposs').innerHTML=P.length?('<thead><tr><th class="l">북</th><th class="l">종목</th><th>명목</th><th>진입가</th><th>진입(UTC)</th><th>청산 예정</th></tr></thead><tbody>'
+    +P.map(p=>`<tr><td class="l">${bk(p.book)}</td><td class="l">${p.sym} <span class="${p.qty>0?'pos':'neg'}" style="font-size:11px">${p.qty>0?'롱':'숏'}</span></td>
+      <td>${dryN(p.notional,1)}</td><td>${px(p.entry_fill)}</td><td>${String(p.entry_at).slice(5)}</td><td>${p.exit_at?String(p.exit_at).slice(5):'신호 끝날 때'}</td></tr>`).join('')+'</tbody>')
+    :'<tbody><tr><td class="l" style="color:var(--ink-3)">보유 없음</td></tr></tbody>';
+  const E=D.exec||{}, ks=Object.keys(E);
+  $('#dryexec').innerHTML=ks.length?('<thead><tr><th class="l">북</th><th>진입</th><th>청산</th><th>손절</th><th>슬리피지</th><th>중앙</th><th>스프레드</th><th>손익</th><th>시가 기준</th><th>수수료</th></tr></thead><tbody>'
+    +ks.map(k=>{const e=E[k]; return `<tr><td class="l">${bk(k)}</td><td>${e.n_entry}</td><td>${e.n_exit}</td><td>${e.n_stop}</td>
+      <td>${e.slip_avg==null?'—':e.slip_avg+'bp'}</td><td>${e.slip_med==null?'—':e.slip_med+'bp'}</td><td>${e.spread_avg==null?'—':e.spread_avg+'bp'}</td>
+      <td class="${cls(e.pnl||0)}">${dryN(e.pnl,2)}</td><td>${dryN(e.bt_pnl,2)}</td><td>${dryN(e.fees,2)}</td></tr>`;}).join('')+'</tbody>')
+    :'<tbody><tr><td class="l" style="color:var(--ink-3)">아직 체결 없음</td></tr></tbody>';
+  const T=D.trades||[];
+  $('#drytrades').innerHTML=T.length?('<thead><tr><th class="l">시각(UTC)</th><th class="l">북·종목</th><th>구분</th><th>체결가</th><th>슬리피지</th><th>손익</th></tr></thead><tbody>'
+    +T.slice(0,20).map(t=>`<tr><td class="l">${String(t.t).slice(5)}</td><td class="l">${bk(t.book)} ${t.sym}</td><td>${({entry:'진입',exit:'청산',stop:'손절'})[t.act]||t.act}</td>
+      <td>${px(t.fill)}</td><td>${t.slip==null?'—':t.slip+'bp'}</td><td class="${t.pnl==null?'':cls(t.pnl)}">${t.pnl==null?'':dryN(t.pnl,2)}</td></tr>`).join('')+'</tbody>')
+    :'<tbody><tr><td class="l" style="color:var(--ink-3)">아직 거래 없음</td></tr></tbody>';
+  const S=D.signals||{}, RC=S.recent||[];
+  $('#drysig-n').textContent=S.n_all!=null?`24시간 ${S.n24}건 중 진입 ${S.taken24} · 누적 ${S.n_all}건 중 ${S.taken_all}`:'';
+  $('#dryreasons').innerHTML=Object.entries(S.reasons||{}).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`<span>${k||'기타'} ${v}</span>`).join('');
+  $('#drysigs').innerHTML=RC.length?('<thead><tr><th class="l">시각</th><th class="l">북·종목</th><th>z</th><th class="l">결과</th></tr></thead><tbody>'
+    +RC.slice(0,15).map(r=>`<tr><td class="l">${r.t}</td><td class="l">${bk(r.book)} ${r.sym}</td><td>${dryN(r.z,2)}</td>
+      <td class="l">${r.ok?'<span class="pos">진입</span>':(r.why||'')}</td></tr>`).join('')+'</tbody>')
+    :'<tbody><tr><td class="l" style="color:var(--ink-3)">아직 신호 없음</td></tr></tbody>';
+  $('#dryrules').innerHTML=`규칙: 급등4h 신규 ×${w.u4} · 급등1h 신규 ×${w.u1}(게이트) · 투매1h ×${w.d1}(게이트) · 반전숏 ×${w.rev}`
+    +` · 상장 ≤ ${R0.new_days}일 · 손절 ${R0.stop!=null?Math.round(R0.stop*100):'—'}% + ${R0.block_days}일 재진입 금지 · 수수료 ${R0.fee_bp}bp.`
+    +` <b>가상 자본 기준이며 실제 주문은 없습니다.</b>`;
+}
+(function(){
+  const f=$('#dryform');
+  if(f) f.addEventListener('submit',e=>{ e.preventDefault();
+    const v=($('#drypw').value||'').trim(); if(!v) return;
+    try{ localStorage.setItem('drykey',v); }catch(err){}
+    $('#drypw').value=''; DRYERR='확인 중…'; renderDry(); loadDry(); });
+  const lo=$('#drylogout');
+  if(lo) lo.addEventListener('click',()=>{ try{ localStorage.removeItem('drykey'); }catch(e){} DRY=null; DRYERR='이 기기에서 비밀번호를 지웠습니다.'; renderDry(); });
+  document.addEventListener('visibilitychange',()=>{ if(!document.hidden) loadDry(); });
+  const rb=$('#refresh'); if(rb) rb.addEventListener('click',loadDry);
+  addEventListener('resize',()=>{ try{ if(DRY) dryChart(); }catch(e){} });
+})();
+
 /* ── render()가 새 영역도 같이 그리게 감싼다 ── */
 (function(){
   const orig=render;
@@ -1709,4 +1890,5 @@ function info2(){
     try{ renderSide2(); renderStats2(); renderStyle2(); }catch(e){ console.error('LoT 추가영역 렌더 실패',e); } };
 })();
 render();
+loadDry();
 </script>

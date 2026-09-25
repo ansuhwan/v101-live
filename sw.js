@@ -1,5 +1,6 @@
 // v10.1 라이브 계좌 PWA 서비스워커
-const CACHE = "v101-live-v41";   // v41: 고점대비 게이지 — 각오한 MDD를 잔고 금액으로 병기
+const CACHE = "v101-live-v42";   // v42: DRY 탭 (6B 얹기 북 모의운영, dry.json 암호문) · dry.json network-first
+// v41: 고점대비 게이지 — 각오한 MDD를 잔고 금액으로 병기
 // v40: 봇 점검 탭 두 쌍도 높이 일치
 // v39:   // v39: 현재 전략/안전 상태도 높이 일치
 // v38:   // v38: 트레이딩 스타일 6칸 — 비중 카드와 높이 일치
@@ -33,6 +34,7 @@ self.addEventListener('fetch', e => {
   //    새 워커는 뒤에서 설치만 돼서, 화면이 바뀌려면 새로고침을 두 번 해야 했다(2026-09-05).
   //    아이콘·매니페스트 같은 정적 자산은 안 바뀌므로 그대로 cache-first가 맞다.
   const fresh = url.pathname.endsWith('equity.json')
+             || url.pathname.endsWith('dry.json')
              || e.request.mode === 'navigate'
              || url.pathname.endsWith('/')
              || url.pathname.endsWith('index.html');
