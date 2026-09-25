@@ -712,6 +712,11 @@ aside .card{padding:15px}
         <div class="chead"><h3>가상 자산 추이</h3><span class="rt" id="drycurve-n"></span></div>
         <div id="drychart"></div>
       </div>
+      <div class="ledger" id="drybookcard" hidden>
+        <div class="chead"><h3>보유 종목 · 가상 계좌</h3><span class="rt" id="drybook-n"></span></div>
+        <div class="dowrap"><div id="drydonut"></div><div class="legend" id="drylegend"></div></div>
+        <div id="drybars" style="margin-top:14px"></div>
+      </div>
       <div class="ledger" id="drydigcard" hidden>
         <div class="chead"><h3>1000 USDT 소화</h3><span class="rt"><span class="badge" id="drydig-b"></span></span></div>
         <div class="note" id="drydig-n"></div>
@@ -1833,6 +1838,46 @@ function dryChart(){
     <circle cx="${X(n-1).toFixed(1)}" cy="${Y(v[n-1]).toFixed(1)}" r="4" fill="${col}" stroke="var(--surface)" stroke-width="2"/>${xt}</svg>`;
   $('#drycurve-n').textContent=`${n}점 · 점선 = 시작 자본`;
 }
+/* 가상 계좌 보유 비중 — 포트폴리오 탭 renderBook() 과 같은 문법(도넛 + 종목 막대) */
+function renderDryBook(A,P){
+  const card=$('#drybookcard'); if(!card) return;
+  const MNC=['SOL','XRP','BNB','ADA','BCH','AVAX','ATOM','DOT','TRX'];
+  const grp=s=>(s==='BTC'||s==='ETH')?'MAIN 추세·바스켓':MNC.indexOf(s)>=0?'MAIN MN':'MAIN';
+  const L=[];
+  ((A&&A.main_pos)||[]).forEach(p=>L.push({s:p.sym,side:p.side,n:Math.abs(+p.notional||0),g:grp(p.sym),q:p.qty}));
+  (P||[]).forEach(p=>L.push({s:p.sym,side:p.qty>0?1:-1,n:Math.abs(+p.notional||0),g:'얹기 '+(DRYBK[p.book]||p.book),q:p.qty}));
+  if(!L.length){ card.hidden=true; return; }
+  card.hidden=false;
+  const gross=L.reduce((a,p)=>a+p.n,0);
+  L.forEach(p=>p.w=gross?p.n/gross*100:0); L.sort((a,b)=>b.w-a.w);
+  const top=L.slice(0,6), rest=L.slice(6), rw=rest.reduce((a,p)=>a+p.w,0);
+  const segs=top.map((p,i)=>({k:p.s+'|'+p.g,s:p.s,w:p.w,c:KC2[i],side:p.side}))
+    .concat(rw>0.05?[{k:'etc',s:'기타 '+rest.length+'종',w:rw,c:'var(--k0)',side:0}]:[]);
+  const cmap={}; segs.forEach(x=>cmap[x.k]=x.c);
+  const R=54,SW=20,C=2*Math.PI*R,G=3.4; let acc=0, arcs='';
+  segs.forEach(x=>{ const len=C*x.w/100, dash=Math.max(len-G,1);
+    arcs+=`<circle cx="70" cy="70" r="${R}" fill="none" stroke="${x.c}" stroke-width="${SW}"
+      stroke-dasharray="${dash.toFixed(1)} ${(C-dash).toFixed(1)}" stroke-dashoffset="${(-acc).toFixed(1)}"/>`; acc+=len; });
+  const eq=+(A&&A.equity)||0;
+  $('#drydonut').innerHTML=`<svg viewBox="0 0 140 140" style="width:150px;height:150px" role="img" aria-label="가상 계좌 종목별 비중">
+    <circle cx="70" cy="70" r="${R}" fill="none" stroke="var(--surface-2)" stroke-width="${SW}"/>
+    <g transform="rotate(-90 70 70)">${arcs}</g>
+    <text x="70" y="68" text-anchor="middle" fill="var(--ink)" style="font-family:var(--mono);font-size:15px;font-weight:700">${nf(gross,0)}</text>
+    <text x="70" y="83" text-anchor="middle" fill="var(--ink-3)" style="font-family:var(--sans);font-size:9px;font-weight:600;letter-spacing:.06em">USDT 명목</text></svg>`;
+  const net=L.reduce((a,p)=>a+p.side*p.n,0);
+  $('#drybook-n').textContent=`gross ${eq?(gross/eq).toFixed(2):'—'}× · net ${eq?(net/eq).toFixed(2):'—'}× · ${L.length}개`;
+  const gsum={}; L.forEach(p=>{ const k=p.g.indexOf('얹기')===0?'얹기 북':p.g; gsum[k]=(gsum[k]||0)+p.w; });
+  $('#drylegend').innerHTML=segs.map(x=>`<div class="lgrow"><span class="sw" style="background:${x.c}"></span><span class="lb">${x.s}</span>
+      ${x.side?`<span class="badge" style="color:${x.side>0?'var(--c-long)':'var(--c-short)'};font-size:9.5px;padding:1px 5px">${x.side>0?'롱':'숏'}</span>`:''}
+      <span class="lv">${x.w.toFixed(1)}%</span></div>`).join('')
+    +'<div class="lgsep"></div>'
+    +['MAIN 추세·바스켓','MAIN MN','MAIN','얹기 북'].filter(k=>gsum[k]).map(k=>`<div class="lgrow"><span class="lb">${k}</span><span class="lv">${gsum[k].toFixed(0)}%</span></div>`).join('');
+  $('#drybars').innerHTML=L.map(p=>{ const lg=p.side>0, c=cmap[p.s+'|'+p.g]||'var(--k0)';
+    return `<div class="lrow"><span class="av" style="background:${c}">${String(p.s).slice(0,4)}</span>
+      <span><span class="lnm">${p.s}</span> <span class="lsub">${p.g} · ${lg?'롱':'숏'} ${Math.abs(p.q)}</span></span>
+      <span class="lval"><span class="a">${nf(p.n,0)}</span>
+        <span class="b" style="color:${lg?'var(--c-long)':'var(--c-short)'}">${lg?'+':'−'}${p.w.toFixed(1)}%</span></span></div>`; }).join('');
+}
 function renderDry(){
   const lock=$('#drylock'), body=$('#drybody'); if(!lock||!body) return;
   const a0=DRYENV&&DRYENV.asof, age=dryAge(a0), b0=$('#dryasof0');
@@ -1871,6 +1916,7 @@ function renderDry(){
   const bk=k=>DRYBK[k]||k, px=v=>dryN(v,v!=null&&Math.abs(v)<1?5:2);
   const dryEsc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
   const dc=$('#drydigcard'), mc=$('#drymaincard');
+  try{ renderDryBook(A,P); }catch(e){ console.error('DRY 보유 비중 렌더 실패',e); }
   if(A&&dc&&mc){
     dc.hidden=false; mc.hidden=false;
     const T=A.digest_total||{}, rows=A.digest||[];
