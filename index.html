@@ -467,6 +467,7 @@ aside .card{padding:15px}
 .drytbl th{color:var(--ink-3);font-weight:600;font-size:11px}
 .drychips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
 .drychips span{font-size:11.5px;padding:3px 9px;border-radius:999px;background:var(--surface-2);border:1px solid var(--line);color:var(--ink-2)}
+#dryskips div{font-size:11.5px;color:var(--ink-2);padding:4px 0;border-bottom:1px solid var(--line);word-break:break-all}
 </style>
 
 <header class="top"><div class="topin">
@@ -696,7 +697,7 @@ aside .card{padding:15px}
     <div id="drybody" hidden>
       <div class="hero">
         <div>
-          <div class="bal-lab">가상 자산 (주문 없음)</div>
+          <div class="bal-lab" id="dryeqlab">가상 자산 (주문 없음)</div>
           <div class="bal mono" id="dryeq"></div>
           <div class="asof" id="dryasof"></div>
         </div>
@@ -711,8 +712,19 @@ aside .card{padding:15px}
         <div class="chead"><h3>가상 자산 추이</h3><span class="rt" id="drycurve-n"></span></div>
         <div id="drychart"></div>
       </div>
+      <div class="ledger" id="drydigcard" hidden>
+        <div class="chead"><h3>1000 USDT 소화</h3><span class="rt"><span class="badge" id="drydig-b"></span></span></div>
+        <div class="note" id="drydig-n"></div>
+        <div style="overflow-x:auto"><table class="drytbl" id="drydig"></table></div>
+        <div class="note" style="margin-top:12px"><b>못 들어간 주문</b> — 최소주문 미달로 봇이 건너뛴 것 · 거래소가 거부한 것</div>
+        <div id="dryskips"></div>
+      </div>
+      <div class="ledger" id="drymaincard" hidden>
+        <div class="chead"><h3>MAIN 가상 포지션 (TV 0.50)</h3><span class="rt" id="drymain-n"></span></div>
+        <div style="overflow-x:auto"><table class="drytbl" id="drymain"></table></div>
+      </div>
       <div class="ledger">
-        <div class="chead"><h3>지금 보유</h3><span class="rt" id="dryposnote"></span></div>
+        <div class="chead"><h3>얹기 북 보유</h3><span class="rt" id="dryposnote"></span></div>
         <div style="overflow-x:auto"><table class="drytbl" id="dryposs"></table></div>
       </div>
       <div class="ledger">
@@ -1799,11 +1811,12 @@ async function loadDry(){
 function dryAge(asof){ const m=String(asof||'').match(/(\d{4})-(\d{2})-(\d{2}) (\d{2}):(\d{2})/); if(!m) return null;
   return (Date.now()-Date.UTC(+m[1],+m[2]-1,+m[3],+m[4],+m[5]))/36e5; }
 function dryChart(){
-  const el=$('#drychart'), c=(DRY&&DRY.curve)||[]; if(!el) return;
+  const el=$('#drychart'); if(!el||!DRY) return;
+  const SRC=(DRY.account&&DRY.account.curve&&DRY.account.curve.length)?DRY.account:DRY, c=SRC.curve||[];
   if(c.length<2){ el.innerHTML='<div class="note">두 시간 이상 쌓이면 그려집니다.</div>'; $('#drycurve-n').textContent=''; return; }
   const W=Math.max(300,Math.round(el.clientWidth||600)), narrow=W<620;
   const H=narrow?Math.round(W*0.55):Math.max(180,Math.min(230,Math.round(W*0.25))), PL=narrow?50:64, PR=16, PT=18, PB=26, FS=narrow?11.5:10.5;
-  const v=c.map(r=>r[1]), n=v.length, base=DRY.equity0||v[0];
+  const v=c.map(r=>r[1]), n=v.length, base=SRC.equity0||v[0];
   const mn=Math.min(...v,base), mx=Math.max(...v,base), pad=(mx-mn)*0.15||Math.max(1,base*0.01), lo=mn-pad, hi=mx+pad;
   const X=i=>PL+(i/(n-1))*(W-PL-PR), Y=x=>PT+(1-(x-lo)/(hi-lo))*(H-PT-PB);
   let grid='', ylab='';
@@ -1841,8 +1854,43 @@ function renderDry(){
   $('#drygate-n').textContent=`MAIN 순롱 ${g.net_x==null?'—':(+g.net_x).toFixed(2)+'×'} (≤ ${R0.gate_max!=null?R0.gate_max:0.5} 이면 열림)`;
   $('#drycost').textContent=dryN(-(D.fees||0)-(D.funding||0),2);
   $('#drycost-n').textContent=`수수료 ${dryN(D.fees,2)} · 펀딩 ${dryN(D.funding,2)}`;
+  const A=D.account&&!D.account.error?D.account:null;      // 6B 전체 DRY(한 계좌)면 머리 지표를 계좌 기준으로
+  if(A){
+    $('#dryeqlab').textContent='6B 가상 계좌 (주문 없음)';
+    $('#dryeq').innerHTML=`${dryN(A.equity,2)}<span style="font-size:.42em;font-weight:600;color:var(--ink-3);margin-left:6px;letter-spacing:0">USDT</span>`;
+    $('#dryasof').textContent=`MAIN TV 0.50 + 얹기 4북 · ${A.asof||'—'} UTC 기준 · 시작 ${A.start} · 가상 자본 ${dryN(A.equity0,0)}`+(age!=null&&age>2.2?` · ⚠️ ${age.toFixed(1)}시간째 갱신 없음`:'');
+    const ar=A.equity0?(A.equity/A.equity0-1)*100:0;
+    $('#dryret').innerHTML=`<span class="${cls(ar)}">${tri2(ar)}${pctS2(ar)}</span>`;
+    $('#dryret-n').textContent=`MAIN ${dryN(A.main_unreal,1)} · 얹기 ${dryN(A.overlay_pnl,1)}`;
+    $('#drypos').textContent=`${(A.main_pos||[]).length} + ${P.length}`;
+    $('#drypos-n').textContent=`gross ${dryN(A.gross_x,2)}× · 증거금 ${A.maint_ratio!=null?(A.maint_ratio*100).toFixed(1)+'%':'—'}`;
+    $('#drycost').textContent=dryN(-(A.fees||0)-(A.funding||0)-(D.fees||0)-(D.funding||0),2);
+    $('#drycost-n').textContent=`MAIN ${dryN((A.fees||0)+(A.funding||0),2)} · 얹기 ${dryN((D.fees||0)+(D.funding||0),2)}`;
+  }
   dryChart();
   const bk=k=>DRYBK[k]||k, px=v=>dryN(v,v!=null&&Math.abs(v)<1?5:2);
+  const dryEsc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+  const dc=$('#drydigcard'), mc=$('#drymaincard');
+  if(A&&dc&&mc){
+    dc.hidden=false; mc.hidden=false;
+    const T=A.digest_total||{}, rows=A.digest||[];
+    const db=$('#drydig-b'); db.textContent=T.ratio!=null?`소화율 ${(T.ratio*100).toFixed(0)}%`:'—';
+    db.className='badge '+(T.ratio!=null&&T.ratio>=0.85?'b-ok':'b-warn');
+    $('#drydig-n').innerHTML=`라이브 보유(잔고 ${dryN(T.live_balance,0)} USDT · ${dryEsc(T.live_asof||'')})를 가상 자산 비율과 TV 0.50/0.70 으로 줄인 <b>목표 ${dryN(T.ideal,0)}</b> 대비 가상 MAIN <b>${dryN(T.paper,0)}</b> USDT.`
+      +` 추세북은 가상 계좌 시작 <b>이후</b> 신호부터 들어가므로 초반 비율은 낮게 나온다.`;
+    $('#drydig').innerHTML=rows.length?('<thead><tr><th class="l">종목</th><th>방향</th><th>라이브 비례 목표</th><th>가상 실제</th><th>비율</th></tr></thead><tbody>'
+      +rows.map(r=>`<tr><td class="l">${dryEsc(r.sym)}</td><td><span class="${r.side>0?'pos':'neg'}">${r.side>0?'롱':'숏'}</span></td>
+        <td>${dryN(r.ideal,1)}</td><td>${dryN(r.paper,1)}</td><td>${r.ideal>0?Math.round(r.paper/r.ideal*100)+'%':'—'}</td></tr>`).join('')+'</tbody>')
+      :`<tbody><tr><td class="l" style="color:var(--ink-3)">라이브 비교 불가 ${dryEsc(A.digest_err||'')}</td></tr></tbody>`;
+    const sk=(A.skips||[]).map(x=>`<div>${dryEsc(x)}</div>`), rj=(A.rejects||[]).map(r=>`<div>거래소 거부 ${dryEsc(r.t)} ${dryEsc(r.sym)} ${dryEsc(r.code)} ${dryEsc(r.msg)}</div>`);
+    $('#dryskips').innerHTML=rj.concat(sk).join('')||'<div style="color:var(--ink-3)">없음</div>';
+    const M=A.main_pos||[], oo=A.open_orders||{};
+    $('#drymain-n').textContent=`${M.length}개 · 손절 ${oo.stops||0} · 익절 ${oo.limits||0} 대기`;
+    $('#drymain').innerHTML=M.length?('<thead><tr><th class="l">종목</th><th>방향</th><th>수량</th><th>진입가</th><th>명목</th></tr></thead><tbody>'
+      +M.map(p=>`<tr><td class="l">${dryEsc(p.sym)}</td><td><span class="${p.side>0?'pos':'neg'}">${p.side>0?'롱':'숏'}</span></td>
+        <td>${dryN(p.qty,p.qty<1?4:1)}</td><td>${px(p.entry)}</td><td>${dryN(p.notional,1)}</td></tr>`).join('')+'</tbody>')
+      :'<tbody><tr><td class="l" style="color:var(--ink-3)">보유 없음</td></tr></tbody>';
+  } else if(dc&&mc){ dc.hidden=true; mc.hidden=true; }
   $('#dryposnote').textContent=P.length?`${P.length}개 · 가상 명목 USDT`:'';
   $('#dryposs').innerHTML=P.length?('<thead><tr><th class="l">북</th><th class="l">종목</th><th>명목</th><th>진입가</th><th>진입(UTC)</th><th>청산 예정</th></tr></thead><tbody>'
     +P.map(p=>`<tr><td class="l">${bk(p.book)}</td><td class="l">${p.sym} <span class="${p.qty>0?'pos':'neg'}" style="font-size:11px">${p.qty>0?'롱':'숏'}</span></td>

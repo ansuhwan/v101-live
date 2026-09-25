@@ -1,5 +1,6 @@
 // v10.1 라이브 계좌 PWA 서비스워커
-const CACHE = "v101-live-v42";   // v42: DRY 탭 (6B 얹기 북 모의운영, dry.json 암호문) · dry.json network-first
+const CACHE = "v101-live-v43";   // v43: DRY 탭 = 6B 전체 가상 계좌(MAIN TV0.50 + 얹기) · 1000 USDT 소화율 · 못 들어간 주문
+// v42: DRY 탭 (6B 얹기 북 모의운영, dry.json 암호문) · dry.json network-first
 // v41: 고점대비 게이지 — 각오한 MDD를 잔고 금액으로 병기
 // v40: 봇 점검 탭 두 쌍도 높이 일치
 // v39:   // v39: 현재 전략/안전 상태도 높이 일치
