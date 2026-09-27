@@ -578,12 +578,18 @@ aside .card{padding:15px}
       <div id="bookbars"></div>
     </div>
 
+    <div class="ledger" id="ovlcard" style="display:none">
+      <div class="chead"><h3>얹기 북 (6B)</h3><span class="rt" id="ovlnote"></span></div>
+      <div style="overflow-x:auto"><table class="drytbl" id="ovltbl"></table></div>
+      <div class="hint" id="ovlhint"></div>
+    </div>
+
     <div class="duo fill">
       <div class="card">
         <div class="chead"><h3>현재 전략</h3></div>
         <div class="row"><span class="k">가동중</span><span class="val" id="stratnow"></span></div>
         <div class="row"><span class="k">MN 오버레이</span><span class="val warnc" id="mncut">가동중</span></div>
-        <div class="row"><span class="k">구성</span><span class="val">추세 BTC/ETH + MN 알트</span></div>
+        <div class="row"><span class="k">구성</span><span class="val" id="stratmix">추세 BTC/ETH + MN 알트</span></div>
       </div>
       <div class="card">
         <div class="chead"><h3>안전 상태</h3></div>
@@ -1549,17 +1555,42 @@ function spark(){
     CKIND==='eq'?'원장 첫날 '+f2(s[0].eq):'구간 시작 0'} · ${ldate(s[0].label)}~${ldate(s[n-1].label)} (${n}일)`;
 }
 
+/* ── 6B 얹기 북 (push_dashboard 의 LIVE.ovl = 봇 장부 st['overlay']) ── */
+function renderOvl(){
+  const O=LIVE.ovl, card=$('#ovlcard'), mix=$('#stratmix');
+  if(mix) mix.textContent=(O&&O.enabled)?'추세 BTC/ETH + MN 알트 + 얹기 4북(6B)':'추세 BTC/ETH + MN 알트';
+  if(!card) return;
+  if(!O){ card.style.display='none'; return; }
+  card.style.display='';
+  const E=v=>String(v==null?'':v).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+  const PX=v=>v==null?'—':nf(+v,Math.abs(v)<1?5:Math.abs(v)<100?4:2);
+  const R=O.rows||[];
+  $('#ovlnote').textContent=R.length?`${R.length}개 · 평가손익 ${(O.pnl>=0?'+':'')+nf(+O.pnl||0,2)} USDT`:(O.enabled?'보유 없음':'꺼짐');
+  $('#ovltbl').innerHTML=R.length?('<thead><tr><th class="l">북</th><th class="l">종목</th><th>명목</th><th>진입가</th><th>현재가</th><th>손익 USDT</th><th>청산 예정</th><th>손절가</th></tr></thead><tbody>'
+    +R.map(r=>`<tr><td class="l">${E(r.b)}</td><td class="l">${E(r.s)} <span class="${r.side>0?'pos':'neg'}" style="font-size:11px">${r.side>0?'롱':'숏'}</span></td>
+      <td>${nf(+r.n||0,1)}</td><td>${PX(r.entry)}</td><td>${PX(r.px)}</td>
+      <td class="${r.pnl==null?'':cls(r.pnl)}">${r.pnl==null?'—':(r.pnl>=0?'+':'')+nf(+r.pnl,2)+(r.pct==null?'':` <span style="font-size:11px">(${r.pct>=0?'+':''}${(+r.pct).toFixed(1)}%)</span>`)}</td>
+      <td>${r.exit?E(r.exit):(r.since?E(r.since)+'~ 신호 끝':'—')}</td>
+      <td>${r.side<0?'—':(r.stop==null||!r.prot)?'<span class="neg">없음</span>':PX(r.stop)}</td></tr>`).join('')+'</tbody>')
+    :'<tbody><tr><td class="l" style="color:var(--ink-3)">보유 없음 — 신호 대기</td></tr></tbody>';
+  const B=Object.entries(O.block||{});
+  $('#ovlhint').textContent='시각은 한국시간 · 얹기 롱은 거래소 손절(진입가 −'+Math.round((O.stop||0.35)*100)+'%)'
+    +(B.length?' · 손절 후 진입 금지: '+B.map(([k,v])=>k+' ~'+v).join(', '):'');
+}
+
 /* ── 보유 종목 (원본 renderBook() 대체) ── */
 function renderBook(){
+  try{ renderOvl(); }catch(e){ console.error('얹기 북 렌더 실패',e); }
   const b=LIVE.book, card=$('#bookcard'), bar=$('#barcard');
   if(!b||!b.positions||!b.positions.length){ card.style.display='none'; if(bar) bar.style.display='none'; return; }
   card.style.display=''; if(bar) bar.style.display='';
   const byw=[...b.positions].sort((x,y)=>y.w-x.w);
   const top=byw.slice(0,6), rest=byw.slice(6);
   const rw=rest.reduce((a,p)=>a+p.w,0);
-  const segs=top.map((p,i)=>({s:p.s,w:p.w,c:KC2[i],side:p.side}))
-    .concat(rw>0.05?[{s:'기타 '+rest.length+'종',w:rw,c:'var(--k0)',side:0}]:[]);
-  const cmap={}; segs.forEach(x=>cmap[x.s]=x.c);
+  const dup={}; b.positions.forEach(p=>dup[p.s]=(dup[p.s]||0)+1);
+  const segs=top.map((p,i)=>({k:p.s+'|'+p.g,s:p.s+(dup[p.s]>1?(p.g==='ovl'?' 얹기':p.g==='mn'?' MN':' 추세'):''),w:p.w,c:KC2[i],side:p.side}))
+    .concat(rw>0.05?[{k:'_rest',s:'기타 '+rest.length+'종',w:rw,c:'var(--k0)',side:0}]:[]);
+  const cmap={}; segs.forEach(x=>cmap[x.k]=x.c);
   const R=54,SW=20,C=2*Math.PI*R,G=3.4;
   let acc=0,arcs='';
   segs.forEach(x=>{const len=C*x.w/100, dash=Math.max(len-G,1);
@@ -1577,17 +1608,19 @@ function renderBook(){
     ${x.side?`<span class="badge" style="color:${x.side>0?'var(--c-long)':'var(--c-short)'};font-size:9.5px;padding:1px 5px">${x.side>0?'롱':'숏'}</span>`:''}
     <span class="lv">${x.w.toFixed(2)}%</span></div>`).join('')
     +'<div class="lgsep"></div>'
-    +[['추세 BTC/ETH',(b.sleeve.trend||0).toFixed(0)+'%'],['MN 알트',(b.sleeve.mn||0).toFixed(0)+'%'],
-      ['MN 중립도',b.mn_neutral==null?'—':(b.mn_neutral>=0?'+':'')+b.mn_neutral.toFixed(1)+'%']]
+    +[['추세 BTC/ETH',(b.sleeve.trend||0).toFixed(0)+'%'],['MN 알트',(b.sleeve.mn||0).toFixed(0)+'%']]
+      .concat(b.sleeve.ovl!=null?[['얹기 북',(b.sleeve.ovl||0).toFixed(0)+'%']]:[])
+      .concat([['MN 중립도',b.mn_neutral==null?'—':(b.mn_neutral>=0?'+':'')+b.mn_neutral.toFixed(1)+'%']])
       .map(([l,v])=>`<div class="lgrow"><span class="lb">${l}</span><span class="lv">${v}</span></div>`).join('');
   const list=[...b.positions].sort((x,y)=>y.w-x.w);
   if($('#barnote')) $('#barnote').textContent=list.length+'개 · 비중순';
+  const gname=p=>p.g==='trend'?'추세 슬리브':p.g==='ovl'?'얹기 '+(p.b||''):'MN 마켓뉴트럴';
   $('#bookbars').innerHTML=list.map(p=>{
-    const lg=p.side>0, c=cmap[p.s]||'var(--k0)';
+    const lg=p.side>0, c=cmap[p.s+'|'+p.g]||'var(--k0)';
     return `<div class="lrow">
       <span class="av" style="background:${c}">${p.s.slice(0,4)}</span>
       <span><span class="lnm">${p.s}</span>
-        <span class="lsub">${p.g==='trend'?'추세 슬리브':'MN 마켓뉴트럴'} · ${lg?'롱':'숏'} ${qfmt(p.q)}</span></span>
+        <span class="lsub">${gname(p)} · ${lg?'롱':'숏'} ${qfmt(p.q)}</span></span>
       <span class="lval"><span class="a">${krw()?won(p.n):nf(p.n,0)}</span>
         <span class="b" style="color:${lg?'var(--c-long)':'var(--c-short)'}">${lg?'+':'−'}${p.w.toFixed(1)}%</span></span></div>`;
   }).join('');
