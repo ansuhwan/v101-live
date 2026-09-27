@@ -1,5 +1,5 @@
 // v10.1 라이브 계좌 PWA 서비스워커
-const CACHE = "v101-live-v45";   // v45: 포트폴리오 탭 6B 얹기 북(보유 종목 분리 + 얹기 북 카드)
+const CACHE = "v101-live-v46";   // v46: 모바일 헤더 아래 LIVE · 봇 N분 전 줄
 // v43: DRY 탭 = 6B 전체 가상 계좌(MAIN TV0.50 + 얹기) · 1000 USDT 소화율 · 못 들어간 주문
 // v42: DRY 탭 (6B 얹기 북 모의운영, dry.json 암호문) · dry.json network-first
 // v41: 고점대비 게이지 — 각오한 MDD를 잔고 금액으로 병기
