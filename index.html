@@ -475,13 +475,54 @@ aside .card{padding:15px}
 .drychips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
 .drychips span{font-size:11.5px;padding:3px 9px;border-radius:999px;background:var(--surface-2);border:1px solid var(--line);color:var(--ink-2)}
 #dryskips div{font-size:11.5px;color:var(--ink-2);padding:4px 0;border-bottom:1px solid var(--line);word-break:break-all}
+/* ── 거래 일지 (v47, 2026-09-29) ── */
+.jsum{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:2px 0 14px}
+.jsum .jk{background:var(--surface-2);border:1px solid var(--line);border-radius:10px;padding:9px 11px;min-width:0}
+.jsum .jkl{font-size:11.5px;color:var(--ink-3);white-space:nowrap}
+.jsum .jkv{font-size:17px;font-weight:700;font-variant-numeric:tabular-nums;margin-top:2px;white-space:nowrap}
+.jsum .jks{font-size:11.5px;color:var(--ink-3);font-variant-numeric:tabular-nums;white-space:nowrap}
+.jchips{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+.jchips button{border:1px solid var(--line);background:var(--surface);color:var(--ink-2);border-radius:999px;
+  padding:5px 12px;font:inherit;font-size:12.5px;font-weight:600;cursor:pointer}
+.jchips button[aria-pressed="true"]{background:var(--ink);color:var(--surface);border-color:var(--ink)}
+.jsec{font-size:12px;font-weight:700;color:var(--ink-3);margin:14px 0 4px;display:flex;justify-content:space-between;
+  border-bottom:1px solid var(--line);padding-bottom:5px}
+.jrow{display:grid;grid-template-columns:1fr auto;gap:2px 12px;padding:10px 0;align-items:baseline}
+.jrow+.jrow{border-top:1px solid var(--line)}
+.jrow .l1{display:flex;align-items:baseline;gap:7px;flex-wrap:wrap;min-width:0;font-size:14px}
+.jrow .dt{font-size:12px;color:var(--ink-3);font-variant-numeric:tabular-nums;min-width:74px}
+.jrow .bk{font-size:11px;font-weight:650;border-radius:5px;padding:1px 6px;white-space:nowrap}
+.bk.trend{background:rgba(185,120,26,.14);color:var(--accent)}
+.bk.slv{background:rgba(42,120,214,.12);color:var(--c-long)}
+.bk.ens{background:rgba(15,157,99,.12);color:var(--pos)}
+.bk.bsk,.bk.mn{background:var(--surface-2);color:var(--ink-2)}
+.bk.ovl{background:rgba(140,90,210,.14);color:#8a5ad2}
+.jrow .cn{font-weight:700}
+.jrow .sd.L{color:var(--c-long);font-weight:650} .jrow .sd.S{color:var(--c-short);font-weight:650}
+.jrow .jp{font-size:15px;font-weight:700;font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap}
+.jrow .l2{font-size:12px;color:var(--ink-3);font-variant-numeric:tabular-nums;min-width:0}
+.jrow .jpc{font-size:12px;font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap}
+.jrow .why{font-size:11px;font-weight:700;border-radius:4px;padding:1px 6px}
+.why.sl{background:rgba(226,84,79,.14);color:var(--neg)}
+.why.tp{background:rgba(33,176,125,.14);color:var(--pos)}
+.why.nt{background:var(--surface-2);color:var(--ink-2)}
+.jempty{color:var(--ink-3);font-size:13px;padding:12px 0}
+.jmore{display:block;margin:10px auto 0;border:1px solid var(--line);background:var(--surface);color:var(--ink-2);
+  border-radius:8px;padding:7px 16px;font:inherit;font-size:13px;font-weight:600;cursor:pointer}
+.tab .tl-s{display:none}
+@media(max-width:560px){
+  .jsum{grid-template-columns:repeat(2,minmax(0,1fr))} .jrow .dt{min-width:0}
+  .tab .tl-l{display:none} .tab .tl-s{display:inline}
+  .tab{padding-left:8px;padding-right:8px}
+}
 </style>
 
 <header class="top"><div class="topin">
   <div class="brand"><span class="mark" id="bmark"></span>
     <span class="bname">라이브 계좌 <i id="vertag"></i></span></div>
   <nav class="tabs" role="tablist" aria-label="화면 전환">
-    <button class="tab" role="tab" data-tab="pf"  aria-selected="true">포트폴리오</button>
+    <button class="tab" role="tab" data-tab="pf"  aria-selected="true"><span class="tl-l">포트폴리오</span><span class="tl-s">자산</span></button>
+    <button class="tab" role="tab" data-tab="trd" aria-selected="false">거래</button>
     <button class="tab" role="tab" data-tab="pnl" aria-selected="false">손익</button>
     <button class="tab" role="tab" data-tab="bot" aria-selected="false">봇 점검</button>
     <button class="tab" role="tab" data-tab="dry" aria-selected="false">DRY</button>
@@ -605,6 +646,17 @@ aside .card{padding:15px}
         <div class="row" title="지금 신호가 모두 켜졌을 때의 노출 대비 실제 노출."><span class="k">가동률</span><span class="val" id="fillrate">—</span></div>
         <div class="row" title="목표변동성 ÷ 실현변동성."><span class="k">레버리지</span><span class="val" id="levbd">—</span></div>
       </div>
+    </div>
+   </section>
+
+   <!-- ══ 거래 (v47) ══ -->
+   <section data-tab="trd" role="tabpanel" hidden>
+    <div class="ledger" id="jcard">
+      <div class="chead"><h3>거래 일지</h3><span class="rt"><span class="badge" id="jbadge"></span></span></div>
+      <div class="jsum" id="jsum"></div>
+      <div class="jchips" id="jchips"></div>
+      <div id="jlist"><div class="jempty">거래 기록을 불러오는 중…</div></div>
+      <div class="foot" id="jfoot"></div>
     </div>
    </section>
 
@@ -1752,12 +1804,77 @@ function ckPick(ev){
   }));
 })();
 
+/* ── 거래 일지 (v47, 2026-09-29) — LIVE.journal = push_dashboard → journal.py ── */
+let JF='all', JN=20;
+function jpx(v){ if(v==null) return '—'; const a=Math.abs(v);
+  return a>=1000?v.toLocaleString('en-US',{minimumFractionDigits:1,maximumFractionDigits:1}):a>=10?(+v).toFixed(2):a>=1?(+v).toFixed(3):(+v).toFixed(4); }
+function jpc(v){ return v==null?'':(v>0?'+':v<0?'−':'')+Math.abs(v).toFixed(1)+'%'; }
+function jc(v){ return v==null?'':v>0?'pos':v<0?'neg':''; }
+function jhold(h){ if(h==null) return ''; const d=Math.floor(h/24), r=Math.round(h-d*24);
+  return d?(d+'일'+(r?' '+r+'시간':'')):(Math.max(1,Math.round(h))+'시간'); }
+function renderJournal(){
+  const J=LIVE.journal, card=$('#jcard');
+  if(!J){ $('#jlist').innerHTML='<div class="jempty">아직 거래 일지 데이터가 없습니다 (다음 매시 :05 갱신 후 표시).</div>'; return; }
+  const tc=$('#tradecard');                       // 옛 '최근 거래'(거래소 실현손익, 북 섞임)는 이 탭으로 대체
+  if(tc){ tc.style.display='none'; if(tc.parentElement) tc.parentElement.style.gridTemplateColumns='1fr'; }
+  const S=J.sum||{}, O=J.open||[], C=J.closed||[];
+  $('#jbadge').textContent='한국시간 · '+(J.asof||'');
+  const ot=O.reduce((a,o)=>a+(o.upnl||0),0), z={n:0,pnl:0}, cl=S.closed||z, sl=S.sl||z, tp=S.tp||z;
+  $('#jsum').innerHTML=
+    `<div class="jk"><div class="jkl">${J.month_label||''} 끝난 거래</div><div class="jkv">${cl.n}건</div><div class="jks">합계 <span class="${jc(cl.pnl)}">${sgn(cl.pnl)}</span></div></div>`
+   +`<div class="jk"><div class="jkl">손절</div><div class="jkv neg">${sl.n}건</div><div class="jks">${sgn(sl.pnl)}</div></div>`
+   +`<div class="jk"><div class="jkl">익절</div><div class="jkv pos">${tp.n}건</div><div class="jks">${sgn(tp.pnl)}</div></div>`
+   +`<div class="jk"><div class="jkl">진행 중</div><div class="jkv">${O.length}건</div><div class="jks">평가 <span class="${jc(ot)}">${sgn(ot)}</span></div></div>`;
+  const F=[['all','전체'],['open','진행 중'],['sl','손절'],['tp','익절'],['ovl','얹기']];
+  $('#jchips').innerHTML=F.map(([k,n])=>`<button data-f="${k}" aria-pressed="${JF===k}">${n}</button>`).join('');
+  [...document.querySelectorAll('#jchips button')].forEach(b=>b.onclick=()=>{ JF=b.dataset.f; JN=20; renderJournal(); });
+  const side=o=>`<span class="sd ${o.side>0?'L':'S'}">${o.side>0?'롱':'숏'}</span>`;
+  const W={'손절':'sl','익절':'tp'};
+  const op=O.filter(o=>JF==='all'||JF==='open'||(JF==='ovl'&&o.k==='ovl'));
+  const cf=C.filter(c=>JF==='all'||(JF==='sl'&&c.why==='손절')||(JF==='tp'&&c.why==='익절')||(JF==='ovl'&&c.k==='ovl'));
+  let h='';
+  if(JF==='all'||JF==='open'||JF==='ovl'){
+    h+=`<div class="jsec"><span>진행 중</span><span>평가손익</span></div>`;
+    h+=op.map(o=>{
+      const bits=[o.entry!=null?`${jpx(o.entry)} → 지금 ${jpx(o.px)}`:`평단 매일 조정 · 지금 ${jpx(o.px)}`, `${o.q}개`];
+      if(o.n>1) bits.push(`코어 ${o.n}개`);
+      if(o.h!=null) bits.push('보유 '+jhold(o.h));
+      if(o.plan) bits.push('청산: '+o.plan);
+      if(o.part) bits.push(`부분 청산 ${o.part.n}회 확정 <span class="${jc(o.part.pnl)}">${sgn(o.part.pnl)}</span>`);
+      return `<div class="jrow"><div class="l1"><span class="dt">${o.t_in?o.t_in+'~':'매일'}</span><span class="bk ${o.k}">${o.b}</span><span class="cn">${o.s}</span>${side(o)}</div>`
+        +`<div class="jp ${jc(o.upnl)}">${o.upnl==null?'—':sgn(o.upnl)}</div><div class="l2">${bits.join(' · ')}</div><div class="jpc ${jc(o.pct)}">${jpc(o.pct)}</div></div>`;
+    }).join('')||'<div class="jempty">보유 없음</div>';
+    const M=J.mn;
+    if(M&&JF!=='ovl') h+=`<div class="jrow"><div class="l1"><span class="dt">매일 09:00</span><span class="bk mn">MN 알트</span><span class="cn">${M.n}종</span></div>`
+      +`<div class="jp ${jc(M.realized)}">${M.realized==null?'—':sgn(M.realized)}</div>`
+      +`<div class="l2">${M.t?`${M.t} 리밸런싱 ${M.adj}종 조정 · 확정 손익`:'매일 리밸런싱'} · 자세히는 봇 점검 탭</div><div class="jpc"></div></div>`;
+  }
+  if(JF!=='open'){
+    h+=`<div class="jsec"><span>끝난 거래</span><span>확정 손익</span></div>`;
+    h+=cf.slice(0,JN).map(c=>{
+      const bits=[`${jpx(c.entry)} → ${jpx(c.exit)}`, `${c.q}개`, '보유 '+jhold(c.h), '진입 '+c.t_in];
+      if(c.n>1) bits.push(`코어 ${c.n}개`);
+      if(c.parts) bits.push(`부분 청산 ${c.parts}회`);
+      if(c.adj) bits.push('보유 중 수량 조정');
+      if(c.approx) bits.push('일부 추정');
+      return `<div class="jrow"><div class="l1"><span class="dt">${c.t_out}</span><span class="bk ${c.k}">${c.b}</span><span class="cn">${c.s}</span>${side(c)}<span class="why ${W[c.why]||'nt'}">${c.why}</span></div>`
+        +`<div class="jp ${jc(c.pnl)}">${sgn(c.pnl)}</div><div class="l2">${bits.join(' · ')}</div><div class="jpc ${jc(c.pct)}">${jpc(c.pct)}</div></div>`;
+    }).join('')||'<div class="jempty">해당 거래 없음</div>';
+    if(cf.length>JN) h+=`<button class="jmore" id="jmore">더 보기 (${cf.length-JN}건 남음)</button>`;
+  }
+  $('#jlist').innerHTML=h;
+  const mb=$('#jmore'); if(mb) mb.onclick=()=>{ JN+=20; renderJournal(); };
+  $('#jfoot').innerHTML='손익 = 각 북의 자기 진입가 기준 − 실제 수수료 (펀딩비 제외). 헤지모드라 거래소 앱의 실현손익은 여러 북의 평균단가가 섞여 이 값과 다를 수 있다.'
+    +' 청산 시각은 실제 체결 시각, 모두 한국시간. 앙상블은 같은 시각에 함께 닫힌 코어를 한 줄로 묶는다.'
+    +(J.pending?` · 체결 확인 대기 ${J.pending}건(다음 갱신에 반영)`:'');
+}
+
 /* ── 탭 ── */
 function setTab2(t){
   [...document.querySelectorAll('.tab')].forEach(b=>b.setAttribute('aria-selected', b.dataset.tab===t?'true':'false'));
   [...document.querySelectorAll('main>section')].forEach(s=>{ s.hidden = s.dataset.tab!==t; });
   try{ localStorage.setItem('tab',t); }catch(e){}
-  // �닲��� �꺆��� �룺�씠 0�씠�씪 viewBox 媛� �뤃諛깃컪�쑝濡� �옟�엺�떎 ��� 蹂댁씠�뒗 �닚媛� �떎�떆 洹몃┛�떎
+  // 숨은 탭은 폭이 0이라 viewBox 가 폴백값으로 잡힌다 — 보이는 순간 다시 그린다
   requestAnimationFrame(()=>{ try{ if(t==='pf') spark(); if(t==='pnl') renderExpo(); if(t==='dry') renderDry(); }catch(e){} });
 }
 (function(){
@@ -1769,7 +1886,7 @@ function setTab2(t){
       e.preventDefault(); const nx=TB[(i+d+TB.length)%TB.length]; nx.focus(); setTab2(nx.dataset.tab);
     });
   });
-  const valid=v=>v==='pnl'||v==='bot'||v==='pf'||v==='dry';
+  const valid=v=>v==='pnl'||v==='bot'||v==='pf'||v==='dry'||v==='trd';
   let t0='pf';
   try{ const v=localStorage.getItem('tab'); if(valid(v)) t0=v; }catch(e){}
   const h=(location.hash||'').replace('#','');        // #pnl / #bot 딥링크가 저장값보다 우선
@@ -2037,7 +2154,8 @@ function renderDry(){
 (function(){
   const orig=render;
   render=function(){ orig.apply(this,arguments);
-    try{ renderSide2(); renderStats2(); renderStyle2(); }catch(e){ console.error('LoT 추가영역 렌더 실패',e); } };
+    try{ renderSide2(); renderStats2(); renderStyle2(); }catch(e){ console.error('LoT 추가영역 렌더 실패',e); }
+    try{ renderJournal(); }catch(e){ console.error('거래 일지 렌더 실패',e); } };
 })();
 render();
 loadDry();
