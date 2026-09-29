@@ -507,6 +507,14 @@ aside .card{padding:15px}
 .why.tp{background:rgba(33,176,125,.14);color:var(--pos)}
 .why.nt{background:var(--surface-2);color:var(--ink-2)}
 .jempty{color:var(--ink-3);font-size:13px;padding:12px 0}
+/* journal v48 — 북별 몫 줄 */
+.jrow .l3{grid-column:1/-1;font-size:12px;color:var(--ink-2);background:var(--surface-2);border-radius:7px;
+  padding:6px 9px;margin-top:5px;line-height:1.6;font-variant-numeric:tabular-nums}
+.jrow .l3 b{font-weight:650}
+.jrow .l3n{color:var(--ink-3);font-size:11.5px}
+.jnote{font-size:12px;color:var(--ink-3);padding:9px 0 2px;border-top:1px solid var(--line)}
+.bk.inc{background:rgba(226,84,79,.10);color:var(--neg)}
+.bk.unk{background:var(--surface-2);color:var(--neg)}
 .jmore{display:block;margin:10px auto 0;border:1px solid var(--line);background:var(--surface);color:var(--ink-2);
   border-radius:8px;padding:7px 16px;font:inherit;font-size:13px;font-weight:600;cursor:pointer}
 .tab .tl-s{display:none}
@@ -1804,68 +1812,86 @@ function ckPick(ev){
   }));
 })();
 
-/* ── 거래 일지 (v47, 2026-09-29) — LIVE.journal = push_dashboard → journal.py ── */
+/* ── 거래 일지 (journal v48, 2026-09-29) — LIVE.journal = push_dashboard → journal.py ──
+   보유 중 = 거래소 포지션 그대로(앱과 같은 수량·평단·평가, 합계 = 계좌 미실현) + 북별 몫(각자 진입가).
+   끝난 거래 = 북 자기 진입가 기준 − 실제 수수료. 사고(봇 밖 체결)는 따로 한 줄. */
 let JF='all', JN=20;
 function jpx(v){ if(v==null) return '—'; const a=Math.abs(v);
   return a>=1000?v.toLocaleString('en-US',{minimumFractionDigits:1,maximumFractionDigits:1}):a>=10?(+v).toFixed(2):a>=1?(+v).toFixed(3):(+v).toFixed(4); }
+function jq(v){ return v==null?'—':(+v).toLocaleString('en-US',{maximumFractionDigits:6}); }
 function jpc(v){ return v==null?'':(v>0?'+':v<0?'−':'')+Math.abs(v).toFixed(1)+'%'; }
 function jc(v){ return v==null?'':v>0?'pos':v<0?'neg':''; }
 function jhold(h){ if(h==null) return ''; const d=Math.floor(h/24), r=Math.round(h-d*24);
   return d?(d+'일'+(r?' '+r+'시간':'')):(Math.max(1,Math.round(h))+'시간'); }
 function renderJournal(){
-  const J=LIVE.journal, card=$('#jcard');
-  if(!J){ $('#jlist').innerHTML='<div class="jempty">아직 거래 일지 데이터가 없습니다 (다음 매시 :05 갱신 후 표시).</div>'; return; }
+  const J=LIVE.journal;
+  if(!J||!J.pos){ $('#jlist').innerHTML='<div class="jempty">거래 일지 데이터 갱신 대기 중 (매시 :05).</div>'; return; }
   const tc=$('#tradecard');                       // 옛 '최근 거래'(거래소 실현손익, 북 섞임)는 이 탭으로 대체
   if(tc){ tc.style.display='none'; if(tc.parentElement) tc.parentElement.style.gridTemplateColumns='1fr'; }
-  const S=J.sum||{}, O=J.open||[], C=J.closed||[];
+  const S=J.sum||{}, P=J.pos||[], C=J.closed||[], z={n:0,pnl:0}, cl=S.closed||z, sl=S.sl||z, tp=S.tp||z;
   $('#jbadge').textContent='한국시간 · '+(J.asof||'');
-  const ot=O.reduce((a,o)=>a+(o.upnl||0),0), z={n:0,pnl:0}, cl=S.closed||z, sl=S.sl||z, tp=S.tp||z;
   $('#jsum').innerHTML=
     `<div class="jk"><div class="jkl">${J.month_label||''} 끝난 거래</div><div class="jkv">${cl.n}건</div><div class="jks">합계 <span class="${jc(cl.pnl)}">${sgn(cl.pnl)}</span></div></div>`
    +`<div class="jk"><div class="jkl">손절</div><div class="jkv neg">${sl.n}건</div><div class="jks">${sgn(sl.pnl)}</div></div>`
    +`<div class="jk"><div class="jkl">익절</div><div class="jkv pos">${tp.n}건</div><div class="jks">${sgn(tp.pnl)}</div></div>`
-   +`<div class="jk"><div class="jkl">진행 중</div><div class="jkv">${O.length}건</div><div class="jks">평가 <span class="${jc(ot)}">${sgn(ot)}</span></div></div>`;
-  const F=[['all','전체'],['open','진행 중'],['sl','손절'],['tp','익절'],['ovl','얹기']];
+   +`<div class="jk"><div class="jkl">보유 중 (앱과 같은 값)</div><div class="jkv">${P.length}개</div><div class="jks">평가 <span class="${jc(S.upnl)}">${sgn(S.upnl)}</span></div></div>`;
+  const F=[['all','전체'],['open','보유 중'],['sl','손절'],['tp','익절'],['ovl','얹기'],['mn','MN']];
   $('#jchips').innerHTML=F.map(([k,n])=>`<button data-f="${k}" aria-pressed="${JF===k}">${n}</button>`).join('');
   [...document.querySelectorAll('#jchips button')].forEach(b=>b.onclick=()=>{ JF=b.dataset.f; JN=20; renderJournal(); });
   const side=o=>`<span class="sd ${o.side>0?'L':'S'}">${o.side>0?'롱':'숏'}</span>`;
   const W={'손절':'sl','익절':'tp'};
-  const op=O.filter(o=>JF==='all'||JF==='open'||(JF==='ovl'&&o.k==='ovl'));
-  const cf=C.filter(c=>JF==='all'||(JF==='sl'&&c.why==='손절')||(JF==='tp'&&c.why==='익절')||(JF==='ovl'&&c.k==='ovl'));
   let h='';
-  if(JF==='all'||JF==='open'||JF==='ovl'){
-    h+=`<div class="jsec"><span>진행 중</span><span>평가손익</span></div>`;
-    h+=op.map(o=>{
-      const bits=[o.entry!=null?`${jpx(o.entry)} → 지금 ${jpx(o.px)}`:`평단 매일 조정 · 지금 ${jpx(o.px)}`, `${o.q}개`];
-      if(o.n>1) bits.push(`코어 ${o.n}개`);
-      if(o.h!=null) bits.push('보유 '+jhold(o.h));
-      if(o.plan) bits.push('청산: '+o.plan);
-      if(o.part) bits.push(`부분 청산 ${o.part.n}회 확정 <span class="${jc(o.part.pnl)}">${sgn(o.part.pnl)}</span>`);
-      return `<div class="jrow"><div class="l1"><span class="dt">${o.t_in?o.t_in+'~':'매일'}</span><span class="bk ${o.k}">${o.b}</span><span class="cn">${o.s}</span>${side(o)}</div>`
-        +`<div class="jp ${jc(o.upnl)}">${o.upnl==null?'—':sgn(o.upnl)}</div><div class="l2">${bits.join(' · ')}</div><div class="jpc ${jc(o.pct)}">${jpc(o.pct)}</div></div>`;
+  if(JF==='all'||JF==='open'||JF==='ovl'||JF==='mn'){
+    const pf=P.filter(r=>JF==='all'||JF==='open'||(r.ks||[]).includes(JF));
+    h+=`<div class="jsec"><span>보유 중 · 거래소 앱과 같은 숫자</span><span>평가손익</span></div>`;
+    h+=pf.map(r=>{
+      const B=r.books||[], one=B.length===1?B[0]:null;
+      const chips=[...new Map(B.map(c=>[c.b,c.k])).entries()].map(([b,k])=>`<span class="bk ${k}">${b}</span>`).join('');
+      const bits=[r.ghost?'거래소엔 없음 — 확인 필요':`${jq(r.q)}개 @${jpx(r.avg)} → 지금 ${jpx(r.px)}`];
+      if(one){
+        if(one.h!=null) bits.push('보유 '+jhold(one.h));
+        if(one.n>1) bits.push(`코어 ${one.n}개`);
+        if(one.plan) bits.push('청산: '+one.plan);
+        if(one.part) bits.push(`부분 청산 ${one.part.n}회 확정 <span class="${jc(one.part.pnl)}">${sgn(one.part.pnl)}</span>`);
+      }
+      let sub='';
+      if(B.length>1||r.own_diff||B.some(c=>c.approx)){
+        const parts=B.map(c=>`${c.b} ${jq(c.q)}개${c.entry?' @'+jpx(c.entry):''} <b class="${jc(c.upnl)}">${c.upnl==null?'—':sgn(c.upnl)}</b>`
+          +(c.h!=null&&B.length>1?` <span class="l3n">(${jhold(c.h)})</span>`:'')+(c.approx?' <span class="l3n">(평단 확인 필요)</span>':''));
+        const why=r.own_diff?(B.length>1
+          ?'앱 평단에는 지난 청산·재매수가 섞여 있어 북별 합과 다르다 (계좌 전체 손익은 같다)'
+          :'앱 평단에는 지난 청산·재매수가 섞여 있다 — 위 값이 이 북의 실제 진입가 기준'):'';
+        sub=`<div class="l3">북별: ${parts.join(' · ')}${why?`<div class="l3n">${why}</div>`:''}</div>`;
+      }
+      return `<div class="jrow"><div class="l1"><span class="dt">${r.t_in?r.t_in+'~':''}</span>${chips}<span class="cn">${r.s}</span>${side(r)}</div>`
+        +`<div class="jp ${jc(r.upnl)}">${r.upnl==null?'—':sgn(r.upnl)}</div><div class="l2">${bits.join(' · ')}</div>`
+        +`<div class="jpc ${jc(r.pct)}">${jpc(r.pct)}</div>${sub}</div>`;
     }).join('')||'<div class="jempty">보유 없음</div>';
     const M=J.mn;
-    if(M&&JF!=='ovl') h+=`<div class="jrow"><div class="l1"><span class="dt">매일 09:00</span><span class="bk mn">MN 알트</span><span class="cn">${M.n}종</span></div>`
-      +`<div class="jp ${jc(M.realized)}">${M.realized==null?'—':sgn(M.realized)}</div>`
-      +`<div class="l2">${M.t?`${M.t} 리밸런싱 ${M.adj}종 조정 · 확정 손익`:'매일 리밸런싱'} · 자세히는 봇 점검 탭</div><div class="jpc"></div></div>`;
+    if(M&&M.t&&(JF==='all'||JF==='open'||JF==='mn'))
+      h+=`<div class="jnote">MN 알트는 매일 09:00 비중 조정 · 오늘 ${M.t} ${M.adj}종 조정, 확정 손익 <span class="${jc(M.realized)}">${M.realized==null?'—':sgn(M.realized)}</span> · 자세히는 봇 점검 탭</div>`;
   }
-  if(JF!=='open'){
+  if(JF!=='open'&&JF!=='mn'){
+    const cf=C.filter(c=>JF==='all'||(JF==='sl'&&c.why==='손절')||(JF==='tp'&&c.why==='익절')||(JF==='ovl'&&c.k==='ovl'));
     h+=`<div class="jsec"><span>끝난 거래</span><span>확정 손익</span></div>`;
     h+=cf.slice(0,JN).map(c=>{
-      const bits=[`${jpx(c.entry)} → ${jpx(c.exit)}`, `${c.q}개`, '보유 '+jhold(c.h), '진입 '+c.t_in];
+      const inc=c.k==='inc';
+      const bits=inc?[`${jpx(c.entry)}에 팔림 → ${jpx(c.exit)}에 재매수`, `${jq(c.q)}개`, c.note||'']
+        :[`${jpx(c.entry)} → ${jpx(c.exit)}`, `${jq(c.q)}개`, '보유 '+jhold(c.h), '진입 '+c.t_in];
       if(c.n>1) bits.push(`코어 ${c.n}개`);
       if(c.parts) bits.push(`부분 청산 ${c.parts}회`);
       if(c.adj) bits.push('보유 중 수량 조정');
       if(c.approx) bits.push('일부 추정');
-      return `<div class="jrow"><div class="l1"><span class="dt">${c.t_out}</span><span class="bk ${c.k}">${c.b}</span><span class="cn">${c.s}</span>${side(c)}<span class="why ${W[c.why]||'nt'}">${c.why}</span></div>`
-        +`<div class="jp ${jc(c.pnl)}">${sgn(c.pnl)}</div><div class="l2">${bits.join(' · ')}</div><div class="jpc ${jc(c.pct)}">${jpc(c.pct)}</div></div>`;
+      return `<div class="jrow"><div class="l1"><span class="dt">${c.t_out}</span><span class="bk ${c.k}">${c.b}</span><span class="cn">${c.s}</span>${inc?'':side(c)}<span class="why ${W[c.why]||'nt'}">${c.why}</span></div>`
+        +`<div class="jp ${jc(c.pnl)}">${sgn(c.pnl)}</div><div class="l2">${bits.filter(Boolean).join(' · ')}</div><div class="jpc ${jc(c.pct)}">${inc?'':jpc(c.pct)}</div></div>`;
     }).join('')||'<div class="jempty">해당 거래 없음</div>';
     if(cf.length>JN) h+=`<button class="jmore" id="jmore">더 보기 (${cf.length-JN}건 남음)</button>`;
   }
   $('#jlist').innerHTML=h;
   const mb=$('#jmore'); if(mb) mb.onclick=()=>{ JN+=20; renderJournal(); };
-  $('#jfoot').innerHTML='손익 = 각 북의 자기 진입가 기준 − 실제 수수료 (펀딩비 제외). 헤지모드라 거래소 앱의 실현손익은 여러 북의 평균단가가 섞여 이 값과 다를 수 있다.'
-    +' 청산 시각은 실제 체결 시각, 모두 한국시간. 앙상블은 같은 시각에 함께 닫힌 코어를 한 줄로 묶는다.'
+  $('#jfoot').innerHTML='보유 중 = 거래소 앱과 같은 수량·평단·평가손익 (합계 = 계좌 미실현). 회색 줄 = 그 안의 북별 몫, 각자 진입가 기준 (바스켓·MN 진입가는 체결 기록으로 계산).'
+    +' 끝난 거래 손익 = 각 북 자기 진입가 − 실제 수수료 (펀딩비 제외) — 헤지모드라 거래소 앱의 실현손익과는 다를 수 있다.'
+    +' 청산 시각은 실제 체결 시각, 모두 한국시간. 앙상블은 함께 닫힌 코어를 한 줄로 묶는다.'
     +(J.pending?` · 체결 확인 대기 ${J.pending}건(다음 갱신에 반영)`:'');
 }
 
