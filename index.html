@@ -1821,8 +1821,8 @@ function jpx(v){ if(v==null) return '—'; const a=Math.abs(v);
 function jq(v){ return v==null?'—':(+v).toLocaleString('en-US',{maximumFractionDigits:6}); }
 function jpc(v){ return v==null?'':(v>0?'+':v<0?'−':'')+Math.abs(v).toFixed(1)+'%'; }
 function jc(v){ return v==null?'':v>0?'pos':v<0?'neg':''; }
-function jhold(h){ if(h==null) return ''; const d=Math.floor(h/24), r=Math.round(h-d*24);
-  return d?(d+'일'+(r?' '+r+'시간':'')):(Math.max(1,Math.round(h))+'시간'); }
+function jhold(h){ if(h==null) return ''; const H=Math.max(1,Math.round(h)), d=Math.floor(H/24), r=H-d*24;   // 먼저 시간 단위로 반올림 (10일 24시간 방지)
+  return d?(d+'일'+(r?' '+r+'시간':'')):(H+'시간'); }
 function renderJournal(){
   const J=LIVE.journal;
   if(!J||!J.pos){ $('#jlist').innerHTML='<div class="jempty">거래 일지 데이터 갱신 대기 중 (매시 :05).</div>'; return; }
