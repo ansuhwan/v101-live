@@ -2008,7 +2008,9 @@ async function loadDry(){
     DRYENV=await r.json(); const k=dryKey();
     if(!DRYENV.enc){ DRY=null; DRYERR='암호화되지 않은 파일은 표시하지 않습니다.'; }
     else if(!k){ DRY=null; DRYERR=''; }
-    else { try{ DRY=await dryDecrypt(DRYENV,k); DRYERR=''; }catch(e){ DRY=null; DRYERR='비밀번호가 맞지 않습니다.'; } }
+    else { try{ DRY=await dryDecrypt(DRYENV,k); DRYERR=''; }catch(e){ DRY=null;
+      // 10-02: 복호화 실패(OperationError)만 비밀번호 탓이다. JSON 해석 실패(SyntaxError)는 게시 쪽 형식 문제.
+      DRYERR=(e&&e.name==='SyntaxError')?'기록을 읽지 못했습니다(형식 오류) — 비밀번호는 맞습니다. 다음 게시를 기다려 주세요.':'비밀번호가 맞지 않습니다.'; } }
   }catch(e){ DRYERR='DRY 기록을 불러오지 못했습니다.'; }
   renderDry();
 }
