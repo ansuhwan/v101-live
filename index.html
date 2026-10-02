@@ -762,7 +762,7 @@ aside .card{padding:15px}
    <!-- ══ DRY (6B 얹기 북 모의운영) ══ -->
    <section data-tab="dry" role="tabpanel" hidden>
     <div class="ledger" id="drylock">
-      <div class="chead"><h3>DRY · 6B 얹기 북 모의운영</h3><span class="rt"><span class="badge" id="dryasof0"></span></span></div>
+      <div class="chead"><h3 id="drytitle">DRY · 6B 얹기 5북 모의운영 (미국돌파 포함)</h3><span class="rt"><span class="badge" id="dryasof0"></span></span></div>
       <div class="note">DRY 기록은 암호화돼 올라옵니다. 비밀번호는 <b>이 기기에만</b> 저장되고 어디로도 전송되지 않습니다.</div>
       <form id="dryform" autocomplete="on"><input id="drypw" type="password" autocomplete="current-password" placeholder="DRY 비밀번호" aria-label="DRY 비밀번호"><button type="submit">열기</button></form>
       <div class="note" id="dryerr" style="margin-top:8px"></div>
@@ -2084,6 +2084,7 @@ function renderDry(){
   if(!DRY){ lock.style.display=''; body.hidden=true; $('#dryerr').textContent=DRYERR; return; }
   lock.style.display='none'; body.hidden=false;
   const D=DRY, R0=D.rules||{}, w=R0.w||{};
+  const tt=$('#drytitle'); if(tt) tt.textContent=w.us?'DRY · 6B 얹기 5북 모의운영 (미국돌파 포함)':'DRY · 6B 얹기 북 모의운영';
   $('#dryeq').textContent=dryN(D.equity,2)+' USDT';
   $('#dryasof').textContent=`${D.asof} 기준 · 시작 ${D.start} · 가상 자본 ${dryN(D.equity0,0)} USDT`+(age!=null&&age>2.2?` · ⚠️ ${age.toFixed(1)}시간째 갱신 없음`:'');
   const rp=+D.ret_pct||0;
