@@ -459,6 +459,9 @@ aside .card{padding:15px}
 .plan{background:var(--surface);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow)}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 
+/* ── 낙폭 게이지 두 눈금 (2026-10-11) — 채움 끝 = 실매매 각오(부트스트랩 95%), 세로 눈금 = 백테 최대 ── */
+.ddg .ddk{position:absolute;top:0;bottom:0;width:2px;margin-left:-1px;background:var(--ink-2);opacity:.7}
+.ddg .ddlab b{color:var(--ink-2);font-weight:640}
 /* ── DRY 탭 (2026-09-26) — 6B 얹기 북 모의운영, dry.json 은 암호문 ─────── */
 #dryform{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
 #dryform input{flex:1 1 180px;min-width:0;font:inherit;font-size:15px;padding:9px 12px;border-radius:10px;
@@ -635,7 +638,7 @@ aside .card{padding:15px}
     </div>
 
     <div class="ledger" id="ovlcard" style="display:none">
-      <div class="chead"><h3>얹기 북 (6B)</h3><span class="rt" id="ovlnote"></span></div>
+      <div class="chead"><h3>얹기 북</h3><span class="rt" id="ovlnote"></span></div>
       <div style="overflow-x:auto"><table class="drytbl" id="ovltbl"></table></div>
       <div class="hint" id="ovlhint"></div>
     </div>
@@ -651,6 +654,7 @@ aside .card{padding:15px}
         <div class="chead"><h3>안전 상태</h3></div>
         <div class="row"><span class="k">증거금 여유</span><span class="val ok" id="mratio"></span></div>
         <div class="row"><span class="k">gross 노출</span><span class="val" id="grossx"></span></div>
+        <div class="row" id="szrow" style="display:none" title="수량 조정기(expo_guard): 추세·슬리브·바스켓 방향 노출과 얹기 롱 노출의 상한. 반전숏은 얹기 상한에서 뺀다(V1)."><span class="k">노출 상한</span><span class="val" id="szval"></span></div>
         <div class="row" title="지금 신호가 모두 켜졌을 때의 노출 대비 실제 노출."><span class="k">가동률</span><span class="val" id="fillrate">—</span></div>
         <div class="row" title="목표변동성 ÷ 실현변동성."><span class="k">레버리지</span><span class="val" id="levbd">—</span></div>
       </div>
@@ -748,12 +752,13 @@ aside .card{padding:15px}
       <summary>장기 백테에서 각오할 것 <span class="badge">계획 · 실현 아님</span></summary>
       <div class="planbody">
         <div class="note" style="font-size:12px;margin-bottom:10px">
-          v10.4 · TV0.70/CAP5/gross6 · <b>MN v13</b> · f0.45/cap1.5 · 게이트 −4.5%, 2019-09~<span id="pl-end"></span>
-          <b>매봉 MTM 회계</b> 백테.
+          <span id="pl-frame"></span> · <span id="pl-start"></span>~<span id="pl-end"></span>
+          <b>매시 MTM 회계</b> 백테.
         </div>
         <table id="basecase"><tbody></tbody></table>
         <div class="foot" style="margin-top:10px">
-          기준선 CAGR <b id="pl-cagr"></b> · MDD <b id="pl-mdd"></b>(<b>매봉 MTM</b>) · Sharpe <b id="pl-sh"></b> · 최악 하루 <b id="pl-wd"></b>.
+          기준선 CAGR <b id="pl-cagr"></b> · MDD <b id="pl-mdd"></b>(<b>매시 MTM</b>) · Sharpe <b id="pl-sh"></b> · 최악 하루 <b id="pl-wd"></b>.
+          실매매 각오 MDD <b id="pl-boot"></b>(부트스트랩 95%). 백테는 체결·용량을 낙관하므로 실제는 이보다 나쁘게 나온다고 보고 쓴다.
         </div>
       </div>
     </details>
@@ -829,8 +834,8 @@ aside .card{padding:15px}
 </div></div>
 
 <script>
-const PLAN={"cagr":1264,"mdd":-35.8,"sharpe":2.42,"worst_month":-31.1,"worst_day":-29.0,"frame":"라이브 실행방식(게이트제한+fresh진입+게이트OFF 코어청산+진입일가중)·MN v13·슬리브EMA150·바스켓VT상수·TV0.70·매봉 MTM 회계·사이징은 base곡선(봇과 동일)","data_end":"2026-09-01"},
-BASECASE=[["최장 무수익 구간","134일 (2020-03-13 → 2020-07-25)"],["손실 나는 달","35% (85개월 중 30개)"],["최악 단월 / 3연속월","−31.1% / −22.7%"],["최악 하루","−29.0% (매봉 MTM 기준)"],["수익 집중도","상위 5개월이 월수익 합의 31%"],["월 중앙값 (평균)","+10.1% (+31.4%)"]],
+const PLAN={"cagr":2684,"mdd":-29.4,"sharpe":3.91,"worst_month":-19.9,"worst_day":-16.8,"start":"2020-03-01","data_end":"2026-09-24","boot95":-37.5,"boot99":-41.4,"boot1y95":-30.9,"cagr_k0":2862,"mdd_k0":-29.0,"frame":"라이브 D+V1 — 추세 BTC/ETH TV0.50 · MN v13 9종 · 얹기 5북(v4 규칙 · 미국돌파 3규칙) · 매일 00시 수량 재조정 · 방향 3배/얹기 롱 1배 상한(반전숏 제외) · 손절은 그 봉 저가 체결(보수)"},
+BASECASE=[["최장 무수익 구간","97일 (2023-03-18 → 2023-06-22)"],["손실 나는 달","16% (79개월 중 13개)"],["최악 단월 / 3연속월","−19.9% (2025-03) / +7.3%"],["최악 하루","−16.8% (2022-11-08, 매시 MTM)"],["수익 집중도","상위 5개월이 월수익 합의 22%"],["월 중앙값 (평균)","+31.2% (+36.5%)"],["실매매 각오 MDD","전 기간 95% −37.5% · 99% −41.4% · 1년 95% −30.9% (30일 블록 부트스트랩)"],["손절가 체결 가정이면","CAGR +2862% · MDD −29.0% (본값은 그 봉 저가 체결)"]],
 FALLBACK={"balance":793.7,"asof":"2026-07-27 06:05 UTC","month_start":847.24,"d1":0.87,"margin_ratio":1.21,"gross_x":2.57,"strategy":"v10.4 · TV0.60 · MN v13·9종 · 앙상블OFF","mn_start":"가동중","ledger":[{"label":"07-23","eq":788.8,"d1":null},{"label":"07-24","eq":785.74,"d1":-0.39},{"label":"07-25","eq":783.98,"d1":-0.22},{"label":"07-26","eq":784.57,"d1":0.08},{"label":"07-27","eq":786.82,"d1":0.29},{"label":"현재","eq":793.7,"d1":0.87}],"real_monthly":{"2026-07":-6.3}};
 let LIVE=FALLBACK, REAL_MONTHLY=FALLBACK.real_monthly||{};
 const $=s=>document.querySelector(s);
@@ -1638,10 +1643,12 @@ function spark(){
   sync();
 })();
 
-/* ── 6B 얹기 북 (push_dashboard 의 LIVE.ovl = 봇 장부 st['overlay']) ── */
+/* ── 얹기 북 (push_dashboard 의 LIVE.ovl = 봇 장부 st['overlay']) ──
+   북 수·이름은 박지 않는다 — LIVE.ovl.books(봇 비중 > 0 인 북)에서 만든다(10-11: 미국돌파 추가로 '4북(6B)' 이 낡았던 일). */
 function renderOvl(){
   const O=LIVE.ovl, card=$('#ovlcard'), mix=$('#stratmix');
-  if(mix) mix.textContent=(O&&O.enabled)?'추세 BTC/ETH + MN 알트 + 얹기 4북(6B)':'추세 BTC/ETH + MN 알트';
+  const BK=(O&&O.books)||[];
+  if(mix) mix.textContent=(O&&O.enabled)?('추세 BTC/ETH + MN 알트 + 얹기 '+(BK.length?BK.length+'북 ('+BK.join('·')+')':'북')):'추세 BTC/ETH + MN 알트';
   if(!card) return;
   if(!O){ card.style.display='none'; return; }
   card.style.display='';
@@ -1930,10 +1937,10 @@ function info2(){
   return {
    sharpe:['샤프지수를 그대로 믿지 마라',
      `일별 수익률 <b>${S.rt.length}개</b>를 연율화한 값이다. 표본이 이 정도면 신뢰구간이 지수 자체보다 넓다.
-      정본 백테(2019-09~) 기준선은 <b>${PLAN&&PLAN.sharpe?PLAN.sharpe:'2.42'}</b>다.`],
+      라이브 구성 백테(${String(PLAN.start||'').slice(0,7)}~) 기준선은 <b>${PLAN.sharpe}</b>인데, 백테는 체결·용량을 낙관해 실제보다 높게 나온다.`],
    mdd:['원장 구간의 낙폭일 뿐이다',
-     `원장 <b>${S.n}일</b> 안에서 잰 최대 낙폭이다. 실제로 각오할 값은 백테 기준선
-      <b>${PLAN&&PLAN.mdd?PLAN.mdd:'-35.8'}%</b>(매봉 MTM 회계)다. 리스크 배지도 이 짧은 표본이 만든 것이라 낙관 편향이 있다.`],
+     `원장 <b>${S.n}일</b> 안에서 잰 최대 낙폭이다. 라이브 구성 백테의 최대 낙폭은
+      <b>${PLAN.mdd}%</b>(매시 MTM 회계), 실매매로 각오할 값은 부트스트랩 95% <b>${PLAN.boot95}%</b>다. 리스크 배지도 이 짧은 표본이 만든 것이라 낙관 편향이 있다.`],
    winday:['거래 단위 승률이 아니다',
      `하루 종가 기준으로 플러스였던 날의 비율(<b>${S.win}/${S.rt.length}일</b>)이다.
       체결별 손익이 원장에 없어 거래 단위 승률은 계산할 수 없다.`],
@@ -2181,9 +2188,58 @@ function renderDry(){
 })();
 
 /* ── render()가 새 영역도 같이 그리게 감싼다 ── */
+/* ── 고점 대비 낙폭 (원본 renderDD() 대체, 2026-10-11) ──
+   원본은 '각오한 최대 = 백테 MDD' 한 눈금이었다. 백테 MDD 는 체결·용량 낙관이라 실매매엔 얕다([[mdd_bootstrap_1004]]).
+   → 채움 끝 = 실매매 각오(PLAN.boot95, 같은 기간 30일 블록 부트스트랩 95%), 세로 눈금 = 백테 최대(PLAN.mdd). 둘 다 PLAN 에서만 읽는다. */
+function renderDD(){
+  const d=LIVE.dd, w=$('#ddwrap'), g=$('#ddgauge');
+  if(!d||d.peak==null){ w.style.display='none'; g.style.display='none'; return; }
+  w.style.display=''; g.style.display='';
+  $('#ddv').innerHTML=d.pct>=-0.005 ? '<span class="pos">신고점</span>'
+                                    : `<span class="neg">${sp(d.pct)}</span>`;
+  const brace=Math.abs(PLAN.boot95||PLAN.mdd), bt=Math.abs(PLAN.mdd), cur=Math.abs(Math.min(d.pct,0));
+  const fill=Math.min(cur/brace*100,100), tick=Math.min(bt/brace*100,100);
+  const fb=d.peak*(1-bt/100), fr=d.peak*(1-brace/100);
+  g.className='ddg';
+  g.innerHTML=`<div class="ddt" title="실매매 각오 −${brace.toFixed(1)}% 중 ${(cur/brace*100).toFixed(0)}% 지점 · 백테 최대 −${bt.toFixed(1)}%`
+    +` · 각오치까지 오면 ${f2(fr)} ${unit()}">`
+    +`<div class="ddf" style="width:${fill.toFixed(1)}%"></div><div class="ddk" style="left:${tick.toFixed(1)}%"></div></div>`
+    +`<div class="ddlab"><span>고점 ${f2(d.peak)}${d.since?` (${d.since})`:''}`
+    +`${d.provisional?' · 잠정':''}</span>`
+    +`<span>백테 최대 −${bt.toFixed(1)}% <b>${f2(fb)}</b> · 각오 −${brace.toFixed(1)}% <b>${f2(fr)}</b></span></div>`;
+}
+/* ── 안전 상태: 증거금 문구·노출 상한 (2026-10-11) ──
+   원본은 증거금 비율이 얼마든 '(청산 대비 여유 큼)' 고정 문구였다 → 봇 경고선(LIVE.margin_warn)·차단선(margin_derisk)에서 만든다. */
+function renderSafety2(){
+  const el=$('#mratio');
+  if(el&&LIVE.margin_ratio!=null){
+    const r=+LIVE.margin_ratio, wv=LIVE.margin_warn, dv=LIVE.margin_derisk;
+    if(wv==null||dv==null){ el.textContent=r.toFixed(1)+'%'; }
+    else{
+      const lv=r>=dv?['신규 진입 차단 중','neg']:r>=wv?['경고선 넘음','warnc']:['여유 큼','ok'];
+      el.textContent=`${r.toFixed(1)}% (${lv[0]} · 경고 ${wv}% / 차단 ${dv}%)`;
+      el.className='val '+lv[1];
+    }
+  }
+  const z=LIVE.sizer, row=$('#szrow');
+  if(!row) return;
+  if(!z||(!z.guard&&!z.daily)){ row.style.display='none'; return; }
+  row.style.display='';
+  const x=v=>v==null?'—':(+v).toFixed(2), c=v=>v==null?'—':String(+v)+'배';
+  $('#szval').textContent=`방향 ${x(z.dir_x)}/${c(z.dir_cap)} · 얹기 롱 ${x(z.ovl_x)}/${c(z.ovl_cap)}`
+    +(z.rev_x!=null&&!z.ovl_rev?` · 반전숏 ${x(z.rev_x)}배(상한 밖)`:'');
+  row.title=`수량 조정기(expo_guard) ${z.t||''} UTC · 매일 00시 수량 재조정 ${z.daily?'켜짐':'꺼짐'} · 상한 ${z.guard?'켜짐':'꺼짐'}. 방향 = 추세·슬리브·바스켓·코어 순노출, 얹기 롱 = 얹기 북 롱 명목 (잔고 대비).`;
+}
+/* ── 장기 백테 기준선 설명 (PLAN.frame·start 는 생성기가 백테 JSON 에서 박는다) ── */
+function renderPlan2(){
+  const _t=(s,v)=>{ const e=$(s); if(e) e.textContent=v; };
+  _t('#pl-frame',PLAN.frame||''); _t('#pl-start',String(PLAN.start||'').slice(0,7));
+  _t('#pl-boot',PLAN.boot95!=null?`−${Math.abs(PLAN.boot95).toFixed(1)}%`:'—');
+}
 (function(){
   const orig=render;
   render=function(){ orig.apply(this,arguments);
+    try{ renderSafety2(); renderPlan2(); }catch(e){ console.error('안전 상태·기준선 렌더 실패',e); }
     try{ renderSide2(); renderStats2(); renderStyle2(); }catch(e){ console.error('LoT 추가영역 렌더 실패',e); }
     try{ renderJournal(); }catch(e){ console.error('거래 일지 렌더 실패',e); } };
 })();
