@@ -3,513 +3,486 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#f3f4f6" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#080d17" media="(prefers-color-scheme: dark)">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="../apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="봇 한눈에">
 <title>봇 한눈에</title>
-<meta name="theme-color" content="#f9f9f7">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap">
 <style>
-/* 2026-10-15 새 간단 대시보드. 기존 대시보드(../)는 그대로 두고 같은 equity.json 을 읽는다. */
+/* layout: 한 줄 조종석 — 잔고(화면 끝까지 차는 곡선) → 낙폭 활주로 → 북 3개 → 거래 타임라인 → 12달 띠 → 봇 상태 */
 :root{
-  color-scheme:light;
-  --page:#f9f9f7; --card:#fcfcfb; --ink:#0b0b0b; --ink2:#52514e; --muted:#898781;
-  --grid:#e1e0d9; --axis:#c3c2b7; --border:rgba(11,11,11,.10); --wash:rgba(11,11,11,.04);
-  --line:#2a78d6; --g1:#2a78d6; --g2:#eb6834; --g3:#1baf7a;
-  --up:#0ca30c; --upText:#006300; --down:#d03b3b; --downText:#c03030;
-  --warn:#fab219; --warnText:#8a5a00; --track:#ecebe6;
+  --bg:#f3f4f6; --surface:#ffffff; --raise:#f7f8fa; --ink:#0d1626; --ink2:#46526a; --muted:#8792a6;
+  --line:#e3e7ee; --gold:#b98317; --goldInk:#8f6410; --goldSoft:rgba(185,131,23,.13); --glow:rgba(185,131,23,.10);
+  --up:#0b9a6a; --upSoft:rgba(11,154,106,.12); --down:#e0484e; --downSoft:rgba(224,72,78,.12);
+  --warn:#c97a06; --warnSoft:rgba(201,122,6,.12); --track:#eceff4;
+  --b1:#3b6fe0; --b2:#b98317; --b3:#14a38b;
+  --num:"Geist","IBM Plex Sans KR",system-ui,sans-serif;
+  --txt:"IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+  --r:20px;
 }
-@media (prefers-color-scheme:dark){
-  :root:where(:not([data-theme="light"])){
-    color-scheme:dark;
-    --page:#0d0d0d; --card:#1a1a19; --ink:#f0efec; --ink2:#c3c2b7; --muted:#898781;
-    --grid:#2c2c2a; --axis:#383835; --border:rgba(255,255,255,.10); --wash:rgba(255,255,255,.05);
-    --line:#3987e5; --g1:#3987e5; --g2:#d95926; --g3:#199e70;
-    --up:#0ca30c; --upText:#0ca30c; --down:#d03b3b; --downText:#e66767;
-    --warn:#fab219; --warnText:#fab219; --track:#2c2c2a;
-  }
-}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#080d17; --surface:#0f1726; --raise:#131d30; --ink:#eef1f7; --ink2:#b3bccd; --muted:#78849a;
+  --line:#1c2638; --gold:#f2b84b; --goldInk:#f2b84b; --goldSoft:rgba(242,184,75,.15); --glow:rgba(242,184,75,.10);
+  --up:#3ad29b; --upSoft:rgba(58,210,155,.13); --down:#ff6b70; --downSoft:rgba(255,107,112,.13);
+  --warn:#fbbf3a; --warnSoft:rgba(251,191,58,.14); --track:#1a2436;
+  --b1:#6b95ff; --b2:#f2b84b; --b3:#3ad2b6; color-scheme:dark;}}
 :root[data-theme="dark"]{
-  color-scheme:dark;
-  --page:#0d0d0d; --card:#1a1a19; --ink:#f0efec; --ink2:#c3c2b7; --muted:#898781;
-  --grid:#2c2c2a; --axis:#383835; --border:rgba(255,255,255,.10); --wash:rgba(255,255,255,.05);
-  --line:#3987e5; --g1:#3987e5; --g2:#d95926; --g3:#199e70;
-  --up:#0ca30c; --upText:#0ca30c; --down:#d03b3b; --downText:#e66767;
-  --warn:#fab219; --warnText:#fab219; --track:#2c2c2a;
-}
+  --bg:#080d17; --surface:#0f1726; --raise:#131d30; --ink:#eef1f7; --ink2:#b3bccd; --muted:#78849a;
+  --line:#1c2638; --gold:#f2b84b; --goldInk:#f2b84b; --goldSoft:rgba(242,184,75,.15); --glow:rgba(242,184,75,.10);
+  --up:#3ad29b; --upSoft:rgba(58,210,155,.13); --down:#ff6b70; --downSoft:rgba(255,107,112,.13);
+  --warn:#fbbf3a; --warnSoft:rgba(251,191,58,.14); --track:#1a2436;
+  --b1:#6b95ff; --b2:#f2b84b; --b3:#3ad2b6; color-scheme:dark;}
 *{box-sizing:border-box}
-html,body{margin:0;background:var(--page);color:var(--ink);
-  font-family:system-ui,-apple-system,"Segoe UI","Apple SD Gothic Neo","Malgun Gothic",sans-serif;
-  -webkit-text-size-adjust:100%}
-.wrap{max-width:560px;margin:0 auto;padding:12px 16px 40px}
-header{display:flex;align-items:center;gap:8px;padding:6px 0 14px}
-header h1{font-size:17px;font-weight:650;margin:0;flex:1}
-.btn{border:1px solid var(--border);background:var(--card);color:var(--ink2);border-radius:999px;
-  height:32px;min-width:32px;padding:0 11px;font:inherit;font-size:13px;cursor:pointer}
-.btn:active{background:var(--wash)}
-.card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:16px;margin-bottom:12px}
-.card h2{font-size:15px;font-weight:650;margin:0 0 12px;display:flex;align-items:baseline;gap:8px}
-.card h2 .sub{font-size:12px;font-weight:400;color:var(--muted);margin-left:auto}
-.muted{color:var(--muted)} .ink2{color:var(--ink2)}
-.small{font-size:12px} .num{font-variant-numeric:tabular-nums}
-.pill{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--ink2);
-  border:1px solid var(--border);border-radius:999px;padding:5px 10px;background:var(--card)}
-.dot{width:8px;height:8px;border-radius:50%;background:var(--muted);flex:none}
-.dot.ok{background:var(--up)} .dot.warn{background:var(--warn)} .dot.bad{background:var(--down)}
-.hero-label{font-size:13px;color:var(--ink2)}
-.hero{font-size:44px;font-weight:650;letter-spacing:-.5px;line-height:1.1;margin:4px 0 2px;cursor:pointer}
-.hero .unit{font-size:16px;font-weight:500;color:var(--ink2);margin-left:6px}
-.tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:14px}
-.tile{background:var(--wash);border-radius:12px;padding:10px}
-.tile .k{font-size:12px;color:var(--ink2)} .tile .v{font-size:18px;font-weight:650;margin-top:2px}
-.tile .s{font-size:11px;color:var(--muted);margin-top:2px}
-.up{color:var(--upText)} .down{color:var(--downText)}
-.arw{font-size:.62em;margin-right:3px;vertical-align:.12em}
-.tile .v,.grp .right,.trade .r,.row .r{white-space:nowrap}
-.meter{position:relative;height:10px;border-radius:5px;background:var(--track);margin:12px 0 26px}
-.meter .fill{position:absolute;left:0;top:0;bottom:0;border-radius:5px}
-.meter .mark{position:absolute;top:-5px;width:2px;height:20px;background:var(--ink2);border-radius:1px}
-.meter .mlab{position:absolute;top:18px;font-size:11px;color:var(--ink2);transform:translateX(-50%);white-space:nowrap}
-.status{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:600}
-.seg{display:inline-flex;border:1px solid var(--border);border-radius:999px;padding:2px;margin-left:auto}
-.seg button{border:0;background:none;font:inherit;font-size:12px;color:var(--ink2);padding:4px 10px;border-radius:999px;cursor:pointer}
-.seg button[aria-pressed="true"]{background:var(--wash);color:var(--ink);font-weight:600}
-.chart{position:relative;width:100%}
-.chart svg{display:block;width:100%;overflow:visible;touch-action:pan-y}
-.chart svg:focus{outline:2px solid var(--line);outline-offset:4px;border-radius:6px}
-.tip{position:absolute;pointer-events:none;background:var(--card);border:1px solid var(--border);border-radius:8px;
-  padding:6px 9px;font-size:12px;box-shadow:0 2px 8px rgba(0,0,0,.12);white-space:nowrap;display:none}
-.tip b{display:block;font-size:14px;color:var(--ink)}
-.stack{display:flex;gap:2px;height:12px;border-radius:6px;overflow:hidden;margin:4px 0 12px}
-.stack span{display:block;height:100%}
-.grp{border-top:1px solid var(--grid)}
-.grp:first-of-type{border-top:0}
-.grp summary{list-style:none;display:flex;align-items:center;gap:10px;padding:11px 0;cursor:pointer}
-.grp summary::-webkit-details-marker{display:none}
-.sw{width:10px;height:10px;border-radius:3px;flex:none}
-.grp .name{font-size:14px;font-weight:600}
-.grp .desc{font-size:12px;color:var(--muted);margin-top:1px}
-.grp .right{margin-left:auto;text-align:right}
-.grp .right .a{font-size:14px;font-weight:600}
-.grp .chev{color:var(--muted);font-size:12px;transition:transform .15s}
-.grp[open] .chev{transform:rotate(90deg)}
-.rows{padding:0 0 10px 20px}
-.row{display:flex;align-items:baseline;gap:8px;padding:6px 0;font-size:13px;border-top:1px dashed transparent}
-.row .c{font-weight:600;min-width:62px}
-.row .t{color:var(--muted);font-size:12px;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.row .r{text-align:right}
-.trade{display:flex;gap:10px;padding:10px 0;border-top:1px solid var(--grid)}
-.trade:first-child{border-top:0}
-.trade .l{flex:1;min-width:0}
-.trade .l .c{font-size:14px;font-weight:600}
-.trade .l .t{font-size:12px;color:var(--muted);margin-top:2px}
-.trade .r{text-align:right;font-size:14px;font-weight:600}
-.trade .r .p{font-size:12px;font-weight:400}
-.kv{display:flex;justify-content:space-between;gap:12px;padding:8px 0;border-top:1px solid var(--grid);font-size:13px}
-.kv:first-of-type{border-top:0}
-.kv .k{color:var(--ink2)} .kv .v{text-align:right;font-weight:600}
-details.more summary{cursor:pointer;color:var(--ink2);font-size:13px;padding-top:10px;list-style:none}
-details.more summary::-webkit-details-marker{display:none}
-details.more summary::before{content:"▸ ";color:var(--muted)}
-details.more[open] summary::before{content:"▾ "}
-table{width:100%;border-collapse:collapse;font-size:12px;margin-top:6px}
-th,td{padding:5px 4px;border-top:1px solid var(--grid);text-align:right;font-variant-numeric:tabular-nums}
-th:first-child,td:first-child{text-align:left} th{color:var(--muted);font-weight:500}
-.link{display:block;text-align:center;color:var(--ink2);font-size:13px;padding:14px 0 4px;text-decoration:none}
-.err{border:1px solid var(--down);color:var(--downText);border-radius:12px;padding:10px 12px;font-size:13px;margin-bottom:12px;display:none}
-.loading main{opacity:.55;transition:opacity .2s}
-.note{font-size:12px;color:var(--muted);margin-top:8px;line-height:1.5}
+html,body{margin:0}
+:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+[hidden]{display:none!important}
+.err{border:1px solid var(--down);color:var(--down);background:var(--downSoft);border-radius:14px;padding:10px 12px;font-size:12px}
+body{background:var(--bg);color:var(--ink);font-family:var(--txt);font-size:14px;-webkit-font-smoothing:antialiased}
+.wrap{max-width:540px;margin:0 auto;padding-block:14px 36px;padding-inline:16px;display:flex;flex-direction:column;gap:14px}
+.top{display:flex;align-items:center;gap:10px}
+.brand{display:flex;align-items:center;gap:9px;font-weight:700;font-size:15px;letter-spacing:-.2px}
+.logo{width:28px;height:28px;border-radius:8px;background:linear-gradient(140deg,var(--gold),#7a5208);display:grid;place-items:center}
+.status{margin-left:auto;display:flex;align-items:center;gap:7px;font-size:12px;color:var(--ink2);background:var(--surface);
+  border:1px solid var(--line);padding:6px 11px;border-radius:999px}
+.led{width:8px;height:8px;border-radius:50%;background:var(--up);box-shadow:0 0 0 3px var(--upSoft)}
+.led.warn{background:var(--warn);box-shadow:0 0 0 3px var(--warnSoft)} .led.bad{background:var(--down);box-shadow:0 0 0 3px var(--downSoft)}
+.chip{font:600 12px var(--txt);border:1px solid var(--line);background:var(--surface);color:var(--ink2);border-radius:999px;padding:6px 10px;cursor:pointer}
+.chip:focus-visible,.book summary:focus-visible,.seg button:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:18px}
+.eyebrow{font-size:12px;color:var(--muted);font-weight:500;letter-spacing:.2px}
+h2{font-size:15px;font-weight:700;margin:0;letter-spacing:-.2px}
+.head{display:flex;align-items:center;gap:8px;margin-bottom:14px}
+.head .aside{margin-left:auto;font-size:12px;color:var(--muted)}
+.n{font-family:var(--num);font-feature-settings:"tnum" 0}
+.tn{font-variant-numeric:tabular-nums}
+.up{color:var(--up)} .down{color:var(--down)}
+
+/* 히어로 */
+.hero{padding:20px 0 0;overflow:hidden;position:relative;
+  background:radial-gradient(120% 70% at 85% -10%,var(--glow),transparent 60%),var(--surface)}
+.hero .in{padding:0 20px}
+.bal{display:flex;align-items:baseline;gap:8px;margin:6px 0 4px;cursor:pointer}
+.bal .v{font:700 clamp(40px,12vw,56px)/1 var(--num);letter-spacing:-1.5px}
+.bal .u{font:600 15px var(--num);color:var(--muted)}
+.asof{font-size:12px;color:var(--muted)}
+.pills{display:flex;flex-wrap:wrap;gap:6px;margin-top:14px}
+.pill{display:inline-flex;align-items:baseline;gap:6px;padding:7px 11px;border-radius:12px;background:var(--raise);font-size:12px;color:var(--ink2)}
+.pill b{font:700 14px var(--num)}
+.pill.up b{color:var(--up)} .pill.down b{color:var(--down)}
+.chartWrap{position:relative;margin-top:12px}
+.seg{position:absolute;right:14px;top:-2px;z-index:2;display:flex;background:var(--raise);border-radius:999px;padding:3px}
+.seg button{border:0;background:none;font:600 11px var(--txt);color:var(--muted);padding:4px 10px;border-radius:999px;cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--surface);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.08)}
+#eq{display:block;width:100%;height:170px;touch-action:pan-y}
+.tip{position:absolute;pointer-events:none;background:var(--ink);color:var(--surface);border-radius:10px;padding:6px 10px;font-size:11px;
+  white-space:nowrap;display:none;transform:translateX(-50%);top:4px;z-index:3}
+.tip b{display:block;font:700 13px var(--num)}
+
+/* 낙폭 활주로 */
+.dd{display:flex;align-items:flex-end;gap:12px;flex-wrap:wrap}
+.dd .big{font:700 34px/1 var(--num);letter-spacing:-.8px}
+.badge{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:700;padding:5px 9px;border-radius:999px}
+.badge.ok{background:var(--upSoft);color:var(--up)} .badge.warn{background:var(--warnSoft);color:var(--warn)} .badge.bad{background:var(--downSoft);color:var(--down)}
+.runway{position:relative;height:44px;margin:18px 0 6px}
+.rail{position:absolute;left:0;right:0;top:14px;height:12px;border-radius:6px;background:var(--track);overflow:hidden}
+.zone{position:absolute;top:0;bottom:0;right:0;background:repeating-linear-gradient(135deg,var(--downSoft) 0 6px,transparent 6px 11px)}
+.fillr{position:absolute;left:0;top:0;bottom:0;border-radius:6px}
+.pin{position:absolute;top:6px;width:4px;height:28px;border-radius:2px;background:var(--ink);transform:translateX(-50%)}
+.tick{position:absolute;top:32px;font:500 11px var(--num);color:var(--muted);transform:translateX(-50%)}
+.tick.g{color:var(--down);font-weight:700}
+.ddnote{font-size:12px;color:var(--ink2);line-height:1.55;margin-top:6px}
+.ddnote b{font-family:var(--num)}
+
+/* 북 */
+.book{border-top:1px solid var(--line)}
+.book:first-of-type{border-top:0}
+.book summary{list-style:none;display:grid;grid-template-columns:36px 1fr auto;gap:12px;align-items:center;padding:12px 0;cursor:pointer}
+.book summary::-webkit-details-marker{display:none}
+.glyph{width:36px;height:36px;border-radius:11px;display:grid;place-items:center;font:700 12px var(--num);color:#fff}
+.bname{font-weight:700;font-size:14px}
+.bdesc{font-size:12px;color:var(--muted);margin-top:2px}
+.share{height:5px;border-radius:3px;background:var(--track);margin-top:7px;overflow:hidden}
+.share i{display:block;height:100%;border-radius:3px}
+.bpnl{text-align:right;white-space:nowrap}
+.bpnl b{font:700 15px var(--num);display:block}
+.bpnl span{font-size:11px;color:var(--muted)}
+.coins{padding:0 0 12px 48px;display:flex;flex-direction:column;gap:2px}
+.coin{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:baseline;font-size:13px;padding:5px 0}
+.coin .s{font:700 13px var(--num)}
+.coin .d{color:var(--muted);font-size:12px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.coin .p{font:600 13px var(--num);white-space:nowrap}
+.side{display:inline-block;font-size:10px;font-weight:700;padding:1px 6px;border-radius:5px;margin-left:5px;vertical-align:1px}
+.side.L{background:var(--upSoft);color:var(--up)} .side.S{background:var(--downSoft);color:var(--down)}
+
+/* 타임라인 */
+.tl{position:relative;padding-left:18px}
+.tl:before{content:"";position:absolute;left:4px;top:8px;bottom:8px;width:2px;background:var(--line);border-radius:1px}
+.ev{position:relative;display:grid;grid-template-columns:1fr auto;gap:10px;padding:9px 0}
+.ev:before{content:"";position:absolute;left:-18px;top:14px;width:10px;height:10px;border-radius:50%;background:var(--surface);border:2px solid var(--muted)}
+.ev.w:before{border-color:var(--up)} .ev.l:before{border-color:var(--down)}
+.ev .c{font-weight:700;font-size:14px}
+.ev .m{font-size:12px;color:var(--muted);margin-top:2px}
+.ev .r{text-align:right;font:700 14px var(--num);white-space:nowrap}
+.ev .r span{display:block;font:500 11px var(--num);color:var(--muted)}
+.sum{display:flex;align-items:baseline;gap:8px;font-size:12px;color:var(--ink2);background:var(--raise);border-radius:12px;padding:10px 12px;margin-bottom:6px}
+.sum b{font:700 15px var(--num)}
+
+/* 12달 띠 */
+.months{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:5px}
+.mo{border-radius:12px;padding:9px 2px 8px;text-align:center;background:var(--raise);min-height:58px;min-width:0}
+.mo .k{font-size:11px;color:var(--muted)}
+.mo .v{font:700 12px var(--num);margin-top:4px;white-space:nowrap}
+.mo.live{outline:1.5px dashed var(--muted);outline-offset:-3px}
+.mo.empty .v{color:var(--muted);font-weight:500}
+.legend{display:flex;gap:12px;font-size:11px;color:var(--muted);margin-top:10px}
+
+
+/* 연도·출처 선택 */
+.src{display:flex;background:var(--raise);border-radius:999px;padding:3px;margin-left:auto}
+.src button{border:0;background:none;font:600 12px var(--txt);color:var(--muted);padding:5px 12px;border-radius:999px;cursor:pointer}
+.src button[aria-pressed="true"]{background:var(--surface);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.08)}
+.years{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:5px;margin:2px 0 12px}
+.years::-webkit-scrollbar{display:none}
+.yr{min-width:0;border:1px solid var(--line);background:var(--surface);border-radius:12px;padding:7px 2px;text-align:center;cursor:pointer;font:inherit;color:var(--ink)}
+.yr .y{font:700 12px var(--num)} .yr .t{font:600 10px var(--num);margin-top:2px;color:var(--muted);white-space:nowrap;overflow:hidden}
+.yr[aria-pressed="true"]{border-color:var(--gold);background:var(--goldSoft)}
+.yr:disabled{opacity:.45;cursor:default}
+.yr:focus-visible,.src button:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.mo .v.big{font-size:11px}
+.ysum{display:flex;flex-wrap:wrap;gap:6px 14px;align-items:baseline;font-size:12px;color:var(--ink2);margin-top:12px}
+.ysum b{font:700 16px var(--num)}
+.btnote{font-size:11px;color:var(--muted);line-height:1.5;margin-top:8px;padding:8px 10px;border-radius:10px;background:var(--raise)}
+/* 봇 */
+.checks{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.ck{background:var(--raise);border-radius:14px;padding:11px}
+.ck .k{font-size:11px;color:var(--muted)}
+.ck .v{font:700 14px var(--num);margin-top:4px}
+.ck .s{font-size:11px;color:var(--ink2);margin-top:2px}
+.foot{text-align:center;font-size:12px;color:var(--muted);line-height:1.6}
+.foot a{color:var(--goldInk);font-weight:600;text-decoration:none}
+@media (max-width:380px){ .checks{grid-template-columns:1fr} }
+@media (prefers-reduced-motion:no-preference){ .reveal{animation:rise .5s ease both} @keyframes rise{from{transform:translateY(6px);opacity:.0001}to{transform:none;opacity:1}} }
 </style>
 </head>
 <body>
 <div class="wrap">
-  <header>
-    <h1>봇 한눈에</h1>
-    <button class="btn" id="cur" title="원화/USDT 전환">₩</button>
-    <button class="btn" id="theme" title="밝게/어둡게" aria-label="밝게/어둡게">◑</button>
-    <button class="btn" id="reload" title="새로고침" aria-label="새로고침">↻</button>
-  </header>
-  <div class="err" id="err"></div>
-  <main id="main">
-    <!-- 1. 지금 상태 -->
-    <section class="card" id="sumCard">
-      <div style="display:flex;align-items:center;margin-bottom:10px">
-        <span class="pill" id="botPill"><span class="dot" id="botDot"></span><span id="botTxt">불러오는 중</span></span>
-      </div>
-      <div class="hero-label">지금 자산</div>
-      <div class="hero" id="bal" title="눌러서 원화/USDT 전환">—</div>
-      <div class="small muted" id="asof"></div>
-      <div class="tiles">
-        <div class="tile"><div class="k">오늘</div><div class="v" id="tToday">—</div><div class="s" id="tTodayS"></div></div>
-        <div class="tile"><div class="k">이번 달</div><div class="v" id="tMonth">—</div><div class="s" id="tMonthS"></div></div>
-        <div class="tile"><div class="k">시작 이후</div><div class="v" id="tAll">—</div><div class="s" id="tAllS"></div></div>
-      </div>
-    </section>
+  <div class="top">
+    <div class="brand"><span class="logo" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 16 16"><path d="M2 12 L6 7.5 L9 10 L14 3.5" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="14" cy="3.5" r="1.6" fill="#fff"/></svg></span>내 봇</div>
+    <div class="status" id="status"><span class="led" id="led"></span><span id="stTxt">확인 중</span></div>
+    <button class="chip" id="cur" aria-label="원화/USDT 전환">₩</button>
+  </div>
 
-    <!-- 2. 낙폭 -->
-    <section class="card">
-      <h2>고점 대비 <span class="sub" id="ddSub"></span></h2>
-      <div style="display:flex;align-items:baseline;gap:10px">
-        <div style="font-size:26px;font-weight:650" id="ddPct">—</div>
-        <div class="status" id="ddStatus"></div>
-      </div>
-      <div class="meter" id="ddMeter" role="img"><div class="fill" id="ddFill"></div><div class="mark" id="ddMark"></div><div class="mlab" id="ddMlab"></div></div>
-      <div class="note" id="ddNote"></div>
-    </section>
+  <section class="card hero reveal">
+    <div class="in">
+      <div class="eyebrow">지금 자산</div>
+      <div class="bal" id="bal" title="눌러서 원화/USDT 전환"><span class="v" id="balV">—</span><span class="u" id="balU">USDT</span></div>
+      <div class="asof" id="asof"></div>
+      <div class="pills" id="pills"></div>
+    </div>
+    <div class="chartWrap">
+      <div class="seg" role="group" aria-label="기간"><button data-p="30" aria-pressed="false">30일</button><button data-p="all" aria-pressed="true">전체</button></div>
+      <svg id="eq" tabindex="0" role="img" aria-label="잔고 흐름"></svg>
+      <div class="tip" id="tip"></div>
+    </div>
+  </section>
 
-    <!-- 3. 잔고 흐름 -->
-    <section class="card">
-      <h2>잔고 흐름
-        <span class="seg" role="group" aria-label="기간">
-          <button data-p="30" aria-pressed="false">30일</button><button data-p="all" aria-pressed="true">전체</button>
-        </span>
-      </h2>
-      <div class="chart" id="eqChart"><svg id="eqSvg" tabindex="0" aria-label="잔고 흐름 그래프"></svg><div class="tip" id="eqTip"></div></div>
-      <details class="more"><summary>표로 보기</summary><div id="eqTable"></div></details>
-    </section>
+  <section class="card reveal">
+    <div class="head"><h2>고점 대비</h2><span class="aside" id="ddPeak"></span></div>
+    <div class="dd"><div class="big n down" id="ddBig">—</div><span class="badge" id="ddBadge"></span></div>
+    <div class="runway" id="runway" role="img"></div>
+    <div class="ddnote" id="ddNote"></div>
+  </section>
 
-    <!-- 4. 지금 들고 있는 것 -->
-    <section class="card">
-      <h2>지금 들고 있는 것 <span class="sub" id="posSub"></span></h2>
-      <div class="stack" id="posStack" aria-hidden="true"></div>
-      <div id="posGroups"></div>
-    </section>
+  <section class="card reveal">
+    <div class="head"><h2>지금 들고 있는 것</h2><span class="aside" id="posAside"></span></div>
+    <div id="books"></div>
+  </section>
 
-    <!-- 5. 최근 거래 -->
-    <section class="card">
-      <h2>최근 끝난 거래 <span class="sub">한국시간</span></h2>
-      <div class="small ink2" id="trSum" style="margin-bottom:6px"></div>
-      <div id="trList"></div>
-    </section>
+  <section class="card reveal">
+    <div class="head"><h2>최근 끝난 거래</h2><span class="aside">한국시간</span></div>
+    <div class="sum" id="trSum"></div>
+    <div class="tl" id="tl"></div>
+  </section>
 
-    <!-- 6. 월별 결과 -->
-    <section class="card">
-      <h2>월별 결과 <span class="sub">실계좌</span></h2>
-      <div class="chart" id="moChart"><svg id="moSvg" aria-label="월별 수익률 막대"></svg><div class="tip" id="moTip"></div></div>
-    </section>
+  <section class="card reveal">
+    <div class="head"><h2 id="moTitle">월별 결과</h2>
+      <div class="src" role="group" aria-label="출처"><button data-s="real" aria-pressed="true">실계좌</button><button data-s="bt" aria-pressed="false">백테</button></div></div>
+    <div class="years" id="years" role="group" aria-label="연도"></div>
+    <div class="months" id="months"></div>
+    <div class="ysum" id="ysum"></div>
+    <div class="legend"><span>칸 색이 진할수록 큰 달</span><span>점선 = 진행 중</span></div>
+    <div class="btnote" id="btnote" hidden></div>
+  </section>
 
-    <!-- 7. 봇·위험 -->
-    <section class="card">
-      <h2>봇 상태</h2>
-      <div id="botKv"></div>
-      <details class="more"><summary>점검 항목 자세히</summary><div id="botChecks"></div></details>
-    </section>
+  <section class="card reveal">
+    <div class="head"><h2>봇 상태</h2><span class="aside" id="lastRun"></span></div>
+    <div class="checks" id="checks"></div>
+  </section>
 
-    <a class="link" href="../">자세한 화면 보기 (기존 대시보드) →</a>
-    <div class="small muted" style="text-align:center" id="foot"></div>
-  </main>
+  <div class="err" id="err" hidden></div>
+  <div class="foot"><span id="snap"></span> 기준 · 봇이 매시 5분에 올린 데이터<br>
+    <a href="https://ansuhwan.github.io/v101-live/" target="_blank" rel="noopener">기존 대시보드에서 자세히 보기 →</a></div>
 </div>
 
 <script>
 "use strict";
-/* 데이터: 기본 = 같은 사이트의 ../equity.json (봇이 매시 :05 에 올림). 미리보기용 ?data=<주소> */
+let D = null;
 const DATA = new URLSearchParams(location.search).get("data") || "../equity.json";
-const GUARD = -37.5;            // 각오선: 백테 최대낙폭 × 1.5 (30일 블록 부트스트랩 95%). MN 교체 전 구성 기준 값.
-const STALE_MIN = 75;           // 봇 마지막 실행이 이보다 오래면 경고
-let D = null, cur = "usdt", period = "all";
-
+const GUARD = -37.5;   // 각오선: 백테 최대낙폭 × 약 1.5 (MN 교체 전 구성 기준)
+let cur = "usdt", period = "all";
 const $ = id => document.getElementById(id);
-const store = {get(k){try{return localStorage.getItem(k)}catch(e){return null}}, set(k,v){try{localStorage.setItem(k,v)}catch(e){}}};
-function el(tag, cls, text){const e=document.createElement(tag); if(cls) e.className=cls; if(text!=null) e.textContent=text; return e;}
-function svgEl(tag, attrs){const e=document.createElementNS("http://www.w3.org/2000/svg",tag); for(const k in attrs) e.setAttribute(k,attrs[k]); return e;}
-const isNum = v => typeof v==="number" && isFinite(v);
-
-/* 숫자 */
-const fx = () => (D && D.fx && isNum(D.fx.usdtkrw)) ? D.fx.usdtkrw : null;
-function money(v, opt={}){
+const store = {get(k){try{return localStorage.getItem(k)}catch(e){return null}},set(k,v){try{localStorage.setItem(k,v)}catch(e){}}};
+const isNum = v => typeof v === "number" && isFinite(v);
+function el(t, c, x){ const e = document.createElement(t); if(c) e.className = c; if(x != null) e.textContent = x; return e; }
+function sv(t, a){ const e = document.createElementNS("http://www.w3.org/2000/svg", t); for(const k in a) e.setAttribute(k, a[k]); return e; }
+const fx = () => (D.fx && isNum(D.fx.usdtkrw)) ? D.fx.usdtkrw : null;
+function money(v, o = {}){
   if(!isNum(v)) return "—";
-  const sign = opt.sign ? (v>0?"+":v<0?"−":"") : (v<0?"−":"");
-  const a = Math.abs(v);
-  if(cur==="krw" && fx()){
-    const w = a*fx();
-    return sign + "₩" + (w>=1e8 ? (w/1e8).toFixed(2)+"억" : Math.round(w).toLocaleString("ko-KR"));
-  }
-  const dec = opt.dec!=null ? opt.dec : (a>=1000 ? 0 : 2);
-  return sign + a.toLocaleString("en-US",{minimumFractionDigits:dec,maximumFractionDigits:dec}) + (opt.unit===false?"":" USDT");
+  const s = o.sign ? (v > 0 ? "+" : v < 0 ? "−" : "") : (v < 0 ? "−" : ""), a = Math.abs(v);
+  if(cur === "krw" && fx()){ const w = a * fx(); return s + "₩" + (w >= 1e8 ? (w/1e8).toFixed(2) + "억" : Math.round(w).toLocaleString("ko-KR")); }
+  const d = o.dec != null ? o.dec : 2;
+  return s + a.toLocaleString("en-US", {minimumFractionDigits:d, maximumFractionDigits:d});
 }
-function pct(v, dec=1){ if(!isNum(v)) return "—"; const s=v>0?"+":v<0?"−":""; return s+Math.abs(v).toFixed(dec)+"%"; }
-function arrow(v){ return !isNum(v)||v===0 ? "" : (v>0?"▲ ":"▼ "); }
-function tone(node, v){ node.classList.remove("up","down"); if(isNum(v)&&v>0) node.classList.add("up"); else if(isNum(v)&&v<0) node.classList.add("down"); }
-function setSigned(node, v, text){ node.textContent = ""; const a = arrow(v); if(a){ const s = el("span","arw",a.trim()); node.append(s); } node.append(text); tone(node, v); }
+function pct(v, d = 1){ if(!isNum(v)) return "—"; return (v > 0 ? "+" : v < 0 ? "−" : "") + Math.abs(v).toFixed(d) + "%"; }
+const cls = v => isNum(v) ? (v > 0 ? "up" : v < 0 ? "down" : "") : "";
+const arr = v => isNum(v) && v !== 0 ? (v > 0 ? "▲" : "▼") : "";
+function kst(s){ const m = /^(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2})/.exec(s || ""); if(!m) return ""; const t = new Date(Date.UTC(+m[1], +m[2]-1, +m[3], +m[4], +m[5]) + 9*36e5); const p = n => String(n).padStart(2, "0"); return `${t.getUTCMonth()+1}월 ${t.getUTCDate()}일 ${p(t.getUTCHours())}:${p(t.getUTCMinutes())}`; }
+const md = l => { const m = /^\d{4}-(\d{2})-(\d{2})$/.exec(l || ""); return m ? `${+m[1]}.${+m[2]}` : (l || ""); };
 
-/* 시각: "2026-10-15 07:05 UTC" → 한국시간 */
-function kst(utcStr){
-  const m = /^(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2})/.exec(utcStr||""); if(!m) return null;
-  const t = new Date(Date.UTC(+m[1],+m[2]-1,+m[3],+m[4],+m[5]) + 9*3600e3);
-  const p = n => String(n).padStart(2,"0");
-  return `${p(t.getUTCMonth()+1)}-${p(t.getUTCDate())} ${p(t.getUTCHours())}:${p(t.getUTCMinutes())}`;
-}
-function md(label){ const m=/^\d{4}-(\d{2})-(\d{2})$/.exec(label||""); return m ? `${+m[1]}/${+m[2]}` : (label||""); }
-
-/* ───────── 1. 지금 상태 */
-function renderSummary(){
-  const bal = D.balance, ms = D.month_start;
-  $("bal").textContent = "";
-  const b = money(bal,{unit:false,dec:2}); $("bal").append(b);
-  if(cur!=="krw") $("bal").append(el("span","unit","USDT"));
-  $("asof").textContent = "기준 " + (kst(D.asof)||D.asof||"") + " (한국시간)";
-  setSigned($("tToday"), D.d1, pct(D.d1));
-  $("tTodayS").textContent = "어제 기록 대비";
-  const mPct = isNum(ms)&&ms>0 ? (bal/ms-1)*100 : null;
-  setSigned($("tMonth"), mPct, pct(mPct));
-  $("tMonthS").textContent = isNum(ms) ? money(bal-ms,{sign:true}) : "";
-  const L = D.ledger||[], first = L.length ? L[0] : null;
-  const aPct = first&&isNum(first.eq)&&first.eq>0 ? (bal/first.eq-1)*100 : null;
-  setSigned($("tAll"), aPct, pct(aPct));
-  $("tAllS").textContent = first ? md(first.label)+" 부터" : "";
-
-  // 봇 상태 배지
-  const bot = D.bot||{}, par = D.parity||{};
-  let cls="ok", txt;
-  const age = isNum(bot.age_min) ? bot.age_min : null;
-  if(age!=null && age>STALE_MIN){ cls="bad"; txt=`봇 응답 없음 · ${Math.round(age)}분째`; }
-  else if(bot.ok===false){ cls="bad"; txt="봇 이상"; }
-  else if(par.ng>0 || par.ok===false){ cls="warn"; txt=`점검 확인 필요 · ${par.ng||"?"}건`; }
-  else { txt = "봇 정상" + (age!=null ? ` · ${Math.round(age)}분 전 확인` : ""); }
-  $("botDot").className = "dot "+cls; $("botTxt").textContent = txt;
+/* 상단 상태 */
+function renderStatus(){
+  const b = D.bot || {}, p = D.parity || {};
+  const lr = Date.parse(b.last_run_iso || ""), age = isFinite(lr) ? Math.max(0, Math.round((Date.now() - lr) / 6e4)) : (isNum(b.age_min) ? Math.round(b.age_min) : null);
+  let c = "", t;
+  if(age != null && age > 80){ c = "bad"; t = `갱신 멈춤 · ${age < 120 ? age + "분째" : Math.floor(age/60) + "시간째"}`; }
+  else if(b.ok === false){ c = "bad"; t = "봇 이상"; }
+  else if(p.ng > 0 || p.ok === false){ c = "warn"; t = `점검 필요 ${p.ng || ""}건`; }
+  else t = `정상 운행 · ${age != null ? (age < 60 ? age + "분 전" : Math.floor(age/60) + "시간 " + (age%60) + "분 전") : ""}`;
+  $("led").className = "led " + c; $("stTxt").textContent = t;
 }
 
-/* ───────── 2. 낙폭 */
-function renderDD(){
-  const dd = D.dd||{}, p = dd.pct;
-  $("ddPct").textContent = isNum(p) ? pct(p) : "—"; tone($("ddPct"), p<0?-1:0);
-  $("ddSub").textContent = isNum(dd.peak) ? `고점 ${money(dd.peak)} · ${md(dd.since)}` : "";
-  const scale = Math.max(50, Math.ceil((Math.abs(p||0)+5)/10)*10);
-  const ap = Math.abs(p||0), ag = Math.abs(GUARD);
-  $("ddFill").style.width = (ap/scale*100)+"%";
-  $("ddMark").style.left = `calc(${ag/scale*100}% - 1px)`;
-  $("ddMlab").style.left = (ag/scale*100)+"%"; $("ddMlab").textContent = `각오선 ${GUARD}%`;
-  let st, col, icon;
-  if(ap >= ag){ st="각오선 넘음"; col="var(--downText)"; icon="⛔"; $("ddFill").style.background="var(--down)"; }
-  else if(ap >= ag*0.75){ st="각오선에 가까움"; col="var(--warnText)"; icon="⚠"; $("ddFill").style.background="var(--warn)"; }
-  else { st="예상 범위 안"; col="var(--upText)"; icon="✓"; $("ddFill").style.background="var(--line)"; }
-  const s = $("ddStatus"); s.textContent = icon+" "+st; s.style.color = col;
-  $("ddMeter").setAttribute("aria-label", `고점 대비 ${pct(p)}, 각오선 ${GUARD}%`);
-  $("ddNote").textContent = `각오선까지 ${(ag-ap).toFixed(1)}%p 남음 · 각오선 = 실매매에서 나올 수 있다고 본 최대 손실(백테 최대 낙폭 × 약 1.5, MN 교체 전 구성 기준)`;
+/* 히어로 */
+function renderHero(){
+  $("balV").textContent = money(D.balance); $("balU").textContent = cur === "krw" && fx() ? "" : "USDT";
+  $("asof").textContent = kst(D.asof) + " 기준";
+  const ms = D.month_start, L = D.ledger || [], f = L[0];
+  const items = [
+    ["오늘", D.d1],
+    ["이번 달", isNum(ms) && ms > 0 ? (D.balance/ms - 1)*100 : null],
+    [f ? md(f.label) + " 시작 이후" : "시작 이후", f && f.eq > 0 ? (D.balance/f.eq - 1)*100 : null],
+  ];
+  const box = $("pills"); box.textContent = "";
+  items.forEach(([k, v]) => { const p = el("span", "pill " + cls(v)); p.append(k + " "); p.append(el("b", null, arr(v) + " " + pct(v))); box.append(p); });
+  drawEq();
 }
-
-/* ───────── 3. 잔고 흐름 (선 1개) */
-let eqPts = [];
-function renderEq(){
-  const L = (D.ledger||[]).filter(r=>isNum(r.eq));
-  eqPts = period==="30" ? L.slice(-31) : L.slice();
-  const svg = $("eqSvg"); svg.textContent = "";
-  const W = Math.max(280, $("eqChart").clientWidth), H = 190, pl = 44, pr = 12, pt = 14, pb = 24;
-  svg.setAttribute("viewBox", `0 0 ${W} ${H}`); svg.setAttribute("height", H);
-  if(eqPts.length < 2){ return; }
-  const vals = eqPts.map(r=>r.eq*(cur==="krw"&&fx()?fx():1));
-  let lo = Math.min(...vals), hi = Math.max(...vals); const padv = (hi-lo)*0.08 || hi*0.02; lo -= padv; hi += padv;
-  const x = i => pl + i*(W-pl-pr)/(eqPts.length-1), y = v => pt + (hi-v)*(H-pt-pb)/(hi-lo);
-  // 격자·축 (가로 3줄)
-  for(let k=0;k<3;k++){
-    const v = lo + (hi-lo)*(k/2), yy = y(v);
-    svg.append(svgEl("line",{x1:pl,x2:W-pr,y1:yy,y2:yy,stroke:"var(--grid)","stroke-width":1}));
-    const t = svgEl("text",{x:pl-6,y:yy+4,"text-anchor":"end","font-size":11,fill:"var(--muted)"});
-    t.textContent = cur==="krw"&&fx() ? Math.round(v/1e4)+"만" : (v>=1000? (v/1000).toFixed(2)+"K" : Math.round(v));
-    svg.append(t);
-  }
-  // x 라벨: 처음·가운데·끝
-  [0, Math.floor((eqPts.length-1)/2), eqPts.length-1].forEach((i,j)=>{
-    const t = svgEl("text",{x:x(i),y:H-6,"text-anchor":j===0?"start":j===2?"end":"middle","font-size":11,fill:"var(--muted)"});
-    t.textContent = md(eqPts[i].label); svg.append(t);
-  });
-  // 면 + 선
-  let d = ""; vals.forEach((v,i)=>{ d += (i?"L":"M")+x(i).toFixed(1)+","+y(v).toFixed(1); });
-  svg.append(svgEl("path",{d: d+`L${x(vals.length-1)},${H-pb}L${x(0)},${H-pb}Z`, fill:"var(--line)", "fill-opacity":0.10}));
-  svg.append(svgEl("path",{d, fill:"none", stroke:"var(--line)","stroke-width":2,"stroke-linejoin":"round","stroke-linecap":"round"}));
-  // 끝점 + 값
-  const li = vals.length-1;
-  svg.append(svgEl("circle",{cx:x(li),cy:y(vals[li]),r:4.5,fill:"var(--line)",stroke:"var(--card)","stroke-width":2}));
-  // 십자선 레이어
-  const cross = svgEl("line",{y1:pt,y2:H-pb,stroke:"var(--axis)","stroke-width":1,visibility:"hidden"});
-  const hd = svgEl("circle",{r:4.5,fill:"var(--line)",stroke:"var(--card)","stroke-width":2,visibility:"hidden"});
+function drawEq(){
+  const svg = $("eq"); svg.textContent = "";
+  const pts = (D.ledger || []).filter(r => isNum(r.eq)), P = period === "30" ? pts.slice(-31) : pts;
+  const W = Math.max(300, svg.clientWidth || 500), H = 170, top = 26, bot = 22;
+  svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
+  if(P.length < 2) return;
+  const k = cur === "krw" && fx() ? fx() : 1, vals = P.map(r => r.eq * k);
+  let lo = Math.min(...vals), hi = Math.max(...vals); const pad = (hi - lo) * .12 || 1; lo -= pad; hi += pad * .4;
+  const x = i => i * (W - 9) / (P.length - 1), y = v => top + (hi - v) * (H - top - bot) / (hi - lo);
+  const defs = sv("defs", {}); const g = sv("linearGradient", {id:"gf", x1:0, y1:0, x2:0, y2:1});
+  g.append(sv("stop", {offset:"0%", "stop-color":"var(--gold)", "stop-opacity":.28}), sv("stop", {offset:"100%", "stop-color":"var(--gold)", "stop-opacity":0}));
+  defs.append(g); svg.append(defs);
+  let d = ""; vals.forEach((v, i) => d += (i ? "L" : "M") + x(i).toFixed(1) + "," + y(v).toFixed(1));
+  svg.append(sv("path", {d: d + `L${W},${H - bot}L0,${H - bot}Z`, fill:"url(#gf)"}));
+  svg.append(sv("path", {d, fill:"none", stroke:"var(--gold)", "stroke-width":2.2, "stroke-linejoin":"round", "stroke-linecap":"round"}));
+  // 고점 표시
+  const pi = vals.indexOf(Math.max(...vals));
+  svg.append(sv("circle", {cx:x(pi), cy:y(vals[pi]), r:3.5, fill:"var(--surface)", stroke:"var(--gold)", "stroke-width":2}));
+  const pl = sv("text", {x:Math.min(Math.max(x(pi), 30), W - 30), y:y(vals[pi]) - 9, "text-anchor":"middle", "font-size":11, "font-weight":600, fill:"var(--ink2)", "font-family":"Geist,sans-serif"});
+  pl.textContent = "고점 " + money(P[pi].eq, {dec:0}); svg.append(pl);
+  // 날짜 (처음·끝)
+  [[0, "start", 8], [P.length - 1, "end", W - 8]].forEach(([i, a, xx]) => { const t = sv("text", {x:xx, y:H - 6, "text-anchor":a, "font-size":11, fill:"var(--muted)", "font-family":"Geist,sans-serif"}); t.textContent = md(P[i].label) === "현재" ? "지금" : md(P[i].label); svg.append(t); });
+  // 끝점
+  const li = vals.length - 1;
+  svg.append(sv("circle", {cx:x(li), cy:y(vals[li]), r:5, fill:"var(--gold)", stroke:"var(--surface)", "stroke-width":2.5}));
+  // 짚기
+  const cross = sv("line", {y1:top - 6, y2:H - bot, stroke:"var(--ink2)", "stroke-width":1, "stroke-opacity":.35, visibility:"hidden"});
+  const hd = sv("circle", {r:4.5, fill:"var(--gold)", stroke:"var(--surface)", "stroke-width":2, visibility:"hidden"});
   svg.append(cross, hd);
-  const tip = $("eqTip");
-  let cur_i = li;
-  function show(i){
-    i = Math.max(0, Math.min(li, i)); cur_i = i;
-    const r = eqPts[i];
-    cross.setAttribute("x1",x(i)); cross.setAttribute("x2",x(i)); cross.setAttribute("visibility","visible");
-    hd.setAttribute("cx",x(i)); hd.setAttribute("cy",y(vals[i])); hd.setAttribute("visibility","visible");
-    tip.textContent = ""; tip.append(el("b",null,money(r.eq)), el("span",null,(r.label==="현재"?"현재":r.label) + (isNum(r.d1)? " · 하루 "+pct(r.d1):"")));
-    tip.style.display = "block";
-    const box = $("eqChart").getBoundingClientRect(), sx = box.width/W;
-    let lx = x(i)*sx + 10; if(lx + tip.offsetWidth > box.width) lx = x(i)*sx - tip.offsetWidth - 10;
-    tip.style.left = lx+"px"; tip.style.top = "4px";
-  }
-  function hide(){ cross.setAttribute("visibility","hidden"); hd.setAttribute("visibility","hidden"); tip.style.display="none"; }
-  svg.onpointermove = e => { const b = svg.getBoundingClientRect(); const px = (e.clientX-b.left)*W/b.width; show(Math.round((px-pl)/((W-pl-pr)/(eqPts.length-1)))); };
-  svg.onpointerleave = hide; svg.onblur = hide;
-  svg.onfocus = () => show(li);
-  svg.onkeydown = e => { if(e.key==="ArrowLeft"){show(cur_i-1);e.preventDefault();} if(e.key==="ArrowRight"){show(cur_i+1);e.preventDefault();} };
-  // 표
-  const tb = el("table"); const th = el("tr"); ["날짜","잔고","하루"].forEach(h=>th.append(el("th",null,h))); tb.append(th);
-  eqPts.slice().reverse().forEach(r=>{ const tr=el("tr"); tr.append(el("td",null,r.label), el("td",null,money(r.eq,{unit:false})), el("td",null,isNum(r.d1)?pct(r.d1):"—")); tb.append(tr); });
-  $("eqTable").textContent = ""; $("eqTable").append(tb);
+  const tip = $("tip"); let ci = li;
+  const show = i => { i = Math.max(0, Math.min(li, i)); ci = i; const r = P[i];
+    cross.setAttribute("x1", x(i)); cross.setAttribute("x2", x(i)); cross.setAttribute("visibility", "visible");
+    hd.setAttribute("cx", x(i)); hd.setAttribute("cy", y(vals[i])); hd.setAttribute("visibility", "visible");
+    tip.textContent = ""; tip.append(el("b", null, money(r.eq) + (cur === "krw" ? "" : " USDT")), el("span", null, (r.label === "현재" ? "지금" : r.label) + (isNum(r.d1) ? " · 하루 " + pct(r.d1) : "")));
+    tip.style.display = "block"; const bw = svg.getBoundingClientRect().width, px = x(i) * bw / W;
+    tip.style.left = Math.min(Math.max(px, tip.offsetWidth/2 + 6), bw - tip.offsetWidth/2 - 6) + "px"; };
+  const hide = () => { cross.setAttribute("visibility", "hidden"); hd.setAttribute("visibility", "hidden"); tip.style.display = "none"; };
+  svg.onpointermove = e => { const b = svg.getBoundingClientRect(); show(Math.round((e.clientX - b.left) / b.width * W / (W - 9) * (P.length - 1))); };
+  svg.onpointerleave = hide; svg.onblur = hide; svg.onfocus = () => show(li);
+  svg.onkeydown = e => { if(e.key === "ArrowLeft"){ show(ci - 1); e.preventDefault(); } if(e.key === "ArrowRight"){ show(ci + 1); e.preventDefault(); } };
+  svg.setAttribute("aria-label", `잔고 흐름, ${md(P[0].label)}부터 지금까지, 고점 ${money(P[pi].eq, {dec:0})}`);
 }
 
-/* ───────── 4. 지금 들고 있는 것 (북별 묶음) */
-const GROUPS = [
-  {id:"core", name:"BTC·ETH 추세 계열", desc:"큰 흐름을 따라가는 북 (추세·슬리브·바스켓)", ks:["trend","slv","bsk","ens"], color:"var(--g1)"},
-  {id:"mn",   name:"MN 시장중립",       desc:"알트 롱·숏을 같은 크기로 (시장 방향 무관)",   ks:["mn"], color:"var(--g2)"},
-  {id:"ovl",  name:"얹기 단기매매",      desc:"급등·투매·반전·미국돌파 신호로 짧게",         ks:["ovl"], color:"var(--g3)"},
+/* 낙폭 활주로 */
+function renderDD(){
+  const dd = D.dd || {}, p = dd.pct, ap = Math.abs(p || 0), ag = Math.abs(GUARD), max = Math.max(50, Math.ceil((ap + 6)/10)*10);
+  $("ddBig").textContent = pct(p);
+  $("ddPeak").textContent = isNum(dd.peak) ? `고점 ${money(dd.peak, {dec:0})} · ${md(dd.since)}` : "";
+  const b = $("ddBadge");
+  if(ap >= ag){ b.className = "badge bad"; b.textContent = "⛔ 각오선 넘음"; }
+  else if(ap >= ag*.75){ b.className = "badge warn"; b.textContent = "⚠ 각오선 가까움"; }
+  else { b.className = "badge ok"; b.textContent = "✓ 예상 범위 안"; }
+  const R = $("runway"); R.textContent = "";
+  const rail = el("div", "rail"); const zone = el("div", "zone"); zone.style.left = (ag/max*100) + "%"; rail.append(zone);
+  const fill = el("div", "fillr"); fill.style.width = (ap/max*100) + "%";
+  fill.style.background = ap >= ag*.75 ? "linear-gradient(90deg,var(--gold),var(--warn))" : "var(--gold)"; rail.append(fill); R.append(rail);
+  const pin = el("div", "pin"); pin.style.left = (ap/max*100) + "%"; R.append(pin);
+  [0, 10, 20, 30].filter(t => Math.abs(t - ag) > 4 && Math.abs(t - ap) > 3).forEach(t => { const k = el("div", "tick", t ? "−" + t : "0"); k.style.left = (t/max*100) + "%"; R.append(k); });
+  const gk = el("div", "tick g", "각오 " + GUARD); gk.style.left = (ag/max*100) + "%"; R.append(gk);
+  R.setAttribute("aria-label", `고점 대비 ${pct(p)}, 각오선 ${GUARD}%`);
+  const n = $("ddNote"); n.textContent = "";
+  n.append("각오선까지 "); n.append(el("b", null, (ag - ap).toFixed(1) + "%p")); n.append(" 남았어요. 각오선은 실매매에서 나올 수 있다고 본 최대 손실(백테 최대 낙폭 × 약 1.5)입니다.");
+}
+
+/* 북 3개 */
+const BOOKS = [
+  {ks:["trend","slv","bsk","ens"], name:"BTC·ETH 추세", desc:"큰 흐름을 따라가는 본진", c:"var(--b1)", g:"추세"},
+  {ks:["mn"], name:"MN 시장중립", desc:"알트 롱·숏을 같은 크기로", c:"var(--b2)", g:"MN"},
+  {ks:["ovl"], name:"얹기 단기매매", desc:"신호 따라 짧게 치고 빠짐", c:"var(--b3)", g:"얹기"},
 ];
-const SUBNAME = {trend:"추세", slv:"슬리브", bsk:"바스켓", ens:"앙상블", mn:"MN"};
-function renderPos(){
-  const J = D.journal||{}, P = J.pos||[];
-  const shares = [];
-  P.forEach(p=>{
-    (p.books||[]).forEach(b=>{
-      const n = Math.abs(b.q||0) * (p.px||b.entry||0);
-      shares.push({s:p.s, side:p.side, k:b.k, b:b.b, q:b.q, n, upnl:b.upnl, pct:b.pct, plan:b.plan, t_in:b.t_in});
-    });
-  });
-  const tot = shares.reduce((a,x)=>a+x.n,0);
-  const upTot = isNum((D.cash||{}).upnl) ? D.cash.upnl : shares.reduce((a,x)=>a+(isNum(x.upnl)?x.upnl:0),0);
-  $("posSub").textContent = `${shares.length}개 · 평가손익 ${money(upTot,{sign:true})}`;
-  tone($("posSub"), 0);
-  const stack = $("posStack"); stack.textContent = "";
-  const box = $("posGroups"); box.textContent = "";
-  GROUPS.forEach(g=>{
-    const xs = shares.filter(x=>g.ks.includes(x.k)).sort((a,b)=>b.n-a.n);
-    if(!xs.length) return;
-    const n = xs.reduce((a,x)=>a+x.n,0), up = xs.reduce((a,x)=>a+(isNum(x.upnl)?x.upnl:0),0);
-    if(tot>0){ const s=el("span"); s.style.width=(n/tot*100)+"%"; s.style.background=g.color; stack.append(s); }
-    const det = el("details","grp"); const sum = el("summary");
-    const sw = el("span","sw"); sw.style.background = g.color;
-    const mid = el("div"); mid.append(el("div","name",g.name));
-    let desc = `${xs.length}개 · ${g.desc}`;
-    if(g.id==="mn"){
-      const L = xs.filter(x=>x.side>0).reduce((a,x)=>a+x.n,0), S = xs.filter(x=>x.side<0).reduce((a,x)=>a+x.n,0);
-      const gap = (L+S)>0 ? Math.abs(L-S)/(L+S)*100 : 0;
-      desc = `${xs.length}개 · 롱 ${money(L,{unit:false,dec:0})} / 숏 ${money(S,{unit:false,dec:0})} → ${gap<10?"균형 유지 ✓":"치우침 "+gap.toFixed(0)+"%"}`;
-    }
-    mid.append(el("div","desc",desc));
-    const right = el("div","right"); const a = el("div","a"); setSigned(a, up, money(up,{sign:true,unit:false}));
-    right.append(a, el("div","small muted", "규모 "+money(n,{dec:0,unit:false})));
-    sum.append(sw, mid, right, el("span","chev","▸"));
-    det.append(sum);
-    const rows = el("div","rows");
-    xs.forEach(x=>{
-      const r = el("div","row");
-      const sub = x.k==="ovl" ? String(x.b||"").replace(/^얹기·/,"") : (SUBNAME[x.k]||x.k);
-      r.append(el("span","c",x.s));
-      r.append(el("span","t",`${x.side>0?"롱":"숏"} · ${sub} · ${money(x.n,{dec:0})}`));
-      const rv = el("span","r num"); setSigned(rv, x.upnl, money(x.upnl,{sign:true,unit:false}) + (isNum(x.pct)?` (${pct(x.pct)})`:""));
-      r.append(rv); rows.append(r);
-    });
-    det.append(rows); box.append(det);
+const SUB = {trend:"추세", slv:"슬리브", bsk:"바스켓", ens:"앙상블", mn:"MN"};
+function renderBooks(){
+  const sh = []; ((D.journal || {}).pos || []).forEach(p => (p.books || []).forEach(b => sh.push({s:p.s, side:p.side, k:b.k, b:b.b, n:Math.abs(b.q || 0)*(p.px || b.entry || 0), up:b.upnl, pc:b.pct})));
+  const tot = sh.reduce((a, x) => a + x.n, 0), up = isNum((D.cash || {}).upnl) ? D.cash.upnl : sh.reduce((a, x) => a + (x.up || 0), 0);
+  const as = $("posAside"); as.textContent = `${sh.length}개 · 평가 `; const sp = el("b", "n " + cls(up), money(up, {sign:true})); as.append(sp);
+  const box = $("books"); box.textContent = "";
+  BOOKS.forEach(B => {
+    const xs = sh.filter(x => B.ks.includes(x.k)).sort((a, b) => b.n - a.n); if(!xs.length) return;
+    const n = xs.reduce((a, x) => a + x.n, 0), u = xs.reduce((a, x) => a + (x.up || 0), 0);
+    const det = el("details", "book"), s = el("summary");
+    const gl = el("span", "glyph", B.g); gl.style.background = B.c; gl.style.fontSize = B.g.length > 2 ? "10px" : "12px";
+    const mid = el("div"); mid.append(el("div", "bname", B.name));
+    let desc = `${xs.length}개 · ${B.desc}`;
+    if(B.ks[0] === "mn"){ const L = xs.filter(x => x.side > 0).reduce((a, x) => a + x.n, 0), S = xs.filter(x => x.side < 0).reduce((a, x) => a + x.n, 0); const gap = (L + S) ? Math.abs(L - S)/(L + S)*100 : 0; desc = `${xs.length}개 · 롱 ${money(L, {dec:0})} : 숏 ${money(S, {dec:0})} ${gap < 10 ? "· 균형 ✓" : "· 치우침"}`; }
+    mid.append(el("div", "bdesc", desc));
+    const bar = el("div", "share"); const i = el("i"); i.style.width = (tot ? n/tot*100 : 0) + "%"; i.style.background = B.c; bar.append(i); mid.append(bar);
+    const r = el("div", "bpnl"); r.append(el("b", cls(u), money(u, {sign:true}))); r.append(el("span", null, `규모 ${money(n, {dec:0})}`));
+    s.append(gl, mid, r); det.append(s);
+    const cs = el("div", "coins");
+    xs.forEach(x => { const row = el("div", "coin"); const a = el("span", "s", x.s); a.append(el("span", "side " + (x.side > 0 ? "L" : "S"), x.side > 0 ? "롱" : "숏"));
+      const sub = x.k === "ovl" ? String(x.b || "").replace(/^얹기·/, "") : (SUB[x.k] || x.k);
+      row.append(a, el("span", "d", `${sub} · ${money(x.n, {dec:0})}`), el("span", "p " + cls(x.up), money(x.up, {sign:true}) + (isNum(x.pc) ? ` (${pct(x.pc)})` : "")));
+      cs.append(row); });
+    det.append(cs); box.append(det);
   });
 }
 
-/* ───────── 5. 최근 거래 */
-function tKey(t){ const m=/^(\d{2})-(\d{2}) (\d{2}):(\d{2})/.exec(t||""); return m? +(m[1]+m[2]+m[3]+m[4]) : 0; }
+/* 거래 타임라인 */
+const tk = t => { const m = /^(\d{2})-(\d{2}) (\d{2}):(\d{2})/.exec(t || ""); return m ? +(m[1] + m[2] + m[3] + m[4]) : 0; };
 function renderTrades(){
-  const J = D.journal||{}, S = (J.sum||{}).closed||{};
-  const sumNode = $("trSum"); sumNode.textContent = "";
-  sumNode.append(`${J.month_label||"이번 달"} 끝난 거래 ${S.n!=null?S.n:"—"}건 · 합계 `);
-  const sp = el("span"); setSigned(sp, S.pnl, money(S.pnl,{sign:true})); sumNode.append(sp);
-  const list = $("trList"); list.textContent = "";
-  const C = (J.closed||[]).slice().sort((a,b)=>tKey(b.t_out)-tKey(a.t_out)).slice(0,6);
-  if(!C.length){ list.append(el("div","small muted","아직 없음")); return; }
-  C.forEach(c=>{
-    const row = el("div","trade");
-    const l = el("div","l");
-    const book = String(c.b||"").replace(/^얹기·/,"");
-    l.append(el("div","c",`${c.s} ${c.side>0?"롱":"숏"}`));
-    l.append(el("div","t",`${book} · ${c.why||""} · ${c.t_out||""}`));
-    const r = el("div","r"); const v = el("div"); setSigned(v, c.pnl, money(c.pnl,{sign:true,unit:false}));
-    const p = el("div","p muted", isNum(c.pct)? pct(c.pct) : "");
-    r.append(v,p); row.append(l,r); list.append(row);
+  const J = D.journal || {}, S = (J.sum || {}).closed || {};
+  const s = $("trSum"); s.textContent = ""; s.append(`${J.month_label || "이번 달"} 끝난 거래 ${S.n ?? "—"}건 · 합계`); s.append(el("b", cls(S.pnl), money(S.pnl, {sign:true})));
+  const tl = $("tl"); tl.textContent = "";
+  (J.closed || []).slice().sort((a, b) => tk(b.t_out) - tk(a.t_out)).slice(0, 6).forEach(c => {
+    const e = el("div", "ev " + (c.pnl > 0 ? "w" : c.pnl < 0 ? "l" : ""));
+    const l = el("div"); const t = el("div", "c", c.s); t.append(el("span", "side " + (c.side > 0 ? "L" : "S"), c.side > 0 ? "롱" : "숏")); l.append(t);
+    l.append(el("div", "m", `${String(c.b || "").replace(/^얹기·/, "")} · ${c.why || ""} · ${c.t_out || ""}`));
+    const r = el("div", "r " + cls(c.pnl), money(c.pnl, {sign:true})); r.append(el("span", null, isNum(c.pct) ? pct(c.pct) : ""));
+    e.append(l, r); tl.append(e);
   });
 }
 
-/* ───────── 6. 월별 결과 (막대, 0선 위·아래) */
-function renderMonthly(){
-  const M = D.real_monthly||{}; const ks = Object.keys(M).sort();
-  const svg = $("moSvg"); svg.textContent = "";
-  const W = Math.max(280, $("moChart").clientWidth), H = 190, pt = 22, pb = 42;
-  svg.setAttribute("viewBox", `0 0 ${W} ${H}`); svg.setAttribute("height", H);
-  if(!ks.length) return;
-  const vals = ks.map(k=>M[k]); const mx = Math.max(10, ...vals.map(v=>Math.abs(v)));
-  const hasNeg = vals.some(v=>v<0), hasPos = vals.some(v=>v>0);
-  const zero = hasNeg&&hasPos ? pt + (H-pt-pb)*(Math.max(...vals)/(Math.max(...vals)-Math.min(...vals))) : (hasNeg? pt : H-pb);
-  const span = hasNeg&&hasPos ? (Math.max(...vals)-Math.min(...vals)) : mx;
-  const sc = (H-pt-pb)/span;
-  svg.append(svgEl("line",{x1:0,x2:W,y1:zero,y2:zero,stroke:"var(--axis)","stroke-width":1}));
-  const slot = W/ks.length, bw = Math.min(24, slot*0.5);
-  const nowKey = (D.asof||"").slice(0,7);
-  const tip = $("moTip");
-  ks.forEach((k,i)=>{
-    const v = M[k], cx = slot*i + slot/2, h = Math.abs(v)*sc, live = k===nowKey;
-    const y0 = v>=0 ? zero-h : zero;
-    const r = Math.min(4, h/2);
-    // 0선 쪽은 각지고 끝만 둥글게
-    const top = v>=0;
-    const x0 = cx-bw/2, x1 = cx+bw/2;
-    const d = top
-      ? `M${x0},${zero}V${y0+r}Q${x0},${y0} ${x0+r},${y0}H${x1-r}Q${x1},${y0} ${x1},${y0+r}V${zero}Z`
-      : `M${x0},${zero}V${zero+h-r}Q${x0},${zero+h} ${x0+r},${zero+h}H${x1-r}Q${x1},${zero+h} ${x1},${zero+h-r}V${zero}Z`;
-    const bar = svgEl("path",{d, fill: v>=0?"var(--up)":"var(--down)", "fill-opacity": live?0.45:1});
-    bar.style.cursor="default";
-    const hit = svgEl("rect",{x:cx-slot/2,y:pt-18,width:slot,height:H-pt+18,fill:"transparent",tabindex:0});
-    const lab = svgEl("text",{x:cx,y: v>=0 ? y0-5 : zero+h+13,"text-anchor":"middle","font-size":11,"font-weight":600,fill: v>=0?"var(--upText)":"var(--downText)"});
-    lab.textContent = (v>0?"+":v<0?"−":"")+Math.abs(v).toFixed(1)+"%";
-    const xl = svgEl("text",{x:cx,y:H-6,"text-anchor":"middle","font-size":11,fill:"var(--muted)"});
-    xl.textContent = (+k.slice(5))+"월"+(live?" (진행 중)":"");
-    const on = ()=>{ bar.setAttribute("fill-opacity", live?0.65:0.8); tip.textContent=""; tip.append(el("b",null,(v>0?"+":"")+v.toFixed(1)+"%"), el("span",null,k+(live?" · 아직 진행 중":" · 확정"))); tip.style.display="block";
-      const box=$("moChart").getBoundingClientRect(), sx=box.width/W; let lx=cx*sx+12; if(lx+tip.offsetWidth>box.width) lx=cx*sx-tip.offsetWidth-12; tip.style.left=lx+"px"; tip.style.top="0px"; };
-    const off = ()=>{ bar.setAttribute("fill-opacity", live?0.45:1); tip.style.display="none"; };
-    hit.addEventListener("pointerenter",on); hit.addEventListener("pointerleave",off); hit.addEventListener("focus",on); hit.addEventListener("blur",off);
-    svg.append(bar, lab, xl, hit);
+/* 월별 · 연도별 (실계좌 / 백테) */
+const BT = {"monthly": {"2021-02": 90.9, "2021-03": 46.3, "2021-04": 57.6, "2021-05": 118.9, "2021-06": 14.1, "2021-07": 69.7, "2021-08": 15.7, "2021-09": 24.7, "2021-10": 36.7, "2021-11": 16.8, "2021-12": 7.1, "2022-01": 22.5, "2022-02": 24.5, "2022-03": -1.5, "2022-04": -7.9, "2022-05": 57.6, "2022-06": 32.0, "2022-07": 13.9, "2022-08": 5.6, "2022-09": -0.8, "2022-10": 2.6, "2022-11": 21.9, "2022-12": -3.3, "2023-01": 84.7, "2023-02": 7.1, "2023-03": 37.5, "2023-04": -5.6, "2023-05": -10.8, "2023-06": 34.4, "2023-07": -2.3, "2023-08": 21.4, "2023-09": 0.0, "2023-10": 57.8, "2023-11": 5.7, "2023-12": 72.6, "2024-01": -1.8, "2024-02": 77.9, "2024-03": 6.0, "2024-04": 44.5, "2024-05": -4.1, "2024-06": 5.5, "2024-07": 36.5, "2024-08": 3.0, "2024-09": -0.7, "2024-10": 20.9, "2024-11": 162.7, "2024-12": 32.2, "2025-01": -9.1, "2025-02": 52.2, "2025-03": -17.6, "2025-04": 93.9, "2025-05": 26.9, "2025-06": 9.0, "2025-07": 53.8, "2025-08": 48.7, "2025-09": 110.0, "2025-10": 59.2, "2025-11": 38.7, "2025-12": 33.1, "2026-01": 64.4, "2026-02": 45.7, "2026-03": -6.7, "2026-04": 177.4, "2026-05": 45.1, "2026-06": 71.5, "2026-07": 48.1, "2026-08": 14.8}, "yearly": {"2021": 4507.2, "2022": 315.4, "2023": 951.7, "2024": 1488.7, "2025": 4212.6, "2026": 2523.8}, "range": ["2021-02-01", "2026-08-09"], "mdd": -27.8};
+let src = "real", year = null;
+function seriesOf(k){ return k === "bt" ? (BT.monthly || {}) : (D.real_monthly || {}); }
+function yearsOf(M){ return [...new Set(Object.keys(M).map(k => k.slice(0, 4)))].sort(); }
+function compound(vs){ return (vs.reduce((a, v) => a * (1 + v/100), 1) - 1) * 100; }
+function bigPct(v){ return Math.abs(v) >= 100 ? (v > 0 ? "+" : "−") + Math.round(Math.abs(v)).toLocaleString("en-US") + "%" : pct(v); }
+function renderMonths(){
+  const M = seriesOf(src), now = (D.asof || "").slice(0, 7);
+  const allYears = [...new Set([...yearsOf(BT.monthly || {}), ...yearsOf(D.real_monthly || {})])].sort();
+  const has = yearsOf(M);
+  if(!year || !has.includes(year)) year = has[has.length - 1];
+  document.querySelectorAll(".src button").forEach(b => b.setAttribute("aria-pressed", b.dataset.s === src ? "true" : "false"));
+  // 연도 칩
+  const yb = $("years"); yb.textContent = "";
+  allYears.forEach(y => {
+    const vs = Object.keys(M).filter(k => k.startsWith(y)).sort().map(k => M[k]);
+    const btn = el("button", "yr"); btn.type = "button"; btn.disabled = !vs.length;
+    btn.setAttribute("aria-pressed", y === year ? "true" : "false");
+    btn.append(el("div", "y", y));
+    const t = el("div", "t " + (vs.length ? cls(compound(vs)) : ""), vs.length ? bigPct(compound(vs)) : "—"); btn.append(t);
+    btn.onclick = () => { year = y; renderMonths(); };
+    yb.append(btn);
   });
+  // 12칸
+  const keys = Object.keys(M).filter(k => k.startsWith(year)).sort(), vals = keys.map(k => M[k]);
+  const mx = Math.max(10, ...vals.map(Math.abs));
+  const box = $("months"); box.textContent = "";
+  for(let m = 1; m <= 12; m++){
+    const k = `${year}-${String(m).padStart(2, "0")}`, v = M[k];
+    const live = src === "real" ? k === now : (BT.range && k === BT.range[1].slice(0, 7));
+    const c = el("div", "mo" + (live ? " live" : "") + (isNum(v) ? "" : " empty"));
+    c.append(el("div", "k", m + "월"));
+    const vv = el("div", "v " + cls(v) + (isNum(v) && Math.abs(v) >= 100 ? " big" : ""), isNum(v) ? bigPct(v) : "·");
+    if(isNum(v)){ const a = .10 + .38*Math.min(1, Math.abs(v)/mx); c.style.background = `color-mix(in srgb, ${v >= 0 ? "var(--up)" : "var(--down)"} ${Math.round(a*100)}%, var(--raise))`; }
+    c.title = isNum(v) ? `${k} ${pct(v)}` : `${k} 기록 없음`;
+    c.append(vv); box.append(c);
+  }
+  // 요약
+  const ys = $("ysum"); ys.textContent = "";
+  if(keys.length){
+    const tot = compound(vals), bi = vals.indexOf(Math.max(...vals)), wi = vals.indexOf(Math.min(...vals));
+    const span = `${+keys[0].slice(5)}–${+keys[keys.length-1].slice(5)}월`;
+    const a = el("span"); a.append(`${year}년 ${src === "bt" ? "백테" : "실계좌"} ${span} `); a.append(el("b", cls(tot), bigPct(tot))); ys.append(a);
+    ys.append(el("span", null, `최고 ${+keys[bi].slice(5)}월 ${pct(vals[bi])}`));
+    ys.append(el("span", null, `최악 ${+keys[wi].slice(5)}월 ${pct(vals[wi])}`));
+    ys.append(el("span", null, `플러스 ${vals.filter(v => v > 0).length}/${vals.length}달`));
+  }
+  const note = $("btnote");
+  if(src === "bt"){
+    note.hidden = false;
+    note.textContent = `백테 = 지금 봇 구성(D+V1 + MN 매월 선정)을 ${BT.range[0]} ~ ${BT.range[1]} 에 돌린 가정 성적입니다. 수수료·펀딩·미끄러짐은 넣었지만 체결 용량을 무한으로 보는 등 낙관적이라, 실매매는 이보다 낮게 나옵니다(같은 기간 백테 최대 낙폭 ${BT.mdd}%, 실매매 각오 −37.5%). 마지막 달은 ${BT.range[1].slice(5).replace("-", "/")}까지.`;
+  } else {
+    note.hidden = false;
+    note.textContent = "실계좌 = 바이낸스 실잔고 기준(미실현 포함). 7월은 봇을 시작한 7월 5일부터, 진행 중인 달은 지금까지입니다. 이전 연도는 실계좌 기록이 없어 '백테'에서 볼 수 있어요.";
+  }
 }
 
-/* ───────── 7. 봇 상태 */
+/* 봇 상태 */
 function renderBot(){
-  const P = D.parity||{}, bot = D.bot||{};
-  const kv = $("botKv"); kv.textContent = "";
-  function add(k, v, color){ const r=el("div","kv"); r.append(el("span","k",k)); const s=el("span","v",v); if(color) s.style.color=color; r.append(s); kv.append(r); }
-  const okAll = P.ok!==false && !(P.ng>0);
-  add("백테와 대조", okAll ? "✓ 전 항목 일치" : `⚠ 확인 필요 ${P.ng||""}건`, okAll ? "var(--upText)" : "var(--warnText)");
-  add("마지막 실행", (kst(bot.last_run_iso)||bot.last_run||"—") + " (한국시간)");
-  const mr = D.margin_ratio, mw = D.margin_warn||10;
-  const mTxt = isNum(mr) ? (mr < mw*0.5 ? `여유 충분 (사용 ${mr.toFixed(1)}%, 경고선 ${mw}%)` : mr < mw ? `주의 (사용 ${mr.toFixed(1)}%, 경고선 ${mw}%)` : `위험 (사용 ${mr.toFixed(1)}%)`) : "—";
-  add("청산 위험", mTxt, isNum(mr) ? (mr < mw*0.5 ? "var(--upText)" : mr < mw ? "var(--warnText)" : "var(--downText)") : null);
-  add("레버리지", isNum(P.lev) ? P.lev.toFixed(2)+"배 (봇이 시장 변동성에 맞춰 매일 정함)" : "—");
-  const ch = $("botChecks"); ch.textContent = "";
-  (P.checks||[]).forEach(c=>{ const r=el("div","kv"); r.append(el("span","k",(c.s==="ok"?"✓ ":c.s==="ng"?"✗ ":"· ")+(c.k||""))); r.append(el("span","v small",c.v||"")); ch.append(r); });
+  const P = D.parity || {}, mr = D.margin_ratio, mw = D.margin_warn || 10, ok = P.ok !== false && !(P.ng > 0);
+  $("lastRun").textContent = "마지막 실행 " + kst((D.bot || {}).last_run_iso);
+  const box = $("checks"); box.textContent = "";
+  const add = (k, v, s, c) => { const d = el("div", "ck"); d.append(el("div", "k", k)); d.append(el("div", "v " + (c || ""), v)); d.append(el("div", "s", s)); box.append(d); };
+  add("백테와 대조", ok ? "✓ 일치" : "⚠ " + (P.ng || "") + "건", ok ? "전 항목 정상" : "확인 필요", ok ? "up" : "down");
+  add("청산 위험", isNum(mr) ? (mr < mw/2 ? "여유" : mr < mw ? "주의" : "위험") : "—", isNum(mr) ? `증거금 사용 ${mr.toFixed(1)}%` : "", isNum(mr) ? (mr < mw/2 ? "up" : "down") : "");
+  add("레버리지", isNum(P.lev) ? P.lev.toFixed(2) + "배" : "—", "변동성 맞춰 매일 조정");
 }
 
 function render(){
-  if(!D) return;
-  $("cur").textContent = cur==="krw" ? "$" : "₩";
-  renderSummary(); renderDD(); renderEq(); renderPos(); renderTrades(); renderMonthly(); renderBot();
-  $("foot").textContent = `데이터 ${kst(D.asof)||""} (한국시간) · 매시 5분 갱신` + (cur==="krw"&&fx() ? ` · 환율 ${fx().toLocaleString("ko-KR")}` : "");
+  $("cur").textContent = cur === "krw" ? "$" : "₩";
+  renderStatus(); renderHero(); renderDD(); renderBooks(); renderTrades(); renderMonths(); renderBot();
+  $("snap").textContent = kst(D.asof);
 }
-
+cur = store.get("glance.cur") === "krw" ? "krw" : "usdt";
+$("cur").onclick = $("bal").onclick = () => { cur = cur === "krw" ? "usdt" : "krw"; store.set("glance.cur", cur); render(); };
+document.querySelectorAll(".seg button").forEach(b => b.onclick = () => { period = b.dataset.p; document.querySelectorAll(".seg button").forEach(x => x.setAttribute("aria-pressed", x === b ? "true" : "false")); drawEq(); });
+document.querySelectorAll(".src button").forEach(b => b.onclick = () => { src = b.dataset.s; year = null; renderMonths(); });
+let rt; addEventListener("resize", () => { clearTimeout(rt); rt = setTimeout(() => { if(D) drawEq(); }, 120); });
 async function load(){
-  document.body.classList.add("loading");
   try{
-    const sep = DATA.includes("?") ? "&" : "?";
-    const r = await fetch(DATA + sep + "t=" + Date.now(), {cache:"no-store"});
-    if(!r.ok) throw new Error("HTTP "+r.status);
-    D = await r.json(); $("err").style.display="none"; render();
+    const r = await fetch(DATA + (DATA.includes("?") ? "&" : "?") + "t=" + Date.now(), {cache:"no-store"});
+    if(!r.ok) throw new Error("HTTP " + r.status);
+    D = await r.json(); $("err").hidden = true; render();
   }catch(e){
-    $("err").textContent = "데이터를 못 불러왔어요 (" + e.message + "). 이전 화면을 보여 주는 중입니다.";
-    $("err").style.display = "block";
-  }finally{ document.body.classList.remove("loading"); }
+    $("err").textContent = "데이터를 못 불러왔어요(" + e.message + "). 인터넷 연결을 확인하고 위로 당겨 새로고침하세요." + (D ? " 지금은 직전 화면입니다." : "");
+    $("err").hidden = false;
+  }
 }
-
-/* 조작 */
-cur = store.get("simple.cur")==="krw" ? "krw" : "usdt";
-const th = store.get("simple.theme"); if(th) document.documentElement.setAttribute("data-theme", th);
-$("cur").onclick = $("bal").onclick = () => { cur = cur==="krw"?"usdt":"krw"; store.set("simple.cur",cur); render(); };
-$("theme").onclick = () => {
-  const dark = document.documentElement.getAttribute("data-theme")==="dark" ||
-    (!document.documentElement.getAttribute("data-theme") && matchMedia("(prefers-color-scheme: dark)").matches);
-  const nt = dark ? "light" : "dark"; document.documentElement.setAttribute("data-theme", nt); store.set("simple.theme", nt);
-};
-$("reload").onclick = load;
-document.querySelectorAll(".seg button").forEach(b=>b.onclick=()=>{ period=b.dataset.p; document.querySelectorAll(".seg button").forEach(x=>x.setAttribute("aria-pressed", x===b?"true":"false")); renderEq(); });
-let rt; addEventListener("resize", ()=>{ clearTimeout(rt); rt=setTimeout(()=>{ if(D){ renderEq(); renderMonthly(); } },150); });
-document.addEventListener("visibilitychange", ()=>{ if(document.visibilityState==="visible") load(); });
+document.addEventListener("visibilitychange", () => { if(document.visibilityState === "visible") load(); });
+setInterval(() => { if(document.visibilityState === "visible") load(); }, 5 * 60e3);
 load();
 </script>
 </body>
