@@ -6,7 +6,8 @@
 <meta name="theme-color" content="#f3f4f6" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#080d17" media="(prefers-color-scheme: dark)">
 <link rel="manifest" href="manifest.webmanifest">
-<link rel="apple-touch-icon" href="../apple-touch-icon.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="봇 한눈에">
 <title>봇 한눈에</title>
@@ -46,7 +47,7 @@ body{background:var(--bg);color:var(--ink);font-family:var(--txt);font-size:14px
 .wrap{max-width:540px;margin:0 auto;padding-block:14px 36px;padding-inline:16px;display:flex;flex-direction:column;gap:14px}
 .top{display:flex;align-items:center;gap:10px}
 .brand{display:flex;align-items:center;gap:9px;font-weight:700;font-size:15px;letter-spacing:-.2px}
-.logo{width:28px;height:28px;border-radius:8px;background:linear-gradient(140deg,var(--gold),#7a5208);display:grid;place-items:center}
+.logo{width:28px;height:28px;display:block;line-height:0}
 .status{margin-left:auto;display:flex;align-items:center;gap:7px;font-size:12px;color:var(--ink2);background:var(--surface);
   border:1px solid var(--line);padding:6px 11px;border-radius:999px}
 .led{width:8px;height:8px;border-radius:50%;background:var(--up);box-shadow:0 0 0 3px var(--upSoft)}
@@ -103,7 +104,8 @@ h2{font-size:15px;font-weight:700;margin:0;letter-spacing:-.2px}
 .book:first-of-type{border-top:0}
 .book summary{list-style:none;display:grid;grid-template-columns:36px 1fr auto;gap:12px;align-items:center;padding:12px 0;cursor:pointer}
 .book summary::-webkit-details-marker{display:none}
-.glyph{width:36px;height:36px;border-radius:11px;display:grid;place-items:center;font:700 12px var(--num);color:#fff}
+.glyph{width:36px;height:36px;border-radius:11px;display:grid;place-items:center;background:var(--raise);border:1px solid var(--line)}
+.glyph svg,.rb-ic svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
 .bname{font-weight:700;font-size:14px}
 .bdesc{font-size:12px;color:var(--muted);margin-top:2px}
 .share{height:5px;border-radius:3px;background:var(--track);margin-top:7px;overflow:hidden}
@@ -124,7 +126,7 @@ h2{font-size:15px;font-weight:700;margin:0;letter-spacing:-.2px}
 .rebal summary{list-style:none;display:flex;align-items:center;gap:10px;padding:10px 12px;cursor:pointer}
 .rebal summary::-webkit-details-marker{display:none}
 .rebal summary:focus-visible{outline:2px solid var(--gold);outline-offset:2px;border-radius:12px}
-.rb-ic{width:26px;height:26px;border-radius:8px;display:grid;place-items:center;background:var(--b2);color:#fff;font:700 10px var(--num);flex:none}
+.rb-ic{width:30px;height:30px;border-radius:9px;display:grid;place-items:center;background:var(--surface);border:1px solid var(--line);color:var(--gold);flex:none}
 .rb-t{flex:1;min-width:0}
 .rb-t .a,.rb-t .b{display:block}
 .rb-t .a{font-weight:700;font-size:13px}
@@ -192,7 +194,7 @@ h2{font-size:15px;font-weight:700;margin:0;letter-spacing:-.2px}
 <body>
 <div class="wrap">
   <div class="top">
-    <div class="brand"><span class="logo" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 16 16"><path d="M2 12 L6 7.5 L9 10 L14 3.5" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="14" cy="3.5" r="1.6" fill="#fff"/></svg></span>내 봇</div>
+    <div class="brand"><span class="logo" aria-hidden="true"><svg width="28" height="28" viewBox="0 0 28 28" aria-hidden="true"><rect width="28" height="28" rx="7" fill="#0c1526"/><rect x=".5" y=".5" width="27" height="27" rx="6.5" fill="none" stroke="#ffffff" stroke-opacity=".10"/><path d="M6 21.5h16" stroke="#ffffff" stroke-opacity=".14" stroke-width="1"/><path d="M6 18.5C9.5 18 10.8 14.2 13.6 14.3S17.6 10.6 21.2 8.6" fill="none" stroke="#e8b54c" stroke-width="1.8" stroke-linecap="round"/><circle cx="21.2" cy="8.6" r="1.9" fill="#e8b54c"/></svg></span>내 봇</div>
     <div class="status" id="status"><span class="led" id="led"></span><span id="stTxt">확인 중</span></div>
     <button class="chip" id="cur" aria-label="원화/USDT 전환">₩</button>
   </div>
@@ -226,7 +228,7 @@ h2{font-size:15px;font-weight:700;margin:0;letter-spacing:-.2px}
   <section class="card reveal">
     <div class="head"><h2>최근 끝난 거래</h2><span class="aside">한국시간</span></div>
     <details class="rebal" id="rebal" hidden>
-      <summary><span class="rb-ic" aria-hidden="true">MN</span><span class="rb-t"><span class="a" id="rbTitle"></span><span class="b" id="rbSub"></span></span><span class="rb-r" id="rbPnl"></span><span class="rb-chev">▸</span></summary>
+      <summary><span class="rb-ic" aria-hidden="true" id="rbIc"></span><span class="rb-t"><span class="a" id="rbTitle"></span><span class="b" id="rbSub"></span></span><span class="rb-r" id="rbPnl"></span><span class="rb-chev">▸</span></summary>
       <div class="rb-list" id="rbList"></div>
     </details>
     <div class="sum" id="trSum"></div>
@@ -368,11 +370,17 @@ function renderDD(){
   n.append("각오선까지 "); n.append(el("b", null, (ag - ap).toFixed(1) + "%p")); n.append(" 남았어요. 각오선은 실매매에서 나올 수 있다고 본 최대 손실(백테 최대 낙폭 × 약 1.5)입니다.");
 }
 
+const ICON = {
+  trend:'<svg viewBox="0 0 20 20" aria-hidden="true"><polyline points="3,14.5 8,9.5 11,12 17,5.5"/><polyline points="12.8,5.5 17,5.5 17,9.7"/></svg>',
+  mn:'<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 7h12M13 4l3 3-3 3"/><path d="M16 13H4M7 10l-3 3 3 3"/></svg>',
+  ovl:'<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 3.5l7 3.8-7 3.8-7-3.8z"/><path d="M3 11.2l7 3.8 7-3.8"/></svg>',
+  rebal:'<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M15.6 8A6 6 0 0 0 4.7 6.3"/><path d="M4.4 3.6v3h3"/><path d="M4.4 12a6 6 0 0 0 10.9 1.7"/><path d="M15.6 16.4v-3h-3"/></svg>',
+};
 /* 북 3개 */
 const BOOKS = [
-  {ks:["trend","slv","bsk","ens"], name:"BTC·ETH 추세", desc:"큰 흐름을 따라가는 본진", c:"var(--b1)", g:"추세"},
-  {ks:["mn"], name:"MN 시장중립", desc:"알트 롱·숏을 같은 크기로", c:"var(--b2)", g:"MN"},
-  {ks:["ovl"], name:"얹기 단기매매", desc:"신호 따라 짧게 치고 빠짐", c:"var(--b3)", g:"얹기"},
+  {ks:["trend","slv","bsk","ens"], name:"BTC·ETH 추세", desc:"큰 흐름을 따라가는 본진", c:"var(--b1)", icon:"trend"},
+  {ks:["mn"], name:"MN 시장중립", desc:"알트 롱·숏을 같은 크기로", c:"var(--b2)", icon:"mn"},
+  {ks:["ovl"], name:"얹기 단기매매", desc:"신호 따라 짧게 치고 빠짐", c:"var(--b3)", icon:"ovl"},
 ];
 const SUB = {trend:"추세", slv:"슬리브", bsk:"바스켓", ens:"앙상블", mn:"MN"};
 function renderBooks(){
@@ -384,7 +392,7 @@ function renderBooks(){
     const xs = sh.filter(x => B.ks.includes(x.k)).sort((a, b) => b.n - a.n); if(!xs.length) return;
     const n = xs.reduce((a, x) => a + x.n, 0), u = xs.reduce((a, x) => a + (x.up || 0), 0);
     const det = el("details", "book"), s = el("summary");
-    const gl = el("span", "glyph", B.g); gl.style.background = B.c; gl.style.fontSize = B.g.length > 2 ? "10px" : "12px";
+    const gl = el("span", "glyph"); gl.innerHTML = ICON[B.icon]; gl.style.color = B.c;   // ICON = 이 파일 안의 고정 SVG 문자열(데이터 아님)
     const mid = el("div"); mid.append(el("div", "bname", B.name));
     let desc = `${xs.length}개 · ${B.desc}`;
     if(B.ks[0] === "mn"){ const L = xs.filter(x => x.side > 0).reduce((a, x) => a + x.n, 0), S = xs.filter(x => x.side < 0).reduce((a, x) => a + x.n, 0); const gap = (L + S) ? Math.abs(L - S)/(L + S)*100 : 0; desc = `${xs.length}개 · 롱 ${money(L, {dec:0})} : 숏 ${money(S, {dec:0})} ${gap < 10 ? "· 균형 ✓" : "· 치우침"}`; }
@@ -407,7 +415,7 @@ const tk = t => { const m = /^(\d{2})-(\d{2}) (\d{2}):(\d{2})/.exec(t || ""); re
 function renderRebal(){
   const R = D.mn_rebal || {}, items = R.items || [], box = $("rebal");
   if(!items.length && !isNum(R.realized)){ box.hidden = true; return; }
-  box.hidden = false;
+  box.hidden = false; $("rbIc").innerHTML = ICON.rebal;
   // 시각: journal.mn.t(한국시간) 우선, 없으면 mn_rebal.ts(UTC) + 9h
   let when = ((D.journal || {}).mn || {}).t || "";
   if(!when && R.ts){ const m = /^(\d{2})-(\d{2}) (\d{2}):(\d{2})/.exec(R.ts); if(m){ const t = new Date(Date.UTC(2000, +m[1]-1, +m[2], +m[3], +m[4]) + 9*36e5); const p = n => String(n).padStart(2, "0"); when = `${p(t.getUTCMonth()+1)}-${p(t.getUTCDate())} ${p(t.getUTCHours())}:${p(t.getUTCMinutes())}`; } }
