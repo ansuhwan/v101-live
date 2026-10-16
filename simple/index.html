@@ -119,6 +119,26 @@ h2{font-size:15px;font-weight:700;margin:0;letter-spacing:-.2px}
 .side{display:inline-block;font-size:10px;font-weight:700;padding:1px 6px;border-radius:5px;margin-left:5px;vertical-align:1px}
 .side.L{background:var(--upSoft);color:var(--up)} .side.S{background:var(--downSoft);color:var(--down)}
 
+/* 오늘 리밸런싱 (MN) */
+.rebal{background:var(--raise);border-radius:12px;margin-bottom:8px}
+.rebal summary{list-style:none;display:flex;align-items:center;gap:10px;padding:10px 12px;cursor:pointer}
+.rebal summary::-webkit-details-marker{display:none}
+.rebal summary:focus-visible{outline:2px solid var(--gold);outline-offset:2px;border-radius:12px}
+.rb-ic{width:26px;height:26px;border-radius:8px;display:grid;place-items:center;background:var(--b2);color:#fff;font:700 10px var(--num);flex:none}
+.rb-t{flex:1;min-width:0}
+.rb-t .a,.rb-t .b{display:block}
+.rb-t .a{font-weight:700;font-size:13px}
+.rb-t .b{font-size:11px;color:var(--muted);margin-top:1px}
+.rb-r{text-align:right;font:700 14px var(--num);white-space:nowrap}
+.rb-r span{display:block;font:500 11px var(--txt);color:var(--muted)}
+.rb-chev{color:var(--muted);font-size:11px;transition:transform .15s}
+.rebal[open] .rb-chev{transform:rotate(90deg)}
+.rb-list{padding:0 12px 10px 48px;display:flex;flex-direction:column}
+.rb-row{display:grid;grid-template-columns:auto 1fr auto;gap:8px;align-items:baseline;font-size:12px;padding:5px 0;border-top:1px solid var(--line)}
+.rb-row:first-child{border-top:0}
+.rb-row .s{font:700 12px var(--num)}
+.rb-row .d{color:var(--muted);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rb-row .p{font:600 12px var(--num);white-space:nowrap}
 /* 타임라인 */
 .tl{position:relative;padding-left:18px}
 .tl:before{content:"";position:absolute;left:4px;top:8px;bottom:8px;width:2px;background:var(--line);border-radius:1px}
@@ -205,6 +225,10 @@ h2{font-size:15px;font-weight:700;margin:0;letter-spacing:-.2px}
 
   <section class="card reveal">
     <div class="head"><h2>최근 끝난 거래</h2><span class="aside">한국시간</span></div>
+    <details class="rebal" id="rebal" hidden>
+      <summary><span class="rb-ic" aria-hidden="true">MN</span><span class="rb-t"><span class="a" id="rbTitle"></span><span class="b" id="rbSub"></span></span><span class="rb-r" id="rbPnl"></span><span class="rb-chev">▸</span></summary>
+      <div class="rb-list" id="rbList"></div>
+    </details>
     <div class="sum" id="trSum"></div>
     <div class="tl" id="tl"></div>
   </section>
@@ -379,6 +403,33 @@ function renderBooks(){
 
 /* 거래 타임라인 */
 const tk = t => { const m = /^(\d{2})-(\d{2}) (\d{2}):(\d{2})/.exec(t || ""); return m ? +(m[1] + m[2] + m[3] + m[4]) : 0; };
+/* 오늘 리밸런싱 (MN, 매일 09:00 KST) */
+function renderRebal(){
+  const R = D.mn_rebal || {}, items = R.items || [], box = $("rebal");
+  if(!items.length && !isNum(R.realized)){ box.hidden = true; return; }
+  box.hidden = false;
+  // 시각: journal.mn.t(한국시간) 우선, 없으면 mn_rebal.ts(UTC) + 9h
+  let when = ((D.journal || {}).mn || {}).t || "";
+  if(!when && R.ts){ const m = /^(\d{2})-(\d{2}) (\d{2}):(\d{2})/.exec(R.ts); if(m){ const t = new Date(Date.UTC(2000, +m[1]-1, +m[2], +m[3], +m[4]) + 9*36e5); const p = n => String(n).padStart(2, "0"); when = `${p(t.getUTCMonth()+1)}-${p(t.getUTCDate())} ${p(t.getUTCHours())}:${p(t.getUTCMinutes())}`; } }
+  const today = (kst(D.asof).match(/(\d+)월 (\d+)일/) || []).slice(1).map(Number);
+  const wm = /^(\d{2})-(\d{2}) (\d{2}:\d{2})/.exec(when || "");
+  const isToday = wm && today.length && +wm[1] === today[0] && +wm[2] === today[1];
+  $("rbTitle").textContent = (isToday ? "오늘 " + wm[3] : (wm ? `${+wm[1]}.${+wm[2]} ${wm[3]}` : "최근")) + " MN 리밸런싱";
+  const grow = items.filter(i => i.kind === "확대").length, cut = items.filter(i => i.kind === "축소").length, flip = items.filter(i => i.kind === "전환").length;
+  $("rbSub").textContent = `${items.length}개 조정` + [grow ? ` · 늘림 ${grow}` : "", cut ? ` · 줄임 ${cut}` : "", flip ? ` · 방향 바꿈 ${flip}` : ""].join("");
+  const rp = $("rbPnl"); rp.textContent = ""; rp.className = "rb-r " + cls(R.realized);
+  rp.append(isNum(R.realized) ? money(R.realized, {sign:true}) : "—"); rp.append(el("span", null, "실현"));
+  const L = $("rbList"); L.textContent = "";
+  const KIND = {"확대":"늘림", "축소":"줄임", "전환":"방향 바꿈"};
+  items.forEach(i => {
+    const row = el("div", "rb-row");
+    const s = el("span", "s", String(i.c || "").toUpperCase()); s.append(el("span", "side " + (i.side > 0 ? "L" : "S"), i.side > 0 ? "롱" : "숏"));
+    const d = `${KIND[i.kind] || i.kind || ""}${i.note ? " (" + i.note + ")" : ""} · ${i.qty} · 약 ${money(i.usd, {dec:0})}`;
+    row.append(s, el("span", "d", d), el("span", "p " + cls(i.pnl), isNum(i.pnl) ? money(i.pnl, {sign:true}) : ""));
+    L.append(row);
+  });
+}
+
 function renderTrades(){
   const J = D.journal || {}, S = (J.sum || {}).closed || {};
   const s = $("trSum"); s.textContent = ""; s.append(`${J.month_label || "이번 달"} 끝난 거래 ${S.n ?? "—"}건 · 합계`); s.append(el("b", cls(S.pnl), money(S.pnl, {sign:true})));
@@ -463,7 +514,7 @@ function renderBot(){
 
 function render(){
   $("cur").textContent = cur === "krw" ? "$" : "₩";
-  renderStatus(); renderHero(); renderDD(); renderBooks(); renderTrades(); renderMonths(); renderBot();
+  renderStatus(); renderHero(); renderDD(); renderBooks(); renderTrades(); renderRebal(); renderMonths(); renderBot();
   $("snap").textContent = kst(D.asof);
 }
 cur = store.get("glance.cur") === "krw" ? "krw" : "usdt";
