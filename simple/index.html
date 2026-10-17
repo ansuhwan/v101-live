@@ -11,6 +11,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="봇 한눈에">
 <title>봇 한눈에</title>
+<script>/* 저장된 화면 모드를 그리기 전에 적용(깜빡임 방지) */try{var t=localStorage.getItem("glance.theme");if(t==="light"||t==="dark")document.documentElement.setAttribute("data-theme",t)}catch(e){}</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap">
@@ -53,7 +54,17 @@ body{background:var(--bg);color:var(--ink);font-family:var(--txt);font-size:14px
 .led{width:8px;height:8px;border-radius:50%;background:var(--up);box-shadow:0 0 0 3px var(--upSoft)}
 .led.warn{background:var(--warn);box-shadow:0 0 0 3px var(--warnSoft)} .led.bad{background:var(--down);box-shadow:0 0 0 3px var(--downSoft)}
 .chip{font:600 12px var(--txt);border:1px solid var(--line);background:var(--surface);color:var(--ink2);border-radius:999px;padding:6px 10px;cursor:pointer}
-.chip:focus-visible,.book summary:focus-visible,.seg button:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.chip:focus-visible,.book summary:focus-visible,.seg button:focus-visible,.thmPop button:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+/* 화면 모드 */
+.thm{position:relative}
+.chip.ic{display:inline-grid;place-items:center;width:31px;height:31px;padding:0}
+.chip.ic svg,.thmPop svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.thmPop{position:absolute;right:0;top:calc(100% + 6px);z-index:10;min-width:140px;display:flex;flex-direction:column;gap:2px;padding:6px;
+  background:var(--surface);border:1px solid var(--line);border-radius:14px;box-shadow:0 10px 28px rgba(0,0,0,.16)}
+.thmPop button{display:flex;align-items:center;gap:9px;border:0;background:none;font:500 13px var(--txt);color:var(--ink2);padding:8px 10px;border-radius:9px;cursor:pointer;text-align:left;white-space:nowrap}
+.thmPop button[aria-pressed="true"]{background:var(--raise);color:var(--ink);font-weight:700}
+.thmPop button[aria-pressed="true"]::after{content:"✓";margin-left:auto;color:var(--gold)}
+.thmPop .note{font-size:11px;color:var(--muted);padding:5px 10px 2px}
 .card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:18px}
 .eyebrow{font-size:12px;color:var(--muted);font-weight:500;letter-spacing:.2px}
 h2{font-size:15px;font-weight:700;margin:0;letter-spacing:-.2px}
@@ -70,6 +81,9 @@ h2{font-size:15px;font-weight:700;margin:0;letter-spacing:-.2px}
 .bal{display:flex;align-items:baseline;gap:8px;margin:6px 0 4px;cursor:pointer}
 .bal .v{font:700 clamp(40px,12vw,56px)/1 var(--num);letter-spacing:-1.5px}
 .bal .u{font:600 15px var(--num);color:var(--muted)}
+.balsub{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:12px;color:var(--muted);margin:0 0 6px}
+.balsub b{font:600 13px var(--num);color:var(--ink2);margin-left:4px}
+.balsub b.up{color:var(--up)} .balsub b.down{color:var(--down)}
 .asof{font-size:12px;color:var(--muted)}
 .pills{display:flex;flex-wrap:wrap;gap:6px;margin-top:14px}
 .pill{display:inline-flex;align-items:baseline;gap:6px;padding:7px 11px;border-radius:12px;background:var(--raise);font-size:12px;color:var(--ink2)}
@@ -196,6 +210,13 @@ h2{font-size:15px;font-weight:700;margin:0;letter-spacing:-.2px}
   <div class="top">
     <div class="brand"><span class="logo" aria-hidden="true"><svg width="28" height="28" viewBox="0 0 28 28" aria-hidden="true"><rect width="28" height="28" rx="7" fill="#0c1526"/><rect x=".5" y=".5" width="27" height="27" rx="6.5" fill="none" stroke="#ffffff" stroke-opacity=".10"/><path d="M6 21.5h16" stroke="#ffffff" stroke-opacity=".14" stroke-width="1"/><path d="M6 18.5C9.5 18 10.8 14.2 13.6 14.3S17.6 10.6 21.2 8.6" fill="none" stroke="#e8b54c" stroke-width="1.8" stroke-linecap="round"/><circle cx="21.2" cy="8.6" r="1.9" fill="#e8b54c"/></svg></span>내 봇</div>
     <div class="status" id="status"><span class="led" id="led"></span><span id="stTxt">확인 중</span></div>
+    <div class="thm">
+      <button class="chip ic" id="thmBtn" aria-haspopup="true" aria-expanded="false" aria-controls="thmPop" aria-label="화면 모드"></button>
+      <div class="thmPop" id="thmPop" role="group" aria-label="화면 모드" hidden>
+        <button data-t="auto"></button><button data-t="light"></button><button data-t="dark"></button>
+        <div class="note">이 기기에 저장돼요</div>
+      </div>
+    </div>
     <button class="chip" id="cur" aria-label="원화/USDT 전환">₩</button>
   </div>
 
@@ -203,6 +224,7 @@ h2{font-size:15px;font-weight:700;margin:0;letter-spacing:-.2px}
     <div class="in">
       <div class="eyebrow">지금 자산</div>
       <div class="bal" id="bal" title="눌러서 원화/USDT 전환"><span class="v" id="balV">—</span><span class="u" id="balU">USDT</span></div>
+      <div class="balsub" id="balSub" hidden></div>
       <div class="asof" id="asof"></div>
       <div class="pills" id="pills"></div>
     </div>
@@ -295,6 +317,12 @@ function renderStatus(){
 /* 히어로 */
 function renderHero(){
   $("balV").textContent = money(D.balance); $("balU").textContent = cur === "krw" && fx() ? "" : "USDT";
+  // 지금 자산 = 지갑 잔고 + 미실현 손익 (바이낸스 totalWalletBalance · totalUnrealizedProfit)
+  const C = D.cash || {}, bs = $("balSub"); bs.textContent = ""; bs.hidden = !isNum(C.wallet);
+  if(isNum(C.wallet)){
+    const w = el("span", null, "지갑 잔고"); w.append(el("b", null, money(C.wallet))); bs.append(w);
+    if(isNum(C.upnl)){ const u = el("span", null, "미실현"); u.append(el("b", cls(C.upnl), arr(C.upnl) + " " + money(C.upnl, {sign:true}))); bs.append(u); }
+  }
   $("asof").textContent = kst(D.asof) + " 기준";
   const ms = D.month_start, L = D.ledger || [], f = L[0];
   const items = [
@@ -419,10 +447,13 @@ function renderRebal(){
   // 시각: journal.mn.t(한국시간) 우선, 없으면 mn_rebal.ts(UTC) + 9h
   let when = ((D.journal || {}).mn || {}).t || "";
   if(!when && R.ts){ const m = /^(\d{2})-(\d{2}) (\d{2}):(\d{2})/.exec(R.ts); if(m){ const t = new Date(Date.UTC(2000, +m[1]-1, +m[2], +m[3], +m[4]) + 9*36e5); const p = n => String(n).padStart(2, "0"); when = `${p(t.getUTCMonth()+1)}-${p(t.getUTCDate())} ${p(t.getUTCHours())}:${p(t.getUTCMinutes())}`; } }
-  const today = (kst(D.asof).match(/(\d+)월 (\d+)일/) || []).slice(1).map(Number);
+  // 오늘/어제 판정 = 지금 실제 시각(한국시간) — 데이터가 멈춰도 옛 리밸런싱을 '오늘'로 부르지 않게
+  const nowK = Date.now() + 9*36e5;
+  const mdOf = ms => { const t = new Date(ms); return [t.getUTCMonth()+1, t.getUTCDate()]; };
   const wm = /^(\d{2})-(\d{2}) (\d{2}:\d{2})/.exec(when || "");
-  const isToday = wm && today.length && +wm[1] === today[0] && +wm[2] === today[1];
-  $("rbTitle").textContent = (isToday ? "오늘 " + wm[3] : (wm ? `${+wm[1]}.${+wm[2]} ${wm[3]}` : "최근")) + " MN 리밸런싱";
+  const same = d => wm && isNum(nowK) && +wm[1] === d[0] && +wm[2] === d[1];
+  const day = !wm ? "" : same(mdOf(nowK)) ? "오늘 " : same(mdOf(nowK - 864e5)) ? "어제 " : "";
+  $("rbTitle").textContent = wm ? `${day}${wm[3]} MN 리밸런싱 (${+wm[1]}.${+wm[2]})` : "최근 MN 리밸런싱";
   const grow = items.filter(i => i.kind === "확대").length, cut = items.filter(i => i.kind === "축소").length, flip = items.filter(i => i.kind === "전환").length;
   $("rbSub").textContent = `${items.length}개 조정` + [grow ? ` · 늘림 ${grow}` : "", cut ? ` · 줄임 ${cut}` : "", flip ? ` · 방향 바꿈 ${flip}` : ""].join("");
   const rp = $("rbPnl"); rp.textContent = ""; rp.className = "rb-r " + cls(R.realized);
@@ -525,6 +556,31 @@ function render(){
   renderStatus(); renderHero(); renderDD(); renderBooks(); renderTrades(); renderRebal(); renderMonths(); renderBot();
   $("snap").textContent = kst(D.asof);
 }
+/* 화면 모드: 자동(기기 설정 따름)·밝게·어둡게 — 이 기기 브라우저에 저장 */
+const TH_IC = {
+  auto:'<svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="6.5"/><path d="M10 3.5a6.5 6.5 0 0 1 0 13z" fill="currentColor" stroke="none"/></svg>',
+  light:'<svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="3.4"/><path d="M10 2.6v1.7M10 15.7v1.7M2.6 10h1.7M15.7 10h1.7M4.8 4.8 6 6M14 14l1.2 1.2M4.8 15.2 6 14M14 6l1.2-1.2"/></svg>',
+  dark:'<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M15.9 12.4A6.6 6.6 0 0 1 7.6 4.1a6.6 6.6 0 1 0 8.3 8.3z"/></svg>'};
+const TH_LB = {auto:"자동 (기기 설정)", light:"밝게", dark:"어둡게"}, TH_BG = {light:"#f3f4f6", dark:"#080d17"};
+const thSaved = store.get("glance.theme");
+let theme = thSaved === "light" || thSaved === "dark" ? thSaved : "auto";
+const thBtn = $("thmBtn"), thPop = $("thmPop");
+function applyTheme(){
+  if(theme === "auto") document.documentElement.removeAttribute("data-theme"); else document.documentElement.setAttribute("data-theme", theme);
+  document.querySelectorAll('meta[name="theme-color"]').forEach(m => { if(!m.dataset.c) m.dataset.c = m.content; m.content = theme === "auto" ? m.dataset.c : TH_BG[theme]; });
+  thBtn.innerHTML = TH_IC[theme]; thBtn.title = "화면 모드: " + TH_LB[theme]; thBtn.setAttribute("aria-label", thBtn.title);
+  thPop.querySelectorAll("button").forEach(b => b.setAttribute("aria-pressed", b.dataset.t === theme ? "true" : "false"));
+}
+const thOpen = o => { thPop.hidden = !o; thBtn.setAttribute("aria-expanded", o ? "true" : "false"); };
+thBtn.onclick = e => { e.stopPropagation(); thOpen(thPop.hidden); };
+thPop.querySelectorAll("button").forEach(b => {
+  b.innerHTML = TH_IC[b.dataset.t] + TH_LB[b.dataset.t];
+  b.onclick = () => { theme = b.dataset.t; store.set("glance.theme", theme); applyTheme(); thOpen(false); thBtn.focus(); };
+});
+document.addEventListener("click", e => { if(!thPop.hidden && !thPop.contains(e.target)) thOpen(false); });
+document.addEventListener("keydown", e => { if(e.key === "Escape" && !thPop.hidden){ thOpen(false); thBtn.focus(); } });
+applyTheme();
+
 cur = store.get("glance.cur") === "krw" ? "krw" : "usdt";
 $("cur").onclick = $("bal").onclick = () => { cur = cur === "krw" ? "usdt" : "krw"; store.set("glance.cur", cur); render(); };
 document.querySelectorAll(".seg button").forEach(b => b.onclick = () => { period = b.dataset.p; document.querySelectorAll(".seg button").forEach(x => x.setAttribute("aria-pressed", x === b ? "true" : "false")); drawEq(); });
