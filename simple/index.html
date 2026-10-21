@@ -193,6 +193,56 @@ h2{font-size:15px;font-weight:700;margin:0;letter-spacing:-.2px}
 .ysum{display:flex;flex-wrap:wrap;gap:6px 14px;align-items:baseline;font-size:12px;color:var(--ink2);margin-top:12px}
 .ysum b{font:700 16px var(--num)}
 .btnote{font-size:11px;color:var(--muted);line-height:1.5;margin-top:8px;padding:8px 10px;border-radius:10px;background:var(--raise)}
+/* 1분 감시 — 계기 3줄(눈금 = 규칙 문턱) → 24시간 칸(조회 빠짐 점) → 알림 기록 → 작동 방식 */
+.mode{font-size:11px;font-weight:700;padding:3px 8px;border-radius:999px;background:var(--goldSoft);color:var(--goldInk)}
+.wst{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:13px;color:var(--ink2);background:var(--raise);border-radius:12px;padding:10px 12px;margin-bottom:16px}
+.wst b{font-weight:700;color:var(--ink)}
+.wst .sm{font-size:11px;color:var(--muted);flex-basis:100%;padding-left:15px}
+.wst .cov{margin-left:auto;font:600 12px var(--num);color:var(--muted)}
+.wg{display:flex;flex-direction:column;gap:14px}
+.wr .top{display:flex;align-items:baseline;gap:8px}
+.wr .lb{font-weight:700;font-size:13px}
+.wr .vv{margin-left:auto;font:700 17px var(--num)}
+.wr .sb{font-size:11px;color:var(--muted);line-height:1.45;margin-top:5px}
+.wr .sb b{font-family:var(--num);color:var(--ink2);font-weight:600}
+.wrail{position:relative;height:32px;margin-top:8px}
+.wrail .tr{position:absolute;left:0;right:0;top:5px;height:8px;border-radius:4px;background:var(--track)}
+.wrail .fl{position:absolute;left:0;top:5px;height:8px;border-radius:4px;background:var(--gold);min-width:3px}
+.wrail .fl.warn{background:var(--warn)} .wrail .fl.bad{background:var(--down)}
+.wrail .mx{position:absolute;top:2px;width:0;height:14px;border-left:2px dotted var(--ink2);transform:translateX(-1px)}
+.wrail .th{position:absolute;top:0;width:2px;height:18px;border-radius:1px;background:var(--warn);transform:translateX(-1px)}
+.wrail .th.r{background:var(--down)} .wrail .th.i{background:var(--muted)}
+.wrail .tk{position:absolute;top:19px;font:600 10px var(--num);color:var(--muted);white-space:nowrap;transform:translateX(-50%)}
+.wrail .tk.r{color:var(--down)} .wrail .tk.end{transform:translateX(-100%)} .wrail .tk.z{transform:none}
+.wsec{margin-top:18px;padding-top:14px;border-top:1px solid var(--line)}
+.wsec .t{display:flex;align-items:baseline;gap:8px;font-size:12px;color:var(--ink2);font-weight:700;margin-bottom:10px}
+.wsec .t span{margin-left:auto;font-weight:500;color:var(--muted)}
+.hbars{display:grid;grid-template-columns:repeat(24,minmax(0,1fr));gap:3px;height:60px}
+.hb{display:flex;flex-direction:column;align-items:stretch;justify-content:flex-end;gap:4px;height:100%;border:0;background:none;padding:0;cursor:pointer;min-width:0;font:inherit;color:inherit}
+.hb i{display:block;border-radius:3px 3px 1px 1px;background:var(--gold);min-height:2px}
+.hb i.warn{background:var(--warn)} .hb i.bad{background:var(--down)} .hb i.none{background:var(--track)}
+.hb u{display:block;align-self:center;width:5px;height:5px;border-radius:50%;background:var(--up);text-decoration:none;flex:none}
+.hb u.part{background:var(--warn)} .hb u.miss{background:var(--down)} .hb u.pre{background:transparent;box-shadow:inset 0 0 0 1px var(--muted)}
+.hb[aria-pressed="true"] i{box-shadow:0 0 0 2px var(--surface),0 0 0 3.5px var(--ink2)}
+.hb:focus-visible{outline:2px solid var(--gold);outline-offset:2px;border-radius:4px}
+.hax{display:grid;grid-template-columns:repeat(24,minmax(0,1fr));gap:3px;margin-top:5px;font:500 10px var(--num);color:var(--muted)}
+.hax span{white-space:nowrap}
+.hax span.end{justify-self:end}
+.hsel{font-size:12px;color:var(--ink2);margin-top:8px;min-height:18px;line-height:1.5}
+.hsel b{font-family:var(--num)}
+.hleg{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:11px;color:var(--muted);margin-top:6px}
+.hleg u{display:inline-block;width:6px;height:6px;border-radius:50%;margin-right:4px;vertical-align:1px;background:var(--up)}
+.hleg u.part{background:var(--warn)} .hleg u.miss{background:var(--down)}
+.ev.a:before{border-color:var(--warn)}
+.wempty{font-size:12px;color:var(--muted);background:var(--raise);border-radius:12px;padding:10px 12px;line-height:1.55}
+.how{margin-top:16px;border-top:1px solid var(--line);padding-top:12px}
+.how summary{cursor:pointer;font-size:13px;font-weight:700;color:var(--ink2);list-style:none}
+.how summary::-webkit-details-marker{display:none}
+.how summary:before{content:"▸ ";color:var(--muted)} .how[open] summary:before{content:"▾ "}
+.how summary:focus-visible{outline:2px solid var(--gold);outline-offset:2px;border-radius:6px}
+.how ol{margin:10px 0 0;padding-left:20px;display:flex;flex-direction:column;gap:6px;font-size:12px;color:var(--ink2);line-height:1.6}
+.how ol b{font-family:var(--num);color:var(--ink)}
+.how p{font-size:11px;color:var(--muted);line-height:1.55;margin:10px 0 0}
 /* 봇 */
 .checks{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
 .ck{background:var(--raise);border-radius:14px;padding:11px}
@@ -240,6 +290,24 @@ h2{font-size:15px;font-weight:700;margin:0;letter-spacing:-.2px}
     <div class="dd"><div class="big n down" id="ddBig">—</div><span class="badge" id="ddBadge"></span></div>
     <div class="runway" id="runway" role="img"></div>
     <div class="ddnote" id="ddNote"></div>
+  </section>
+
+  <section class="card reveal" id="wCard" hidden>
+    <div class="head"><h2>1분 감시</h2><span class="mode" id="wMode"></span><span class="aside" id="wLast"></span></div>
+    <div class="wst" id="wSt"></div>
+    <div class="wg" id="wG"></div>
+    <div class="wsec">
+      <div class="t">지난 24시간 · 시간별 최대 손실<span id="wScale"></span></div>
+      <div class="hbars" id="wBars" role="group" aria-label="지난 24시간 시간별 손실"></div>
+      <div class="hax" id="wAx"></div>
+      <div class="hsel" id="wSel" aria-live="polite"></div>
+      <div class="hleg"><span><u></u>1분마다 다 확인</span><span><u class="part"></u>일부 빠짐</span><span><u class="miss"></u>확인 못 함</span></div>
+    </div>
+    <div class="wsec">
+      <div class="t">알림 기록<span id="wEvN"></span></div>
+      <div class="tl" id="wTl"></div>
+    </div>
+    <details class="how" id="wHow"><summary>어떻게 작동하나요</summary><div id="wHowB"></div></details>
   </section>
 
   <section class="card reveal">
@@ -309,6 +377,7 @@ function renderStatus(){
   let c = "", t;
   if(age != null && age > 80){ c = "bad"; t = `갱신 멈춤 · ${age < 120 ? age + "분째" : Math.floor(age/60) + "시간째"}`; }
   else if(b.ok === false){ c = "bad"; t = "봇 이상"; }
+  else if(D.watch && wState(D.watch).c === "bad"){ c = "warn"; t = "1분 감시 멈춤"; }
   else if(p.ng > 0 || p.ok === false){ c = "warn"; t = `점검 필요 ${p.ng || ""}건`; }
   else t = `정상 운행 · ${age != null ? (age < 60 ? age + "분 전" : Math.floor(age/60) + "시간 " + (age%60) + "분 전") : ""}`;
   $("led").className = "led " + c; $("stTxt").textContent = t;
@@ -551,9 +620,128 @@ function renderBot(){
   add("레버리지", isNum(P.lev) ? P.lev.toFixed(2) + "배" : "—", "변동성 맞춰 매일 조정");
 }
 
+/* 1분 감시 (서버 liq_watch.py 가 매분 기록 → push_dashboard 가 매시 5분 'watch' 로 요약). 문턱은 전부 watch.cfg 에서 */
+function wState(W){
+  const asof = Date.parse(W.asof), lt = Date.parse(W.last_try || ""), gap = isFinite(lt) ? (asof - lt) / 6e4 : Infinity;
+  if(!(gap <= 3)) return {c:"bad", t:"감시 멈춤", s:isFinite(lt) ? `마지막 확인 ${kst(W.last_try)} · 데이터를 올릴 때 이미 ${Math.round(gap)}분 지남` : "아직 확인 기록이 없어요"};
+  if(W.fails_now > 0) return {c:"warn", t:`계좌 확인 실패 ${W.fails_now}분째`, s:"바이낸스 계좌 조회가 막혀 있어요. 5분 넘으면 디스코드로 알려요"};
+  if(W.hold_until && Date.parse(W.hold_until) > asof) return {c:"warn", t:"24시간 쉬는 중(가상)", s:`${kst(W.hold_until)}까지 · 알림만 단계라 실제 매매는 그대로`};
+  return {c:"", t:"정상 · 1분마다 확인 중", s:""};
+}
+function wKind(k, C){
+  switch(k){
+    case "S1": return {t:`1단계 · −${C.s1}% ${C.s1_k}분 연속`, c:"a", act:"전 포지션을 절반으로", v:"loss"};
+    case "S2": return {t:`2단계 · −${C.s2}%`, c:"l", act:"바로 전부 정리", v:"loss"};
+    case "C24": return {t:`24시간 고점 대비 −${C.c24}%`, c:"l", act:`전부 정리하고 ${C.hold_h}시간 쉼`, v:"dd"};
+    case "WARN": return {t:`참고 · 이번 시간 −${C.warn}% 넘음`, c:"a", v:"loss"};
+    case "MM": return {t:`증거금 사용 ${C.mm}% 넘음`, c:"a", v:"mm"};
+    case "FAIL": return {t:"계좌 확인이 연속으로 실패", c:"l"};
+    case "RECOVER": return {t:"계좌 확인 다시 정상", c:"w"};
+    case "STATE": return {t:"감시 기록을 새로 시작", c:"a"};
+    default: return {t:k, c:""};
+  }
+}
+const wR1 = v => Math.round((v || 0) * 10) / 10;      // 표시 자리(0.1%)로 반올림한 뒤 부호·색을 정한다(0.01% 가 '−0.0%' 빨강으로 보이지 않게)
+const wDrop = v => { if(!isNum(v)) return "—"; const r = wR1(v); return r > 0 ? "−" + r.toFixed(1) + "%" : r < 0 ? "+" + Math.abs(r).toFixed(1) + "%" : "0.0%"; };
+function wGauge(box, o){
+  const r = el("div", "wr"), top = el("div", "top");
+  top.append(el("span", "lb", o.label), el("span", "vv n " + (o.vcls || ""), o.vtxt)); r.append(top);
+  const now = Math.max(0, isNum(o.now) ? o.now : 0), sc = Math.max(o.scale, Math.ceil((Math.max(now, o.max || 0) + 5) / 10) * 10), P = x => Math.min(100, Math.max(0, x / sc * 100));
+  const rail = el("div", "wrail"); rail.setAttribute("role", "img"); rail.setAttribute("aria-label", o.aria);
+  rail.append(el("div", "tr"));
+  const f = el("div", "fl " + (now >= o.bad ? "bad" : now >= o.warn ? "warn" : "")); f.style.width = P(now) + "%"; rail.append(f);
+  if(isNum(o.max) && o.max > now + 0.05){ const m = el("div", "mx"); m.style.left = P(o.max) + "%"; m.title = "지난 24시간 최대 " + o.max.toFixed(1) + "%"; rail.append(m); }
+  const z = el("div", "tk z", "0"); z.style.left = "0"; rail.append(z);
+  o.th.forEach(t => {
+    const a = el("div", "th " + (t.cls || "")); a.style.left = P(t.v) + "%"; rail.append(a);
+    const k = el("div", "tk" + (t.cls === "r" ? " r" : "") + (P(t.v) > 82 ? " end" : ""), `${t.v}% ${t.l}`); k.style.left = P(t.v) + "%"; rail.append(k);
+  });
+  r.append(rail);
+  const sb = el("div", "sb"); o.sub.forEach(x => sb.append(typeof x === "string" ? x : el("b", null, x.b))); r.append(sb);
+  box.append(r);
+}
+let wSelH = null;
+function renderWatch(){
+  const W = D.watch, card = $("wCard");
+  card.hidden = !W; if(!W) return;
+  const C = W.cfg || {}, L = W.last || {}, H = W.hours || [];
+  $("wMode").textContent = W.mode === "act" ? "실행" : "알림만";
+  $("wLast").textContent = W.last_try ? "마지막 확인 " + kst(W.last_try).replace(/^.*일 /, "") : "";
+  const s = wState(W), st = $("wSt"); st.textContent = "";
+  const n = H.reduce((a, h) => a + h.n, 0), ex = H.reduce((a, h) => a + h.exp, 0);
+  st.append(el("span", "led " + s.c), el("b", null, s.t), el("span", "cov", ex ? `24시간 ${n.toLocaleString("en-US")}/${ex.toLocaleString("en-US")}분 확인` : ""));
+  if(s.s) st.append(el("span", "sm", s.s));
+  const mx = k => Math.max(0, ...H.map(h => isNum(h[k]) ? h[k] : 0));
+  const G = $("wG"); G.textContent = "";
+  wGauge(G, {label:"이번 시간 손실", now:L.loss, max:mx("loss"), vtxt:wDrop(L.loss), vcls:cls(-wR1(L.loss)), scale:40, warn:C.warn, bad:C.s1,
+    th:[{v:C.warn, l:"참고", cls:"i"}, {v:C.s1, l:"절반"}, {v:C.s2, l:"전부", cls:"r"}],
+    aria:`이번 시간 손실 ${wDrop(L.loss)}, 1단계 ${C.s1}%, 2단계 ${C.s2}%`,
+    sub:["정시 첫 확인 ", {b:money(L.ref)}, " → 지금 ", {b:money(L.equity)}, " · 24시간 최대 ", {b:mx("loss").toFixed(1) + "%"}]});
+  wGauge(G, {label:"24시간 고점 대비", now:L.dd, max:mx("dd"), vtxt:wDrop(L.dd), vcls:cls(-wR1(L.dd)), scale:50, warn:C.c24 / 2, bad:C.c24,
+    th:[{v:C.c24, l:`전부·${C.hold_h}시간 쉼`, cls:"r"}], aria:`24시간 고점 대비 ${wDrop(L.dd)}, 기준 ${C.c24}%`,
+    sub:["24시간 고점 ", {b:money(L.peak)}, " · 24시간 최대 ", {b:mx("dd").toFixed(1) + "%"}]});
+  wGauge(G, {label:"증거금 사용", now:L.mm, max:mx("mm"), vtxt:isNum(L.mm) ? L.mm.toFixed(1) + "%" : "—", scale:25, warn:C.mm / 2, bad:C.mm,
+    th:[{v:C.mm, l:"봇이 줄이기 시작", cls:"r"}], aria:`증거금 사용 ${isNum(L.mm) ? L.mm.toFixed(1) : "—"}%, 기준 ${C.mm}%`,
+    sub:["100%가 되면 강제 청산 · 총노출 ", {b:isNum(L.gross) ? L.gross.toFixed(2) + "배" : "—"}]});
+  /* 24시간 칸 */
+  const top = Math.max(...H.map(h => h.n ? Math.max(0, h.loss || 0) : 0), 0), scale = [1, 2, 5, 10, 20, 40, 60, 100].find(x => x >= top) || Math.ceil(top);
+  $("wScale").textContent = `막대 끝 ${scale}%`;
+  const B = $("wBars"), A = $("wAx"); B.textContent = ""; A.textContent = "";
+  const hh = h => (new Date(Date.parse(h.h)).getUTCHours() + 9) % 24;
+  if(wSelH == null || !H.some(h => h.h === wSelH)){
+    const best = H.reduce((b, h, i) => (h.n && (h.loss || 0) > ((H[b] || {}).loss || 0)) ? i : b, H.length - 1);
+    wSelH = (H[best] || {}).h;
+  }
+  const sel = h => {
+    wSelH = h.h; B.querySelectorAll(".hb").forEach(x => x.setAttribute("aria-pressed", x.dataset.h === h.h ? "true" : "false"));
+    const t = kst(h.h).replace(/:00$/, "시"), S = $("wSel"); S.textContent = "";
+    if(!h.exp){ S.append(t + " · 감시 시작 전"); return; }
+    S.append(t + " · 가장 큰 손실 ", el("b", null, h.n ? wDrop(h.loss) : "—"), " · 확인 ", el("b", null, `${h.n}/${h.exp}분`));
+    if(h.fails) S.append(` · 실패 ${h.fails}번`);
+    if(h.n && isNum(h.mm)) S.append(" · 증거금 최대 ", el("b", null, h.mm.toFixed(1) + "%"));
+  };
+  H.forEach((h, i) => {
+    const b = el("button", "hb"); b.type = "button"; b.dataset.h = h.h;
+    const lv = Math.max(0, h.loss || 0), bar = el("i", !h.n ? "none" : lv >= C.s1 ? "bad" : lv >= C.warn ? "warn" : "");
+    bar.style.height = (h.n ? Math.max(2, Math.min(1, lv / scale) * 44) : 2) + "px";
+    const dot = el("u", !h.exp ? "pre" : h.n >= h.exp - 1 ? "" : h.n ? "part" : "miss");
+    b.append(bar, dot);
+    b.setAttribute("aria-label", `${hh(h)}시, 가장 큰 손실 ${h.n ? wDrop(h.loss) : "기록 없음"}, 확인 ${h.n}/${h.exp}분`);
+    b.onclick = () => sel(h); B.append(b);
+    if(i % 6 === 0 || i === H.length - 1){ const a = el("span", i === H.length - 1 ? "end" : "", i === H.length - 1 ? "지금" : hh(h) + "시"); a.style.gridColumn = String(i + 1); A.append(a); }
+  });
+  const cur0 = H.find(h => h.h === wSelH); if(cur0) sel(cur0);
+  /* 알림 기록 */
+  const T = $("wTl"), E = [];
+  (W.events || []).forEach(e => e.k.forEach(k => E.push([e, k])));
+  T.textContent = ""; $("wEvN").textContent = E.length ? `최근 30일 ${E.length}건` : "최근 30일";
+  if(!E.length){ T.className = ""; T.append(el("div", "wempty", `아직 없어요. ${W.since ? kst(W.since) + "에 감시를 시작한 뒤로 " : ""}규칙이나 참고 기준에 걸린 적이 없어요.`)); }
+  else {
+    T.className = "tl";
+    E.slice(0, 8).forEach(([e, k]) => {
+      const K = wKind(k, C), d = el("div", "ev " + K.c), lft = el("div");
+      lft.append(el("div", "c", K.t), el("div", "m", K.act ? `실행 모드였다면 ${K.act} · 지금은 알림만` : k === "FAIL" ? (e.err || "") : ""));
+      const r = el("div", "r n", K.v === "mm" ? (isNum(e.mm) ? e.mm.toFixed(1) + "%" : "") : K.v ? wDrop(e[K.v]) : "");
+      r.append(el("span", null, kst(e.ts))); d.append(lft, r); T.append(d);
+    });
+  }
+  /* 작동 방식 */
+  const hw = $("wHowB"); hw.textContent = "";
+  const ol = el("ol"), li = parts => { const x = el("li"); parts.forEach(p => x.append(typeof p === "string" ? p : el("b", null, p.b))); ol.append(x); };
+  li(["서버가 ", {b:"1분마다"}, " 바이낸스 계좌 자산(미실현 손익 포함)을 한 번 확인해요. 확인만 하고 주문은 내지 않아요."]);
+  li(["매 정시 첫 확인값이 그 시간의 기준이에요. 정시가 지나면 새 기준으로 다시 시작해요."]);
+  li(["기준보다 ", {b:`−${C.s1}%`}, " 이상인 상태가 ", {b:`${C.s1_k}분 연속`}, "이면 1단계: 전 포지션을 절반으로 줄여요."]);
+  li(["기준보다 ", {b:`−${C.s2}%`}, "면 2단계: 기다리지 않고 바로 전부 정리해요."]);
+  li(["지난 24시간 최고 자산보다 ", {b:`−${C.c24}%`}, "면 전부 정리하고 ", {b:`${C.hold_h}시간`}, " 쉬어요. 쉬는 게 끝나면 고점을 새로 잡아요."]);
+  if(W.mode !== "act") li(["지금은 ", {b:"알림만"}, " 하는 단계예요. 조건이 맞아도 실제로 줄이지 않고, 디스코드로 '실행 모드였다면 무엇을 했을지'만 보내요. 매분 빠짐없이 도는지 먼저 확인한 뒤 실제로 줄이는 단계로 넘어가요."]);
+  hw.append(ol);
+  hw.append(el("p", null, `참고 알림(규칙 아님): 이번 시간 −${C.warn}%, 증거금 사용 ${C.mm}%(봇이 매시 줄이기 시작하는 선), 계좌 확인 5분 연속 실패. 매일 오전 9시에 하루 요약이 디스코드로 와요.`));
+  hw.append(el("p", null, "이 칸은 봇이 매시 5분에 올린 데이터라 최대 1시간 늦어요. 급한 소식은 디스코드가 먼저 알려요. 입금·출금·이체도 자산 변화로 보여서 알림이 갈 수 있어요."));
+}
+
 function render(){
   $("cur").textContent = cur === "krw" ? "$" : "₩";
-  renderStatus(); renderHero(); renderDD(); renderBooks(); renderTrades(); renderRebal(); renderMonths(); renderBot();
+  renderStatus(); renderHero(); renderDD(); renderWatch(); renderBooks(); renderTrades(); renderRebal(); renderMonths(); renderBot();
   $("snap").textContent = kst(D.asof);
 }
 /* 화면 모드: 자동(기기 설정 따름)·밝게·어둡게 — 이 기기 브라우저에 저장 */
