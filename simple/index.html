@@ -22,7 +22,7 @@
   --line:#e3e7ee; --gold:#b98317; --goldInk:#8f6410; --goldSoft:rgba(185,131,23,.13); --glow:rgba(185,131,23,.10);
   --up:#0b9a6a; --upSoft:rgba(11,154,106,.12); --down:#e0484e; --downSoft:rgba(224,72,78,.12);
   --warn:#c97a06; --warnSoft:rgba(201,122,6,.12); --track:#eceff4;
-  --b1:#3b6fe0; --b2:#b98317; --b3:#14a38b;
+  --b1:#3b6fe0; --b2:#b98317; --b3:#14a38b; --b4:#8a5cd6;
   --num:"Geist","IBM Plex Sans KR",system-ui,sans-serif;
   --txt:"IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
   --r:20px;
@@ -32,13 +32,13 @@
   --line:#1c2638; --gold:#f2b84b; --goldInk:#f2b84b; --goldSoft:rgba(242,184,75,.15); --glow:rgba(242,184,75,.10);
   --up:#3ad29b; --upSoft:rgba(58,210,155,.13); --down:#ff6b70; --downSoft:rgba(255,107,112,.13);
   --warn:#fbbf3a; --warnSoft:rgba(251,191,58,.14); --track:#1a2436;
-  --b1:#6b95ff; --b2:#f2b84b; --b3:#3ad2b6; color-scheme:dark;}}
+  --b1:#6b95ff; --b2:#f2b84b; --b3:#3ad2b6; --b4:#b48cff; color-scheme:dark;}}
 :root[data-theme="dark"]{
   --bg:#080d17; --surface:#0f1726; --raise:#131d30; --ink:#eef1f7; --ink2:#b3bccd; --muted:#78849a;
   --line:#1c2638; --gold:#f2b84b; --goldInk:#f2b84b; --goldSoft:rgba(242,184,75,.15); --glow:rgba(242,184,75,.10);
   --up:#3ad29b; --upSoft:rgba(58,210,155,.13); --down:#ff6b70; --downSoft:rgba(255,107,112,.13);
   --warn:#fbbf3a; --warnSoft:rgba(251,191,58,.14); --track:#1a2436;
-  --b1:#6b95ff; --b2:#f2b84b; --b3:#3ad2b6; color-scheme:dark;}
+  --b1:#6b95ff; --b2:#f2b84b; --b3:#3ad2b6; --b4:#b48cff; color-scheme:dark;}
 *{box-sizing:border-box}
 html,body{margin:0}
 :root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
@@ -134,6 +134,7 @@ h2{font-size:15px;font-weight:700;margin:0;letter-spacing:-.2px}
 .coin .p{font:600 13px var(--num);white-space:nowrap}
 .side{display:inline-block;font-size:10px;font-weight:700;padding:1px 6px;border-radius:5px;margin-left:5px;vertical-align:1px}
 .side.L{background:var(--upSoft);color:var(--up)} .side.S{background:var(--downSoft);color:var(--down)}
+.err.odd{margin:2px 0 12px;font-size:13px;line-height:1.5} .err.odd div{margin-top:3px} .err.odd .hint{color:var(--muted);font-size:12px}
 
 /* 오늘 리밸런싱 (MN) */
 .rebal{background:var(--raise);border-radius:12px;margin-bottom:8px}
@@ -472,19 +473,37 @@ const ICON = {
   mn:'<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 7h12M13 4l3 3-3 3"/><path d="M16 13H4M7 10l-3 3 3 3"/></svg>',
   ovl:'<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 3.5l7 3.8-7 3.8-7-3.8z"/><path d="M3 11.2l7 3.8 7-3.8"/></svg>',
   rebal:'<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M15.6 8A6 6 0 0 0 4.7 6.3"/><path d="M4.4 3.6v3h3"/><path d="M4.4 12a6 6 0 0 0 10.9 1.7"/><path d="M15.6 16.4v-3h-3"/></svg>',
+  p5:'<svg viewBox="0 0 20 20" aria-hidden="true"><polyline points="3,5 8.5,14.5 17,5"/><polyline points="12.8,5 17,5 17,9.2"/></svg>',
 };
-/* 북 3개 */
+/* 북 4개 (P5 = 2026-11 라이브 예정 — 보유가 없으면 묶음이 안 보임) */
 const BOOKS = [
   {ks:["trend","slv","bsk","ens"], name:"BTC·ETH 추세", desc:"큰 흐름을 따라가는 본진", c:"var(--b1)", icon:"trend"},
   {ks:["mn"], name:"MN 시장중립", desc:"알트 롱·숏을 같은 크기로", c:"var(--b2)", icon:"mn"},
   {ks:["ovl"], name:"얹기 단기매매", desc:"신호 따라 짧게 치고 빠짐", c:"var(--b3)", icon:"ovl"},
+  {ks:["p5"], name:"P5 스윙", desc:"폭락 반등·시장 폭·모멘텀 중립", c:"var(--b4)", icon:"p5"},
 ];
 const SUB = {trend:"추세", slv:"슬리브", bsk:"바스켓", ens:"앙상블", mn:"MN"};
+const ODD_MIN = 5;      // 이보다 작은 어긋남(달러)은 찌꺼기로 본다 — 바이낸스 최소 주문 금액
+const fq = q => String(+q.toPrecision(4));
 function renderBooks(){
-  const sh = []; ((D.journal || {}).pos || []).forEach(p => (p.books || []).forEach(b => sh.push({s:p.s, side:p.side, k:b.k, b:b.b, n:Math.abs(b.q || 0)*(p.px || b.entry || 0), up:b.upnl, pc:b.pct})));
+  // 어긋남 = 일지의 '미확인' 몫(거래소 수량 − 장부 합 ≠ 0)·모르는 북 · 장부엔 있는데 거래소에 없는 줄(ghost). 생기면 안 되는 것 → 맨 위 경고.
+  const known = new Set(BOOKS.flatMap(B => B.ks)), sh = [], odd = [];
+  ((D.journal || {}).pos || []).forEach(p => (p.books || []).forEach(b => {
+    const q = Math.abs(b.q || 0), n = q*(p.px || b.entry || 0);
+    if(p.ghost){ if(q > 0) odd.push({s:p.s, side:p.side, q, n, t:`거래소에 없음 · ${b.b || b.k}`}); return; }
+    if(!known.has(b.k)){ if(n >= ODD_MIN) odd.push({s:p.s, side:p.side, q, n, t:(b.q || 0) < 0 ? "장부보다 거래소가 적음" : "어느 장부에도 없는 수량"}); return; }
+    if(q > 0) sh.push({s:p.s, side:p.side, k:b.k, b:b.b, n, up:b.upnl, pc:b.pct});
+  }));
   const tot = sh.reduce((a, x) => a + x.n, 0), up = isNum((D.cash || {}).upnl) ? D.cash.upnl : sh.reduce((a, x) => a + (x.up || 0), 0);
   const as = $("posAside"); as.textContent = `${sh.length}개 · 평가 `; const sp = el("b", "n " + cls(up), money(up, {sign:true})); as.append(sp);
   const box = $("books"); box.textContent = "";
+  if(odd.length){
+    const w = el("div", "err odd"); w.setAttribute("role", "alert");
+    w.append(el("b", null, `⚠️ 봇 장부와 거래소가 어긋남 ${odd.length}건`));
+    odd.forEach(o => w.append(el("div", null, `${o.s} ${o.side > 0 ? "롱" : "숏"} ${fq(o.q)}개${o.n ? " · " + money(o.n, {dec:0}) : ""} — ${o.t}`)));
+    w.append(el("div", "hint", "정시 직후 손절·익절이 체결된 거면 다음 정시에 사라져요. 두 시간 넘게 남으면 확인이 필요해요."));
+    box.append(w);
+  }
   BOOKS.forEach(B => {
     const xs = sh.filter(x => B.ks.includes(x.k)).sort((a, b) => b.n - a.n); if(!xs.length) return;
     const n = xs.reduce((a, x) => a + x.n, 0), u = xs.reduce((a, x) => a + (x.up || 0), 0);
@@ -499,7 +518,7 @@ function renderBooks(){
     s.append(gl, mid, r); det.append(s);
     const cs = el("div", "coins");
     xs.forEach(x => { const row = el("div", "coin"); const a = el("span", "s", x.s); a.append(el("span", "side " + (x.side > 0 ? "L" : "S"), x.side > 0 ? "롱" : "숏"));
-      const sub = x.k === "ovl" ? String(x.b || "").replace(/^얹기·/, "") : (SUB[x.k] || x.k);
+      const sub = x.k === "ovl" ? String(x.b || "").replace(/^얹기·/, "") : x.k === "p5" ? String(x.b || "").replace(/^P5·/, "") : (SUB[x.k] || x.k);
       row.append(a, el("span", "d", `${sub} · ${money(x.n, {dec:0})}`), el("span", "p " + cls(x.up), money(x.up, {sign:true}) + (isNum(x.pc) ? ` (${pct(x.pc)})` : "")));
       cs.append(row); });
     det.append(cs); box.append(det);
