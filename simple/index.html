@@ -484,15 +484,17 @@ const BOOKS = [
 ];
 const SUB = {trend:"추세", slv:"슬리브", bsk:"바스켓", ens:"앙상블", mn:"MN"};
 const ODD_MIN = 5;      // 이보다 작은 어긋남(달러)은 찌꺼기로 본다 — 바이낸스 최소 주문 금액
+const QTOL = 1e-6;      // 이보다 작은 수량은 0 (journal.py QTOL 과 같음)
 const fq = q => String(+q.toPrecision(4));
 function renderBooks(){
   // 어긋남 = 일지의 '미확인' 몫(거래소 수량 − 장부 합 ≠ 0)·모르는 북 · 장부엔 있는데 거래소에 없는 줄(ghost). 생기면 안 되는 것 → 맨 위 경고.
   const known = new Set(BOOKS.flatMap(B => B.ks)), sh = [], odd = [];
   ((D.journal || {}).pos || []).forEach(p => (p.books || []).forEach(b => {
     const q = Math.abs(b.q || 0), n = q*(p.px || b.entry || 0);
-    if(p.ghost){ if(q > 0) odd.push({s:p.s, side:p.side, q, n, t:`거래소에 없음 · ${b.b || b.k}`}); return; }
+    if(q < QTOL) return;   // 소수 계산 찌꺼기(예: 바스켓 ETH 2.8e-17개) = 0
+    if(p.ghost){ if(!n || n >= ODD_MIN) odd.push({s:p.s, side:p.side, q, n, t:`거래소에 없음 · ${b.b || b.k}`}); return; }
     if(!known.has(b.k)){ if(n >= ODD_MIN) odd.push({s:p.s, side:p.side, q, n, t:(b.q || 0) < 0 ? "장부보다 거래소가 적음" : "어느 장부에도 없는 수량"}); return; }
-    if(q > 0) sh.push({s:p.s, side:p.side, k:b.k, b:b.b, n, up:b.upnl, pc:b.pct});
+    sh.push({s:p.s, side:p.side, k:b.k, b:b.b, n, up:b.upnl, pc:b.pct});
   }));
   const tot = sh.reduce((a, x) => a + x.n, 0), up = isNum((D.cash || {}).upnl) ? D.cash.upnl : sh.reduce((a, x) => a + (x.up || 0), 0);
   const as = $("posAside"); as.textContent = `${sh.length}개 · 평가 `; const sp = el("b", "n " + cls(up), money(up, {sign:true})); as.append(sp);
