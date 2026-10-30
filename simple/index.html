@@ -646,7 +646,9 @@ function wState(W){
   const asof = Date.parse(W.asof), lt = Date.parse(W.last_try || ""), gap = isFinite(lt) ? (asof - lt) / 6e4 : Infinity;
   if(!(gap <= 3)) return {c:"bad", t:"감시 멈춤", s:isFinite(lt) ? `마지막 확인 ${kst(W.last_try)} · 데이터를 올릴 때 이미 ${Math.round(gap)}분 지남` : "아직 확인 기록이 없어요"};
   if(W.fails_now > 0) return {c:"warn", t:`계좌 확인 실패 ${W.fails_now}분째`, s:"바이낸스 계좌 조회가 막혀 있어요. 5분 넘으면 디스코드로 알려요"};
-  if(W.hold_until && Date.parse(W.hold_until) > asof) return {c:"warn", t:"24시간 쉬는 중(가상)", s:`${kst(W.hold_until)}까지 · 알림만 단계라 실제 매매는 그대로`};
+  if(W.hold_until && Date.parse(W.hold_until) > asof) return W.mode === "act"
+    ? {c:"warn", t:"24시간 쉬는 중", s:`${kst(W.hold_until)}까지 · 포지션을 정리하고 새 진입을 막고 있어요`}
+    : {c:"warn", t:"24시간 쉬는 중(가상)", s:`${kst(W.hold_until)}까지 · 알림만 단계라 실제 매매는 그대로`};
   return {c:"", t:"정상 · 1분마다 확인 중", s:""};
 }
 function wKind(k, C){
@@ -686,7 +688,8 @@ function renderWatch(){
   const W = D.watch, card = $("wCard");
   card.hidden = !W; if(!W) return;
   const C = W.cfg || {}, L = W.last || {}, H = W.hours || [];
-  $("wMode").textContent = W.mode === "act" ? "실행" : "알림만";
+  const act = W.mode === "act", s2on = isNum(C.s2) && C.s2 < 100;   // WD_S2=1.0(100%) = 2단계 끔
+  $("wMode").textContent = act ? "실행" : "알림만";
   $("wLast").textContent = W.last_try ? "마지막 확인 " + kst(W.last_try).replace(/^.*일 /, "") : "";
   const s = wState(W), st = $("wSt"); st.textContent = "";
   const n = H.reduce((a, h) => a + h.n, 0), ex = H.reduce((a, h) => a + h.exp, 0);
@@ -695,8 +698,8 @@ function renderWatch(){
   const mx = k => Math.max(0, ...H.map(h => isNum(h[k]) ? h[k] : 0));
   const G = $("wG"); G.textContent = "";
   wGauge(G, {label:"이번 시간 손실", now:L.loss, max:mx("loss"), vtxt:wDrop(L.loss), vcls:cls(-wR1(L.loss)), scale:40, warn:C.warn, bad:C.s1,
-    th:[{v:C.warn, l:"참고", cls:"i"}, {v:C.s1, l:"절반"}, {v:C.s2, l:"전부", cls:"r"}],
-    aria:`이번 시간 손실 ${wDrop(L.loss)}, 1단계 ${C.s1}%, 2단계 ${C.s2}%`,
+    th:[{v:C.warn, l:"참고", cls:"i"}, {v:C.s1, l:"절반"}].concat(s2on ? [{v:C.s2, l:"전부", cls:"r"}] : []),
+    aria:`이번 시간 손실 ${wDrop(L.loss)}, 1단계 ${C.s1}%, 2단계 ${s2on ? C.s2 + "%" : "꺼짐"}`,
     sub:["정시 첫 확인 ", {b:money(L.ref)}, " → 지금 ", {b:money(L.equity)}, " · 24시간 최대 ", {b:mx("loss").toFixed(1) + "%"}]});
   wGauge(G, {label:"24시간 고점 대비", now:L.dd, max:mx("dd"), vtxt:wDrop(L.dd), vcls:cls(-wR1(L.dd)), scale:50, warn:C.c24 / 2, bad:C.c24,
     th:[{v:C.c24, l:`전부·${C.hold_h}시간 쉼`, cls:"r"}], aria:`24시간 고점 대비 ${wDrop(L.dd)}, 기준 ${C.c24}%`,
@@ -741,7 +744,7 @@ function renderWatch(){
     T.className = "tl";
     E.slice(0, 8).forEach(([e, k]) => {
       const K = wKind(k, C), d = el("div", "ev " + K.c), lft = el("div");
-      lft.append(el("div", "c", K.t), el("div", "m", K.act ? `실행 모드였다면 ${K.act} · 지금은 알림만` : k === "FAIL" ? (e.err || "") : ""));
+      lft.append(el("div", "c", K.t), el("div", "m", K.act ? (act ? K.act : `실행 모드였다면 ${K.act} · 지금은 알림만`) : k === "FAIL" ? (e.err || "") : ""));
       const r = el("div", "r n", K.v === "mm" ? (isNum(e.mm) ? e.mm.toFixed(1) + "%" : "") : K.v ? wDrop(e[K.v]) : "");
       r.append(el("span", null, kst(e.ts))); d.append(lft, r); T.append(d);
     });
@@ -749,10 +752,10 @@ function renderWatch(){
   /* 작동 방식 */
   const hw = $("wHowB"); hw.textContent = "";
   const ol = el("ol"), li = parts => { const x = el("li"); parts.forEach(p => x.append(typeof p === "string" ? p : el("b", null, p.b))); ol.append(x); };
-  li(["서버가 ", {b:"1분마다"}, " 바이낸스 계좌 자산(미실현 손익 포함)을 한 번 확인해요. 확인만 하고 주문은 내지 않아요."]);
+  li(["서버가 ", {b:"1분마다"}, " 바이낸스 계좌 자산(미실현 손익 포함)을 한 번 확인해요. " + (act ? "규칙에 걸리면 바로 포지션을 줄여요." : "확인만 하고 주문은 내지 않아요.")]);
   li(["매 정시 첫 확인값이 그 시간의 기준이에요. 정시가 지나면 새 기준으로 다시 시작해요."]);
-  li(["기준보다 ", {b:`−${C.s1}%`}, " 이상인 상태가 ", {b:`${C.s1_k}분 연속`}, "이면 1단계: 전 포지션을 절반으로 줄여요."]);
-  li(["기준보다 ", {b:`−${C.s2}%`}, "면 2단계: 기다리지 않고 바로 전부 정리해요."]);
+  li(["기준보다 ", {b:`−${C.s1}%`}, " 이상인 상태가 ", {b:`${C.s1_k}분 연속`}, "이면 1단계: 전 포지션을 절반으로 줄여요." + (act ? " 다음 오전 9시에 원래 크기로 돌아와요." : "")]);
+  li(s2on ? ["기준보다 ", {b:`−${C.s2}%`}, "면 2단계: 기다리지 않고 바로 전부 정리해요."] : ["2단계(시간 손실로 바로 전부 정리)는 ", {b:"꺼 두었어요"}, ". 1단계와 24시간 규칙만 써요."]);
   li(["지난 24시간 최고 자산보다 ", {b:`−${C.c24}%`}, "면 전부 정리하고 ", {b:`${C.hold_h}시간`}, " 쉬어요. 쉬는 게 끝나면 고점을 새로 잡아요."]);
   if(W.mode !== "act") li(["지금은 ", {b:"알림만"}, " 하는 단계예요. 조건이 맞아도 실제로 줄이지 않고, 디스코드로 '실행 모드였다면 무엇을 했을지'만 보내요. 매분 빠짐없이 도는지 먼저 확인한 뒤 실제로 줄이는 단계로 넘어가요."]);
   hw.append(ol);
