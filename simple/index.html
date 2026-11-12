@@ -85,6 +85,13 @@ h2{font-size:15px;font-weight:700;margin:0;letter-spacing:-.2px}
 .balsub b{font:600 13px var(--num);color:var(--ink2);margin-left:4px}
 .balsub b.up{color:var(--up)} .balsub b.down{color:var(--down)}
 .asof{font-size:12px;color:var(--muted)}
+.since{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:10px;margin-top:14px;padding:12px 14px;border-radius:14px;background:var(--raise)}
+.since .sl{font-size:12px;color:var(--muted)}
+.since .sv{font:700 19px/1.25 var(--num);letter-spacing:-.3px;margin-top:3px;white-space:nowrap}
+.since .ss{font:600 12px var(--num);color:var(--muted);margin-top:2px;white-space:nowrap}
+.since .ss.up{color:var(--up)} .since .ss.down{color:var(--down)}
+.since .sarr{color:var(--muted);font-size:15px}
+.since .sc:last-child{text-align:right}
 .pills{display:flex;flex-wrap:wrap;gap:6px;margin-top:14px}
 .pill{display:inline-flex;align-items:baseline;gap:6px;padding:7px 11px;border-radius:12px;background:var(--raise);font-size:12px;color:var(--ink2)}
 .pill b{font:700 14px var(--num)}
@@ -277,6 +284,11 @@ h2{font-size:15px;font-weight:700;margin:0;letter-spacing:-.2px}
       <div class="bal" id="bal" title="눌러서 원화/USDT 전환"><span class="v" id="balV">—</span><span class="u" id="balU">USDT</span></div>
       <div class="balsub" id="balSub" hidden></div>
       <div class="asof" id="asof"></div>
+      <div class="since" id="since" hidden>
+        <div class="sc"><div class="sl">시작 금액</div><div class="sv n" id="sinceStart">—</div><div class="ss" id="sinceWhen"></div></div>
+        <span class="sarr" aria-hidden="true">→</span>
+        <div class="sc"><div class="sl">지금까지 번 돈</div><div class="sv n" id="sinceGain">—</div><div class="ss" id="sincePct"></div></div>
+      </div>
       <div class="pills" id="pills"></div>
     </div>
     <div class="chartWrap">
@@ -361,7 +373,7 @@ const fx = () => (D.fx && isNum(D.fx.usdtkrw)) ? D.fx.usdtkrw : null;
 function money(v, o = {}){
   if(!isNum(v)) return "—";
   const s = o.sign ? (v > 0 ? "+" : v < 0 ? "−" : "") : (v < 0 ? "−" : ""), a = Math.abs(v);
-  if(cur === "krw" && fx()){ const w = a * fx(); return s + "₩" + (w >= 1e8 ? (w/1e8).toFixed(2) + "억" : Math.round(w).toLocaleString("ko-KR")); }
+  if(cur === "krw" && fx()){ const w = a * fx(); return s + (w >= 1e8 ? (w/1e8).toFixed(2) + "억" : Math.round(w).toLocaleString("ko-KR")); }
   const d = o.dec != null ? o.dec : 2;
   return s + a.toLocaleString("en-US", {minimumFractionDigits:d, maximumFractionDigits:d});
 }
@@ -386,7 +398,7 @@ function renderStatus(){
 
 /* 히어로 */
 function renderHero(){
-  $("balV").textContent = money(D.balance); $("balU").textContent = cur === "krw" && fx() ? "" : "USDT";
+  $("balV").textContent = money(D.balance); $("balU").textContent = cur === "krw" && fx() ? "원" : "USDT";
   // 지금 자산 = 지갑 잔고 + 미실현 손익 (바이낸스 totalWalletBalance · totalUnrealizedProfit)
   const C = D.cash || {}, bs = $("balSub"); bs.textContent = ""; bs.hidden = !isNum(C.wallet);
   if(isNum(C.wallet)){
@@ -394,15 +406,43 @@ function renderHero(){
     if(isNum(C.upnl)){ const u = el("span", null, "미실현"); u.append(el("b", cls(C.upnl), arr(C.upnl) + " " + money(C.upnl, {sign:true}))); bs.append(u); }
   }
   $("asof").textContent = kst(D.asof) + " 기준";
-  const ms = D.month_start, L = D.ledger || [], f = L[0];
+  const ms = D.month_start;
   const items = [
     ["오늘", D.d1],
     ["이번 달", isNum(ms) && ms > 0 ? (D.balance/ms - 1)*100 : null],
-    [f ? md(f.label) + " 시작 이후" : "시작 이후", f && f.eq > 0 ? (D.balance/f.eq - 1)*100 : null],
   ];
   const box = $("pills"); box.textContent = "";
   items.forEach(([k, v]) => { const p = el("span", "pill " + cls(v)); p.append(k + " "); p.append(el("b", null, arr(v) + " " + pct(v))); box.append(p); });
+  renderSince();
   drawEq();
+}
+// 시작 금액 = 기록 첫 달의 월초 자본(ledger[0].ms — 월별 수익률과 같은 기준), 없으면 첫 기록 잔고.
+// 번 돈 = 지금 자산 − 시작 금액 (입금·출금이 있으면 그만큼 섞임)
+// 실전 시작일: 봇 첫 실행 2026-07-05(첫 LIVE 💓 09:00 UTC eq 847) → 그날 자산이 7월 월초 자본 847.24 가 됐다.
+// equity.json 에 시작일이 없어 고정값(지난 날짜라 낡지 않음). 첫 달이 이 달일 때만 쓴다.
+const LIVE_START = "2026-07-05";
+function renderSince(){
+  const f = (D.ledger || [])[0], sb = $("since");
+  let base = null, d0 = null;
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(f && f.label || ""), ls = /^(\d{4})-(\d{2})-(\d{2})$/.exec(LIVE_START);
+  if(f && isNum(f.ms) && f.ms > 0){
+    base = f.ms;
+    if(m) d0 = (ls && ls[1] === m[1] && ls[2] === m[2]) ? Date.UTC(+ls[1], +ls[2]-1, +ls[3]) : Date.UTC(+m[1], +m[2]-1, 1);
+  }
+  else if(f && isNum(f.eq) && f.eq > 0){ base = f.eq; if(m) d0 = Date.UTC(+m[1], +m[2]-1, +m[3]); }
+  sb.hidden = !(isNum(base) && isNum(D.balance));
+  if(sb.hidden) return;
+  const g = D.balance - base, r = (D.balance / base - 1) * 100;
+  $("sinceStart").textContent = money(base);
+  let when = "";
+  if(d0 != null){
+    const t = new Date(d0), a = /^(\d{4})-(\d{2})-(\d{2})/.exec(D.asof || "");
+    when = `${t.getUTCMonth()+1}월 ${t.getUTCDate()}일`;
+    if(a){ const days = Math.round((Date.UTC(+a[1], +a[2]-1, +a[3]) - d0) / 864e5); if(days > 0) when += ` · ${days}일 전`; }
+  }
+  $("sinceWhen").textContent = when;
+  const gv = $("sinceGain"); gv.className = "sv n " + cls(g); gv.textContent = arr(g) + " " + money(g, {sign:true});
+  const pv = $("sincePct"); pv.className = "ss " + cls(r); pv.textContent = pct(r);
 }
 function drawEq(){
   const svg = $("eq"); svg.textContent = "";
