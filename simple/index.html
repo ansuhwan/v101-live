@@ -252,11 +252,11 @@ h2{font-size:15px;font-weight:700;margin:0;letter-spacing:-.2px}
 .how ol b{font-family:var(--num);color:var(--ink)}
 .how p{font-size:11px;color:var(--muted);line-height:1.55;margin:10px 0 0}
 /* 봇 */
-.checks{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.checks{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
 .ck{background:var(--raise);border-radius:14px;padding:11px}
 .ck .k{font-size:11px;color:var(--muted)}
 .ck .v{font:700 14px var(--num);margin-top:4px}
-.ck .s{font-size:11px;color:var(--ink2);margin-top:2px}
+.ck .s{font-size:11px;color:var(--ink2);margin-top:2px;text-wrap:balance}
 .foot{text-align:center;font-size:12px;color:var(--muted);line-height:1.6}
 .foot a{color:var(--goldInk);font-weight:600;text-decoration:none}
 @media (max-width:380px){ .checks{grid-template-columns:1fr} }
@@ -677,8 +677,12 @@ function renderBot(){
   const box = $("checks"); box.textContent = "";
   const add = (k, v, s, c) => { const d = el("div", "ck"); d.append(el("div", "k", k)); d.append(el("div", "v " + (c || ""), v)); d.append(el("div", "s", s)); box.append(d); };
   add("백테와 대조", ok ? "✓ 일치" : "⚠ " + (P.ng || "") + "건", ok ? "전 항목 정상" : "확인 필요", ok ? "up" : "down");
-  add("청산 위험", isNum(mr) ? (mr < mw/2 ? "여유" : mr < mw ? "주의" : "위험") : "—", isNum(mr) ? `증거금 사용 ${mr.toFixed(1)}%` : "", isNum(mr) ? (mr < mw/2 ? "up" : "down") : "");
   add("레버리지", isNum(P.lev) ? P.lev.toFixed(2) + "배" : "—", "변동성 맞춰 매일 조정");
+  // 청산 위험 = 유지증거금 ÷ 잔고(바이낸스 '마진 비율', 100% = 청산). 개시증거금 = 포지션을 열 때 묶인 돈(거래소 레버 설정 따라 달라짐)
+  add("청산 위험", isNum(mr) ? (mr < mw/2 ? "여유" : mr < mw ? "주의" : "위험") : "—", isNum(mr) ? `유지증거금 ${mr.toFixed(1)}% (100%면 청산)` : "", isNum(mr) ? (mr < mw/2 ? "up" : "down") : "");
+  const C = D.cash || {}, unit = cur === "krw" && fx() ? "원" : "USDT";
+  const usedPct = isNum(C.used_pct) ? C.used_pct : (isNum(C.used) && isNum(D.balance) && D.balance > 0 ? C.used / D.balance * 100 : null);
+  add("개시증거금", isNum(C.used) ? money(C.used, {dec:0}) + " " + unit : "—", isNum(usedPct) ? `잔고의 ${usedPct.toFixed(0)}% 사용 중` : "");
 }
 
 /* 1분 감시 (서버 liq_watch.py 가 매분 기록 → push_dashboard 가 매시 5분 'watch' 로 요약). 문턱은 전부 watch.cfg 에서 */
