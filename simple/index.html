@@ -447,7 +447,7 @@ function renderSince(){
 function drawEq(){
   const svg = $("eq"); svg.textContent = "";
   const pts = (D.ledger || []).filter(r => isNum(r.eq)), P = period === "30" ? pts.slice(-31) : pts;
-  const W = Math.max(300, svg.clientWidth || 500), H = 170, top = 26, bot = 22;
+  const W = Math.max(300, svg.clientWidth || 500), H = 170, top = 38, bot = 22;   // top 26→38: 오른쪽 위 '30일·전체' 버튼과 고점 숫자가 겹치지 않게(11-17)
   svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
   if(P.length < 2) return;
   const k = cur === "krw" && fx() ? fx() : 1, vals = P.map(r => r.eq * k);
@@ -459,16 +459,28 @@ function drawEq(){
   let d = ""; vals.forEach((v, i) => d += (i ? "L" : "M") + x(i).toFixed(1) + "," + y(v).toFixed(1));
   svg.append(sv("path", {d: d + `L${W},${H - bot}L0,${H - bot}Z`, fill:"url(#gf)"}));
   svg.append(sv("path", {d, fill:"none", stroke:"var(--gold)", "stroke-width":2.2, "stroke-linejoin":"round", "stroke-linecap":"round"}));
-  // 고점 표시
-  const pi = vals.indexOf(Math.max(...vals));
-  svg.append(sv("circle", {cx:x(pi), cy:y(vals[pi]), r:3.5, fill:"var(--surface)", stroke:"var(--gold)", "stroke-width":2}));
-  const pl = sv("text", {x:Math.min(Math.max(x(pi), 30), W - 30), y:y(vals[pi]) - 9, "text-anchor":"middle", "font-size":11, "font-weight":600, fill:"var(--ink2)", "font-family":"Geist,sans-serif"});
-  pl.textContent = "고점 " + money(P[pi].eq, {dec:0}); svg.append(pl);
+  // 고점: 옅은 점선 기준선 + 왼쪽 끝 라벨(오른쪽 위 '30일·전체' 버튼과 안 겹침) · 고점이 왼쪽 끝 가까우면 점 오른쪽에 · 끝점과 붙으면 고점 원은 생략(11-17 사용자 '수치가 가려짐'·'깔끔하게')
+  const pi = vals.indexOf(Math.max(...vals)), py = y(vals[pi]), lastI = vals.length - 1;
+  svg.append(sv("line", {x1:0, x2:x(pi), y1:py, y2:py, stroke:"var(--muted)", "stroke-width":1, "stroke-dasharray":"2 4", "stroke-opacity":.55}));
+  if(Math.abs(x(pi) - x(lastI)) > 14) svg.append(sv("circle", {cx:x(pi), cy:py, r:3, fill:"var(--surface)", stroke:"var(--gold)", "stroke-width":1.8}));
+  const pl = sv("text", {x:x(pi) > 120 ? 8 : x(pi) + 8, y:py - 6, "text-anchor":"start", "font-size":11, "font-family":"Geist,sans-serif"});
+  const pk1 = sv("tspan", {fill:"var(--muted)", "font-weight":500}); pk1.textContent = "고점 ";
+  const pk2 = sv("tspan", {fill:"var(--ink2)", "font-weight":600}); pk2.textContent = money(P[pi].eq, {dec:0});
+  pl.append(pk1, pk2); svg.append(pl);
   // 날짜 (처음·끝)
   [[0, "start", 8], [P.length - 1, "end", W - 8]].forEach(([i, a, xx]) => { const t = sv("text", {x:xx, y:H - 6, "text-anchor":a, "font-size":11, fill:"var(--muted)", "font-family":"Geist,sans-serif"}); t.textContent = md(P[i].label) === "현재" ? "지금" : md(P[i].label); svg.append(t); });
   // 끝점
   const li = vals.length - 1;
   svg.append(sv("circle", {cx:x(li), cy:y(vals[li]), r:5, fill:"var(--gold)", stroke:"var(--surface)", "stroke-width":2.5}));
+  if(li === pi){ pk1.textContent = "고점·현재 "; }
+  else {   // 현재값: 고점처럼 점선 기준선 + 왼쪽 라벨(고점 라벨은 선 위, 현재 라벨은 선 아래라 안 겹침) · 배경색 테두리(11-17 사용자 '현재 가격도 고점처럼')
+    const cy = y(vals[li]);
+    svg.insertBefore(sv("line", {x1:0, x2:x(li), y1:cy, y2:cy, stroke:"var(--gold)", "stroke-width":1, "stroke-dasharray":"2 4", "stroke-opacity":.6}), svg.querySelector("path"));
+    const cl = sv("text", {x:8, y:cy + 14, "text-anchor":"start", "font-size":11, "font-family":"Geist,sans-serif", stroke:"var(--surface)", "stroke-width":3, "paint-order":"stroke", "stroke-linejoin":"round"});
+    const c1 = sv("tspan", {fill:"var(--muted)", "font-weight":500}); c1.textContent = "현재 ";
+    const c2 = sv("tspan", {fill:"var(--goldInk)", "font-weight":700}); c2.textContent = money(P[li].eq, {dec:0});
+    cl.append(c1, c2); svg.append(cl);
+  }
   // 짚기
   const cross = sv("line", {y1:top - 6, y2:H - bot, stroke:"var(--ink2)", "stroke-width":1, "stroke-opacity":.35, visibility:"hidden"});
   const hd = sv("circle", {r:4.5, fill:"var(--gold)", stroke:"var(--surface)", "stroke-width":2, visibility:"hidden"});
