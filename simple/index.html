@@ -187,9 +187,10 @@ h2{font-size:15px;font-weight:700;margin:0;letter-spacing:-.2px}
 
 
 /* 연도·출처 선택 */
-.src{display:flex;background:var(--raise);border-radius:999px;padding:3px;margin-left:auto}
-.src button{border:0;background:none;font:600 12px var(--txt);color:var(--muted);padding:5px 12px;border-radius:999px;cursor:pointer}
-.src button[aria-pressed="true"]{background:var(--surface);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.08)}
+.src,.cmpSeg{display:flex;background:var(--raise);border-radius:999px;padding:3px;margin-left:auto}
+.src button,.cmpSeg button{border:0;background:none;font:600 12px var(--txt);color:var(--muted);padding:5px 12px;border-radius:999px;cursor:pointer;white-space:nowrap}
+.src button[aria-pressed="true"],.cmpSeg button[aria-pressed="true"]{background:var(--surface);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.08)}
+.cmpSeg button:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
 .years{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:5px;margin:2px 0 12px}
 .years::-webkit-scrollbar{display:none}
 .yr{min-width:0;border:1px solid var(--line);background:var(--surface);border-radius:12px;padding:7px 2px;text-align:center;cursor:pointer;font:inherit;color:var(--ink)}
@@ -251,6 +252,36 @@ h2{font-size:15px;font-weight:700;margin:0;letter-spacing:-.2px}
 .how ol{margin:10px 0 0;padding-left:20px;display:flex;flex-direction:column;gap:6px;font-size:12px;color:var(--ink2);line-height:1.6}
 .how ol b{font-family:var(--num);color:var(--ink)}
 .how p{font-size:11px;color:var(--muted);line-height:1.55;margin:10px 0 0}
+/* 이전과 비교 */
+.cmp-when{font:500 12px var(--num);color:var(--muted);margin:-6px 0 10px}
+.cmp-sum{background:var(--raise);border-radius:12px;padding:12px 14px}
+.cmp-sum .r1{display:flex;align-items:baseline;gap:8px;font-size:12px;color:var(--muted)}
+.cmp-sum .r1 .ft{margin-left:auto;font:500 12px var(--num);color:var(--ink2);white-space:nowrap}
+.cmp-sum .big{font:700 24px/1.15 var(--num);letter-spacing:-.4px;margin-top:4px}
+.cmp-sum .big span{font:600 13px var(--num);margin-left:6px}
+.cmp-sum .parts{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:12px;color:var(--muted);margin-top:6px}
+.cmp-sum .parts b{font:600 12px var(--num);color:var(--ink2);margin-left:4px}
+.cmp-sum .parts b.up{color:var(--up)} .cmp-sum .parts b.down{color:var(--down)}
+.cmp-h{display:flex;align-items:baseline;gap:8px;font-size:12px;font-weight:700;color:var(--ink2);margin:16px 0 2px}
+.cmp-h span{margin-left:auto;font-weight:500;color:var(--muted)}
+/* 전·지금·차이 표: 첫 칸(코인·설명)이 남는 폭을 다 쓰고 숫자 세 칸은 내용만큼 — 줄마다 숫자 열이 맞는다 */
+.cmp-t{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}
+.cmp-t th{font:500 11px var(--txt);color:var(--muted);text-align:right;padding:0 0 5px 10px;white-space:nowrap}
+.cmp-t th:first-child{text-align:left;padding-left:0}
+.cmp-t td{border-top:1px solid var(--line);padding:8px 0 8px 10px;vertical-align:top;text-align:right;white-space:nowrap;font:600 13px/1.35 var(--num)}
+.cmp-t td:first-child{text-align:left;padding-left:0;white-space:normal;width:100%}
+.cmp-t td.b{color:var(--ink2);font-weight:500}
+.cmp-t td.x{font-weight:700}
+.cmp-t .s{font:700 13px/1.35 var(--num)}
+.cmp-t .d{font:400 12px/1.45 var(--txt);color:var(--muted);margin-top:2px}
+.cmp-t tr.more td{padding:4px 0;text-align:left}
+.cmp-t .moreBtn{border:0;background:none;font:700 13px var(--txt);color:var(--ink2);cursor:pointer;padding:6px 0}
+.cmp-t .moreBtn:focus-visible{outline:2px solid var(--gold);outline-offset:2px;border-radius:6px}
+@media (max-width:380px){ .cmp-t td{font-size:12px;padding-left:8px} .cmp-t th{padding-left:8px} }
+.tag{display:inline-block;font-size:10px;font-weight:700;padding:1px 6px;border-radius:5px;margin-right:5px;vertical-align:1px;white-space:nowrap}
+.tag.new{background:var(--goldSoft);color:var(--goldInk)} .tag.out{background:var(--track);color:var(--ink2)} .tag.chg{background:var(--warnSoft);color:var(--warn)}
+.cmp-h + .wempty{margin-top:6px}
+.cmp-note{font-size:11px;color:var(--muted);line-height:1.55;margin-top:12px}
 /* 봇 */
 .checks{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
 .ck{background:var(--raise);border-radius:14px;padding:11px}
@@ -326,6 +357,12 @@ h2{font-size:15px;font-weight:700;margin:0;letter-spacing:-.2px}
   <section class="card reveal">
     <div class="head"><h2>지금 들고 있는 것</h2><span class="aside" id="posAside"></span></div>
     <div id="books"></div>
+  </section>
+
+  <section class="card reveal">
+    <div class="head"><h2>이전과 비교</h2>
+      <div class="cmpSeg" id="cmpSeg" role="group" aria-label="비교 기간"><button type="button" data-h="1" aria-pressed="true">1시간</button><button type="button" data-h="3" aria-pressed="false">3시간</button><button type="button" data-h="24" aria-pressed="false">하루</button></div></div>
+    <div id="cmp"></div>
   </section>
 
   <section class="card reveal">
@@ -538,6 +575,7 @@ const SUB = {trend:"추세", slv:"슬리브", bsk:"바스켓", ens:"앙상블", 
 const ODD_MIN = 5;      // 이보다 작은 어긋남(달러)은 찌꺼기로 본다 — 바이낸스 최소 주문 금액
 const QTOL = 1e-6;      // 이보다 작은 수량은 0 (journal.py QTOL 과 같음)
 const fq = q => String(+q.toPrecision(4));
+const subOf = (k, b) => k === "ovl" ? String(b || "").replace(/^얹기·/, "") : k === "p5" ? String(b || "").replace(/^P5·/, "") : (SUB[k] || b || k);
 function renderBooks(){
   // 어긋남 = 일지의 '미확인' 몫(거래소 수량 − 장부 합 ≠ 0)·모르는 북 · 장부엔 있는데 거래소에 없는 줄(ghost). 생기면 안 되는 것 → 맨 위 경고.
   const known = new Set(BOOKS.flatMap(B => B.ks)), sh = [], odd = [];
@@ -572,12 +610,227 @@ function renderBooks(){
     s.append(gl, mid, r); det.append(s);
     const cs = el("div", "coins");
     xs.forEach(x => { const row = el("div", "coin"); const a = el("span", "s", x.s); a.append(el("span", "side " + (x.side > 0 ? "L" : "S"), x.side > 0 ? "롱" : "숏"));
-      const sub = x.k === "ovl" ? String(x.b || "").replace(/^얹기·/, "") : x.k === "p5" ? String(x.b || "").replace(/^P5·/, "") : (SUB[x.k] || x.k);
+      const sub = subOf(x.k, x.b);
       row.append(a, el("span", "d", `${sub} · ${money(x.n, {dec:0})}`), el("span", "p " + cls(x.up), money(x.up, {sign:true}) + (isNum(x.pc) ? ` (${pct(x.pc)})` : "")));
       cs.append(row); });
     det.append(cs); box.append(det);
   });
 }
+
+/* 이전과 비교 (1시간·3시간·하루) — 봇이 매시 올린 equity.json 은 공개 저장소(GitHub)에 커밋으로 쌓인다.
+   그 커밋들을 불러와 북별 보유·손익을 맞대 본다. 서버·봇은 안 건드림.
+   · 커밋 목록(GitHub API, 비로그인 시간당 60번 한도)은 새 데이터(asof)가 올 때만 1번 부른다(실패 시 다음 5분 새로고침에 다시).
+   · 기록 본문(raw)은 sha 별로 기억해 두고 처음 볼 때만 받는다(하루 ≈ 24개 · 압축 17KB 안팎씩).
+   · 기간이 길면 그 사이 매매가 많아 처음·끝 두 기록만 맞대면 틀어진다 → 매시 기록을 이웃끼리 비교해 이어 더한다. */
+const REPO = location.hostname.endsWith(".github.io") && location.pathname.split("/")[1]
+  ? location.hostname.split(".")[0] + "/" + location.pathname.split("/")[1] : "ansuhwan/v101-live";
+const CMP_H = [1, 3, 24], CMP_LB = {1:"1시간", 3:"3시간", 24:"하루"};
+let cmpH = +store.get("glance.cmpH"); if(!CMP_H.includes(cmpH)) cmpH = 1;
+let cList = null, cListOf = null, cBusy = null, cErr = "", CH = null;   // CH = {of:"asof|기간", snaps:[시작 … 지금 직전]}
+const snapC = new Map();   // sha → 비교에 쓰는 부분만 남긴 기록
+const tms = s => { const m = /^(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2})/.exec(s || ""); return m ? Date.UTC(+m[1], +m[2]-1, +m[3], +m[4], +m[5]) : NaN; };
+function slim(X){
+  const J = X.journal || {}, C = X.cash || {}, B = X.book || {};
+  return {asof:X.asof, balance:X.balance, cash:{wallet:C.wallet, upnl:C.upnl}, book:{gross_x:B.gross_x, net_x:B.net_x},
+    journal:{pos:(J.pos || []).map(p => ({s:p.s, side:p.side, px:p.px, ghost:p.ghost, books:(p.books || []).map(b => ({k:b.k, b:b.b, q:b.q, upnl:b.upnl}))})),
+      closed:(J.closed || []).map(c => ({id:c.id, k:c.k, s:c.s, side:c.side, pnl:c.pnl, why:c.why, t_out:c.t_out}))}};
+}
+async function loadPrev(){
+  if(!D) return;
+  const want = D.asof, h = cmpH, tag = want + "|" + h;
+  if((CH && CH.of === tag) || cBusy === tag) return;
+  cBusy = tag;
+  try{
+    if(cListOf !== want){
+      const r = await fetch(`https://api.github.com/repos/${REPO}/commits?path=equity.json&per_page=30`);
+      if(!r.ok) throw new Error(r.status === 403 || r.status === 429 ? "GitHub 조회 한도" : "HTTP " + r.status);
+      const byT = new Map();   // 같은 시각 커밋이 둘이면 최신(목록 앞쪽) 하나만
+      (await r.json()).forEach(x => { const t = tms(String((x.commit || {}).message || "").replace(/^equity\s+/, "")); if(isFinite(t) && !byT.has(t)) byT.set(t, {sha:x.sha, t}); });
+      cList = [...byT.values()].sort((a, b) => a.t - b.t); cListOf = want;
+    }
+    const t1 = tms(want), tA = t1 - h*36e5, before = cList.filter(x => x.t < t1);
+    const st = before.filter(x => x.t <= tA + 6e5).pop() || before[0];   // 목표 시각 이전 중 가장 늦은 것(10분 여유), 없으면 가장 이른 것
+    if(!st) throw new Error("이전 기록 없음");
+    const need = before.filter(x => x.t >= st.t);
+    await Promise.all(need.filter(x => !snapC.has(x.sha)).map(async x => {
+      const r = await fetch(`https://raw.githubusercontent.com/${REPO}/${x.sha}/equity.json`);
+      if(!r.ok) throw new Error("HTTP " + r.status);
+      snapC.set(x.sha, slim(await r.json()));
+    }));
+    const keep = new Set(cList.map(x => x.sha)); [...snapC.keys()].forEach(k => { if(!keep.has(k)) snapC.delete(k); });
+    if(D.asof === want && cmpH === h){ CH = {of:tag, snaps:need.map(x => snapC.get(x.sha))}; cErr = ""; }
+  }catch(e){ if(D.asof === want && cmpH === h){ CH = null; cErr = e.message; } }
+  finally{ if(cBusy === tag) cBusy = null; }
+  if(D.asof === want && cmpH === h) renderCmp();
+}
+// 북별 보유: 키 = 북|코인|방향 (지금 들고 있는 것 칸과 같은 단위)
+// 수량이 음수인 몫(일지 '미확인' = 거래소가 장부보다 적음)은 포지션이 아니라 장부 보정이라 뺀다.
+// 예: 11-22 01:02 UTC IDOL 얹기 손절 → 01:05 기록엔 얹기 1,726개가 아직 남고 미확인 −1,726 이 붙음 → 절댓값으로 세면 없는 롱이 생겨 −9 가 잘못 잡혔다.
+function holdMap(X){
+  const m = new Map();
+  ((X.journal || {}).pos || []).forEach(p => { if(p.ghost) return; (p.books || []).forEach(b => {
+    if((b.q || 0) < 0) return;
+    const q = Math.abs(b.q || 0); if(q < QTOL) return;
+    const key = `${b.k}|${p.s}|${p.side}`, o = m.get(key) || {k:b.k, b:b.b, s:p.s, side:p.side, q:0, up:0, uk:false, px:p.px};
+    // uk = 평가 손익을 모름: 일지에 그 북 진입가가 없을 때(예: P5 와 같은 코인을 든 MN 레그) upnl 이 비어 온다 → 0 으로 세지 않는다
+    o.q += q; if(isNum(b.upnl)) o.up += b.upnl; else o.uk = true; m.set(key, o); }); });
+  return m;
+}
+const pxOf = X => { const m = {}; ((X.journal || {}).pos || []).forEach(p => { if(isNum(p.px) && p.px > 0) m[p.s] = p.px; }); return m; };
+// 끝난 거래 t_out(한국시간 'MM-DD HH:MM', 연도 없음) → UTC ms. 연도는 기준 시각 쪽에서 가져오고 연말을 넘기면 한 해 뺀다.
+function toutMs(t, ref){
+  const m = /^(\d{2})-(\d{2}) (\d{2}):(\d{2})/.exec(t || ""); if(!m) return NaN;
+  const y = new Date(ref).getUTCFullYear(); let v = Date.UTC(y, +m[1]-1, +m[2], +m[3], +m[4]) - 9*36e5;
+  if(v > ref + 864e5) v = Date.UTC(y - 1, +m[1]-1, +m[2], +m[3], +m[4]) - 9*36e5;
+  return v;
+}
+// 이웃한 두 기록(P → Q) 사이 북|코인|방향별 손익 d:
+//  · 그 사이 끝난 거래 기록(id 가 새로 생기고 t_out 이 두 시각 사이)이 있으면 = 뒤 평가 − 앞 평가 + 실현 (일지 그대로)
+//  · 새로 들어감 = 뒤 평가(진입 후 손익)
+//  · 그대로·늘림·줄임·기록 없는 정리 = 앞 수량 × 가격 변화. 봇은 정시(:00)에 수량을 바꾸니(두 기록 시각 :05 사이의 끝 무렵)
+//    앞 수량이 거의 한 시간 내내 들고 있던 양이다. MN 리밸런싱처럼 일지에 실현 기록이 안 남는 조정도 가격 손익으로 잡힌다.
+//  · 가격을 모르면(코인을 다 정리해 뒤 가격이 없음) 계산 안 함(null) → 차이 줄에 들어감
+function pairRows(P, Q){
+  const A = holdMap(P), B = holdMap(Q), old = new Set(((P.journal || {}).closed || []).map(c => c.id)), px0 = pxOf(P), px1 = pxOf(Q);
+  const t0 = tms(P.asof), t1 = tms(Q.asof);
+  const cn = ((Q.journal || {}).closed || []).filter(c => !old.has(c.id) && (t => !isFinite(t) || (t > t0 - 6e5 && t <= t1 + 6e5))(toutMs(c.t_out, t1)));
+  const keys = new Set([...A.keys(), ...B.keys()]); cn.forEach(c => keys.add(`${c.k}|${c.s}|${c.side}`));
+  return [...keys].map(key => {
+    const a = A.get(key), b = B.get(key), cs = cn.filter(c => `${c.k}|${c.s}|${c.side}` === key), base = b || a || cs[0];
+    const R = cs.reduce((s, c) => s + (c.pnl || 0), 0), q0 = a ? a.q : 0, q1 = b ? b.q : 0;
+    const pa = px0[base.s], pb = px1[base.s], mv = isNum(pa) && isNum(pb) ? base.side * q0 * (pb - pa) : null;
+    const uk = (a && a.uk) || (b && b.uk);   // 평가 손익을 모르는 몫이 끼면 평가 차로는 계산 안 함
+    let d;
+    if(cs.length) d = uk ? null : (b ? b.up : 0) - (a ? a.up : 0) + R;
+    else if(!q0 && q1) d = uk ? null : b.up;
+    else if(mv != null) d = mv;
+    else d = !uk && q0 && q1 && Math.abs(q1 - q0) / q0 <= .005 ? b.up - a.up : null;
+    return {key, k:base.k, b:base.b, s:base.s, side:base.side, d, R, cs};
+  });
+}
+// 묶음 제목이 없는 칸이라 얹기·P5 는 앞말을 붙인다(P5·MN42 가 MN 과 헷갈리지 않게)
+const cmpLb = (k, b) => k === "ovl" ? "얹기 " + subOf(k, b) : k === "p5" ? "P5 " + subOf(k, b) : subOf(k, b);
+// 전·지금·차이 표. 줄 = {s, side, u0·h0(전 평가 손익·그때 들고 있었나), u1·h1(지금), d(차이), desc(설명 노드)}
+const cmpOpen = new Set();   // 펼친 '나머지' — 5분마다 다시 그려도 유지
+function cmpTable(id, rows, n, lab, H){
+  const t = el("table", "cmp-t"), th = el("thead"), hr = el("tr");
+  ["코인", H === 24 ? "하루 전" : H + "시간 전", "지금", "차이"].forEach(x => hr.append(el("th", null, x)));
+  th.append(hr); t.append(th);
+  // '—' = 그때 안 들고 있었음 · '?' = 들고 있었지만 일지에 진입가가 없어 평가 손익을 모름
+  const tb = el("tbody"), extra = [], v = (x, held, known) => !held ? "—" : known ? money(x, {sign:true}) : "?";
+  rows.forEach((r, i) => {
+    const tr = el("tr"), c = el("td"), s = el("div", "s", r.s);
+    s.append(el("span", "side " + (r.side > 0 ? "L" : "S"), r.side > 0 ? "롱" : "숏")); c.append(s, r.desc);
+    tr.append(c, el("td", "b", v(r.u0, r.h0, r.k0)), el("td", r.h1 && r.k1 ? cls(r.u1) : "", v(r.u1, r.h1, r.k1)),
+      el("td", "x " + cls(r.d), r.d == null ? "—" : money(r.d, {sign:true})));
+    if(i >= n){ tr.hidden = !cmpOpen.has(id); extra.push(tr); }
+    tb.append(tr);
+  });
+  if(extra.length){
+    const tr = el("tr", "more"), td = el("td"), btn = el("button", "moreBtn"); td.colSpan = 4; btn.type = "button";
+    const lb = () => { const o = cmpOpen.has(id); btn.textContent = o ? "▾ 접기" : `▸ ${lab} ${extra.length}개`; btn.setAttribute("aria-expanded", o ? "true" : "false"); };
+    btn.onclick = () => { if(cmpOpen.has(id)) cmpOpen.delete(id); else cmpOpen.add(id); extra.forEach(x => x.hidden = !cmpOpen.has(id)); lb(); };
+    lb(); td.append(btn); tr.append(td); tb.append(tr);
+  }
+  t.append(tb); return t;
+}
+function cmpWhen(a, b){   // 한국시간 'M월 D일 HH:MM → HH:MM' (날이 다르면 뒤에도 날짜)
+  const A = kst(a), B = kst(b), da = A.replace(/ \d{2}:\d{2}$/, ""), db = B.replace(/ \d{2}:\d{2}$/, "");
+  return da === db ? `${A} → ${B.split(" ").pop()}` : `${A} → ${B}`;
+}
+function renderCmp(){
+  const box = $("cmp"); box.textContent = "";
+  $("cmpSeg").querySelectorAll("button").forEach(b => b.setAttribute("aria-pressed", +b.dataset.h === cmpH ? "true" : "false"));
+  const H = cmpH, LB = CMP_LB[H], one = H === 1, per = one ? "이 시간" : "이 기간";
+  if(!CH || CH.of !== D.asof + "|" + H){
+    box.append(el("div", "wempty", cErr ? `${LB} 전 기록을 못 불러왔어요 (${cErr}). 5분 뒤 다시 시도해요.` : `${LB} 전 기록을 불러오는 중…`));
+    return;
+  }
+  const S = CH.snaps.concat([D]), P = S[0], t0 = tms(P.asof), t1 = tms(D.asof), spanH = Math.round((t1 - t0) / 36e5);
+  let holes = 0; for(let i = 1; i < S.length; i++) holes += Math.max(0, Math.round((tms(S[i].asof) - tms(S[i-1].asof)) / 36e5) - 1);
+  box.append(el("div", "cmp-when", cmpWhen(P.asof, D.asof) + (spanH !== H ? ` · ${spanH}시간` : "")));
+  // ① 잔고 요약: 잔고 변화 = 지갑 변화(실현·수수료·펀딩) + 미실현 변화
+  const dB = D.balance - P.balance, C0 = P.cash || {}, C1 = D.cash || {}, B0 = P.book || {}, B1 = D.book || {};
+  const sm = el("div", "cmp-sum"), r1 = el("div", "r1");
+  r1.append(el("span", null, "잔고 변화"), el("span", "ft", `${money(P.balance)} → ${money(D.balance)}`)); sm.append(r1);
+  const big = el("div", "big " + cls(dB), arr(dB) + " " + money(dB, {sign:true})); big.append(el("span", null, isNum(dB) && P.balance ? pct(dB / P.balance * 100) : "")); sm.append(big);
+  const part = (box2, k, v, txt) => { const s = el("span", null, k); s.append(el("b", cls(v), txt != null ? txt : money(v, {sign:true}))); box2.append(s); };
+  const p1 = el("div", "parts");
+  if(isNum(C1.wallet) && isNum(C0.wallet)) part(p1, "실현", C1.wallet - C0.wallet);
+  if(isNum(C1.upnl) && isNum(C0.upnl)) part(p1, "보유 평가", C1.upnl - C0.upnl);
+  if(p1.childNodes.length) sm.append(p1);
+  const p2 = el("div", "parts"), bx = v => isNum(v) ? (v < 0 ? "−" : "") + Math.abs(v).toFixed(2) : "—";
+  if(isNum(B0.gross_x) || isNum(B1.gross_x)) part(p2, "총노출", null, `${bx(B0.gross_x)} → ${bx(B1.gross_x)}배`);
+  if(isNum(B0.net_x) || isNum(B1.net_x)) part(p2, "순노출", null, `${bx(B0.net_x)} → ${bx(B1.net_x)}배`);
+  if(p2.childNodes.length) sm.append(p2);
+  box.append(sm);
+  // ② 이웃 기록끼리 비교한 손익(차이)을 북|코인|방향별로 이어 더함 + 처음·끝 보유로 상태(새로·정리·늘림·줄임)
+  const acc = new Map();
+  for(let i = 1; i < S.length; i++) pairRows(S[i-1], S[i]).forEach(r => {
+    const o = acc.get(r.key) || {key:r.key, k:r.k, b:r.b, s:r.s, side:r.side, d:0, known:0, nul:0, R:0, cs:[]};
+    if(r.d == null) o.nul++; else { o.d += r.d; o.known++; }
+    o.R += r.R; o.cs.push(...r.cs); acc.set(r.key, o);
+  });
+  const A = holdMap(P), B = holdMap(D);
+  // 실현(rz) = 차이 − (지금 − 전): 그 사이 정리·수량 줄임으로 지갑에 들어간 몫.
+  // 일지에 끝난 거래 기록이 있으면 그 값과 같고, 없으면(MN 리밸런싱·수량 조정 등) 계산으로 나온 추정이라 '약'을 붙인다.
+  const rows = [...acc.values()].map(o => {
+    const a = A.get(o.key), b = B.get(o.key), q0 = a ? a.q : 0, q1 = b ? b.q : 0, u0 = a ? a.up : 0, u1 = b ? b.up : 0, d = o.known ? o.d : null;
+    let st = "same";
+    if(!q0 && q1) st = "new"; else if(q0 && !q1) st = "out"; else if(!q0 && !q1) st = "inout";
+    else if(Math.abs(q1 - q0) / q0 > .005) st = q1 > q0 ? "up" : "down";
+    const k0 = !(a && a.uk), k1 = !(b && b.uk);   // 그때 평가 손익을 아는가
+    const rz = d == null || !k0 || !k1 ? null : d - (u1 - u0);
+    return {...o, d, q0, q1, u0, u1, h0:!!a, h1:!!b, k0, k1, st, rz, est:!o.cs.length, nc:o.cs.length,
+      n1:b ? q1 * (b.px || 0) : 0, why:(o.cs.slice().reverse().find(c => c.why) || {}).why || ""};
+  });
+  const rzTxt = (rz, est) => rz != null && Math.abs(rz) >= .05 ? ` · 실현 ${est ? "약 " : ""}${money(rz, {sign:true})} 포함` : "";
+  const TAG = {new:["새로", "new"], out:["정리", "out"], inout:["들어갔다 나옴", "out"], up:["늘림", "chg"], down:["줄임", "chg"]};
+  const ORD = {out:0, inout:1, new:2, up:3, down:3};
+  const ch = rows.filter(r => r.st !== "same").sort((x, y) => ORD[x.st] - ORD[y.st] || Math.abs(y.d || 0) - Math.abs(x.d || 0));
+  const same = rows.filter(r => r.st === "same").length;
+  const h1 = el("div", "cmp-h", `바뀐 포지션 ${ch.length}개`); h1.append(el("span", null, `그대로 ${same}개`)); box.append(h1);
+  if(!ch.length) box.append(el("div", "wempty", `${per}엔 새로 들어가거나 정리한 포지션이 없어요.`));
+  else box.append(cmpTable("ch", ch.map(r => {
+    const desc = el("div", "d"), [tl, tc] = TAG[r.st]; desc.append(el("span", "tag " + tc, tl));
+    let det = cmpLb(r.k, r.b);
+    if(r.st === "new") det += ` · 규모 ${money(r.n1, {dec:0})}`;
+    else if(r.st === "out" || r.st === "inout") det += (r.nc > 1 ? ` · ${r.nc}번` : "") + (r.why ? ` · ${r.why}` : "");
+    else det += ` · 수량 ${pct((r.q1 / r.q0 - 1) * 100, 0)}`;
+    desc.append(det + rzTxt(r.rz, r.est) + (r.d != null && r.nul ? " · 일부만 계산" : ""));
+    return {s:r.s, side:r.side, u0:r.u0, h0:r.h0, k0:r.k0, u1:r.u1, h1:r.h1, k1:r.k1, d:r.d, desc};
+  }), 6, "나머지 바뀐 포지션", H));
+  // ③ 코인별로 합친 전·지금·차이(여러 북이 같은 코인을 들 수 있음) + 가격 변화(그 코인이 처음·마지막으로 보인 기록의 가격)
+  const cm = new Map();
+  rows.forEach(r => { const k = r.s + "|" + r.side, o = cm.get(k) || {s:r.s, side:r.side, d:null, u0:0, u1:0, h0:false, h1:false, k0:true, k1:true, rz:0, rzk:true, est:false, ks:[]};
+    if(r.d != null) o.d = (o.d || 0) + r.d;
+    if(r.rz == null) o.rzk = false; else { o.rz += r.rz; if(r.est && Math.abs(r.rz) >= .05) o.est = true; }
+    o.u0 += r.u0; o.u1 += r.u1; o.h0 = o.h0 || r.h0; o.h1 = o.h1 || r.h1; o.k0 = o.k0 && r.k0; o.k1 = o.k1 && r.k1;
+    const sb = cmpLb(r.k, r.b); if(!o.ks.includes(sb)) o.ks.push(sb); cm.set(k, o); });
+  const pxs = S.map(pxOf), pxFirst = s => (pxs.find(m => isNum(m[s])) || {})[s], pxLast = s => (pxs.slice().reverse().find(m => isNum(m[s])) || {})[s];
+  const mv = [...cm.values()].sort((a, b) => Math.abs(b.d || 0) - Math.abs(a.d || 0));
+  const sumD = rows.reduce((a, r) => a + (r.d || 0), 0);
+  const h2 = el("div", "cmp-h", "코인별 손익"); h2.append(el("span", null, "차이 큰 순")); box.append(h2);
+  box.append(cmpTable("mv", mv.map(o => {
+    const a0 = pxFirst(o.s), a1 = pxLast(o.s);
+    const desc = el("div", "d", (isNum(a0) && isNum(a1) ? `가격 ${pct((a1 / a0 - 1) * 100)} · ` : "") + o.ks.join("·") + rzTxt(o.d == null || !o.rzk ? null : o.rz, o.est));
+    return {s:o.s, side:o.side, u0:o.u0, h0:o.h0, k0:o.k0, u1:o.u1, h1:o.h1, k1:o.k1, d:o.d, desc};
+  }), 5, "나머지", H));
+  const etc = dB - sumD, nNull = rows.filter(r => r.d == null).length, nUk = rows.filter(r => (r.h0 && !r.k0) || (r.h1 && !r.k1)).length;
+  box.append(el("div", "cmp-note",
+    `전·지금 = 그때 들고 있던 포지션의 평가 손익이에요('지금 들고 있는 것'과 같은 계산, 북마다 자기 진입가 기준). ` +
+    `차이 = 그 사이 번 돈·잃은 돈 = 지금 − 전 + 실현(정리·수량 줄임으로 지갑에 들어간 몫, '약'은 기록이 없어 계산한 값). ` +
+    (one ? "" : `매시 기록 ${S.length}개를 한 시간씩 비교해 이어 더했어요. `) +
+    `차이 합 ${money(sumD, {sign:true})} · 실제 잔고 변화 ${money(dB, {sign:true})} (어긋남 ${money(etc, {sign:true})}: 수수료·펀딩·체결가 차이 등).` +
+    (nUk ? ` '?' = 일지에 진입가가 없어 평가 손익을 모르는 몫(차이는 가격으로 계산돼요).` : "") +
+    (nNull ? ` 차이 '—' ${nNull}줄은 계산하지 못했어요(어긋남에 포함).` : "") +
+    (spanH !== H ? ` 봇 기록이 비어 있어 ${spanH}시간 전과 비교했어요.` : "") +
+    (holes ? ` 중간에 빠진 기록이 ${holes}시간 있어 그 구간은 앞뒤 기록으로 계산했어요.` : "")));
+}
+$("cmpSeg").querySelectorAll("button").forEach(b => b.onclick = () => {
+  cmpH = +b.dataset.h; store.set("glance.cmpH", String(cmpH));
+  if(D){ renderCmp(); loadPrev(); }
+});
 
 /* 거래 타임라인 */
 const tk = t => { const m = /^(\d{2})-(\d{2}) (\d{2}):(\d{2})/.exec(t || ""); return m ? +(m[1] + m[2] + m[3] + m[4]) : 0; };
@@ -821,7 +1074,7 @@ function renderWatch(){
 
 function render(){
   $("cur").textContent = cur === "krw" ? "$" : "₩";
-  renderStatus(); renderHero(); renderDD(); renderWatch(); renderBooks(); renderTrades(); renderRebal(); renderMonths(); renderBot();
+  renderStatus(); renderHero(); renderDD(); renderWatch(); renderBooks(); renderCmp(); renderTrades(); renderRebal(); renderMonths(); renderBot();
   $("snap").textContent = kst(D.asof);
 }
 /* 화면 모드: 자동(기기 설정 따름)·밝게·어둡게 — 이 기기 브라우저에 저장 */
@@ -858,7 +1111,7 @@ async function load(){
   try{
     const r = await fetch(DATA + (DATA.includes("?") ? "&" : "?") + "t=" + Date.now(), {cache:"no-store"});
     if(!r.ok) throw new Error("HTTP " + r.status);
-    D = await r.json(); $("err").hidden = true; render();
+    D = await r.json(); $("err").hidden = true; render(); loadPrev();
   }catch(e){
     $("err").textContent = "데이터를 못 불러왔어요(" + e.message + "). 인터넷 연결을 확인하고 위로 당겨 새로고침하세요." + (D ? " 지금은 직전 화면입니다." : "");
     $("err").hidden = false;
