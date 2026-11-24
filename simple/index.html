@@ -115,7 +115,7 @@ h2{font-size:15px;font-weight:700;margin:0;letter-spacing:-.2px}
 .zone{position:absolute;top:0;bottom:0;right:0;background:repeating-linear-gradient(135deg,var(--downSoft) 0 6px,transparent 6px 11px)}
 .fillr{position:absolute;left:0;top:0;bottom:0;border-radius:6px}
 .pin{position:absolute;top:6px;width:4px;height:28px;border-radius:2px;background:var(--ink);transform:translateX(-50%)}
-.tick{position:absolute;top:32px;font:500 11px var(--num);color:var(--muted);transform:translateX(-50%)}
+.tick{position:absolute;top:32px;font:500 11px var(--num);color:var(--muted);transform:translateX(-50%);white-space:nowrap}
 .tick.g{color:var(--down);font-weight:700}
 .ddnote{font-size:12px;color:var(--ink2);line-height:1.55;margin-top:6px}
 .ddnote b{font-family:var(--num)}
@@ -399,7 +399,6 @@ h2{font-size:15px;font-weight:700;margin:0;letter-spacing:-.2px}
 "use strict";
 let D = null;
 const DATA = new URLSearchParams(location.search).get("data") || "../equity.json";
-const GUARD = -37.5;   // 각오선: 백테 최대낙폭 × 약 1.5 (MN 교체 전 구성 기준)
 let cur = "usdt", period = "all";
 const $ = id => document.getElementById(id);
 const store = {get(k){try{return localStorage.getItem(k)}catch(e){return null}},set(k,v){try{localStorage.setItem(k,v)}catch(e){}}};
@@ -551,10 +550,11 @@ function renderDD(){
   fill.style.background = ap >= ag*.75 ? "linear-gradient(90deg,var(--gold),var(--warn))" : "var(--gold)"; rail.append(fill); R.append(rail);
   const pin = el("div", "pin"); pin.style.left = (ap/max*100) + "%"; R.append(pin);
   [0, 10, 20, 30].filter(t => Math.abs(t - ag) > 4 && Math.abs(t - ap) > 3).forEach(t => { const k = el("div", "tick", t ? "−" + t : "0"); k.style.left = (t/max*100) + "%"; R.append(k); });
-  const gk = el("div", "tick g", "각오 " + GUARD); gk.style.left = (ag/max*100) + "%"; R.append(gk);
-  R.setAttribute("aria-label", `고점 대비 ${pct(p)}, 각오선 ${GUARD}%`);
+  const gs = GUARD.toFixed(1).replace("-", "−");
+  const gk = el("div", "tick g", "각오 " + gs); gk.style.left = (ag/max*100) + "%"; R.append(gk);
+  R.setAttribute("aria-label", `고점 대비 ${pct(p)}, 각오선 ${gs}%`);
   const n = $("ddNote"); n.textContent = "";
-  n.append("각오선까지 "); n.append(el("b", null, (ag - ap).toFixed(1) + "%p")); n.append(" 남았어요. 각오선은 실매매에서 나올 수 있다고 본 최대 손실(백테 최대 낙폭 × 약 1.5)입니다.");
+  n.append("각오선까지 "); n.append(el("b", null, (ag - ap).toFixed(1) + "%p")); n.append(` 남았어요. 각오선은 실매매에서 나올 수 있다고 본 최대 손실(지금 라이브 구성 백테 최대 낙폭 ${(+BT.mdd).toFixed(1).replace("-", "−")}% × 1.5)입니다.`);
 }
 
 const ICON = {
@@ -879,6 +879,8 @@ function renderTrades(){
 
 /* 월별 · 연도별 (실계좌 / 백테) */
 const BT = {"monthly": {"2020-03": 55.9, "2020-04": 2.5, "2020-05": 23.8, "2020-06": -2.5, "2020-07": 84.4, "2020-08": 54.5, "2020-09": 33.7, "2020-10": 25.3, "2020-11": 76.5, "2020-12": 32.5, "2021-01": 136.2, "2021-02": 117.3, "2021-03": 55.1, "2021-04": 57.2, "2021-05": 194.4, "2021-06": 14.0, "2021-07": 63.8, "2021-08": 27.9, "2021-09": 39.6, "2021-10": 51.9, "2021-11": 23.8, "2021-12": 9.8, "2022-01": 14.1, "2022-02": 17.4, "2022-03": 3.0, "2022-04": -14.2, "2022-05": 76.3, "2022-06": 20.7, "2022-07": 21.1, "2022-08": 1.1, "2022-09": 0.7, "2022-10": -2.5, "2022-11": 42.0, "2022-12": 0.4, "2023-01": 92.7, "2023-02": 14.8, "2023-03": 45.0, "2023-04": -6.0, "2023-05": -9.8, "2023-06": 53.5, "2023-07": -3.0, "2023-08": 26.1, "2023-09": -2.2, "2023-10": 74.4, "2023-11": 5.0, "2023-12": 89.2, "2024-01": -1.0, "2024-02": 84.5, "2024-03": 8.7, "2024-04": 44.8, "2024-05": -0.4, "2024-06": 8.5, "2024-07": 42.6, "2024-08": 16.2, "2024-09": 2.0, "2024-10": 22.3, "2024-11": 186.6, "2024-12": 36.1, "2025-01": -8.9, "2025-02": 77.4, "2025-03": -15.2, "2025-04": 90.4, "2025-05": 37.7, "2025-06": 9.6, "2025-07": 68.5, "2025-08": 48.0, "2025-09": 62.0, "2025-10": 9.6, "2025-11": 39.0, "2025-12": 22.1, "2026-01": 60.7, "2026-02": 52.4, "2026-03": 14.8, "2026-04": 155.9, "2026-05": 39.5, "2026-06": 93.9, "2026-07": 76.0, "2026-08": 93.1, "2026-09": 10.6, "2026-10": 0.7, "2026-11": 45.8}, "yearly": {"2020": 2053.4, "2021": 25273.2, "2022": 331.6, "2023": 1631.2, "2024": 2405.2, "2025": 2856.4, "2026": 10641.3}, "range": ["2020-03-01", "2026-11-24"], "mdd": -29.0, "asof": "2026-11-24 07:00 UTC", "tag": "1124", "p5_end": "2026-09-30"};
+// 각오선 = 지금 라이브 구성 백테 최대 낙폭 × 1.5 — BT 를 갱신하면 같이 따라감(따로 고칠 숫자 없음)
+const GUARD = Math.round(BT.mdd * 1.5 * 10) / 10;
 let src = "real", year = null;
 function seriesOf(k){ return k === "bt" ? (BT.monthly || {}) : (D.real_monthly || {}); }
 function yearsOf(M){ return [...new Set(Object.keys(M).map(k => k.slice(0, 4)))].sort(); }
